@@ -1,4 +1,5 @@
-import { Search } from 'lucide-react'
+import { useEffect } from 'react'
+import { Search, Loader2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useWarStore } from '@/infrastructure/stores/warStore'
 import { Input } from '@/presentation/components/ui/input'
@@ -20,8 +21,16 @@ const TeamBadge = ({ team }: { team: string }) => {
 
 export const WarPage = () => {
   const { t } = useTranslation()
-  const { session, searchQuery, filterTeam, filterRound, setSearchQuery, setFilterTeam, setFilterRound, getFiltered } = useWarStore()
+  const { session, searchQuery, filterTeam, filterRound, setSearchQuery, setFilterTeam, setFilterRound, getFiltered, loadParticipants, loading } = useWarStore()
   const participants = getFiltered()
+
+  useEffect(() => { loadParticipants() }, [loadParticipants])
+
+  if (loading && session.participants.length === 0) return (
+    <div className="flex items-center justify-center h-64 text-[var(--color-text-muted)]">
+      <Loader2 className="w-5 h-5 animate-spin mr-2" /> {t('common.loading')}
+    </div>
+  )
 
   const stats = {
     total: session.participants.length,

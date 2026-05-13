@@ -1,8 +1,8 @@
 import { create } from 'zustand'
+import { supabase } from '@/lib/supabase'
 import type { WarParticipant, WarSession, WarRoundEntry } from '@/domain/entities/War'
-import mockData from '../mockData.json'
 
-const defaultSession: WarSession = {
+const defaultSession: Omit<WarSession, 'participants'> = {
   id: 'black-gold-1',
   name: 'BLACK GOLD',
   rounds: [
@@ -11,15 +11,16 @@ const defaultSession: WarSession = {
     { label: 'Đợt 3', date: '2026-04-26' },
     { label: 'Đợt 4', date: '2026-05-10' },
   ],
-  participants: mockData.warParticipants as WarParticipant[],
 }
 
 interface WarStore {
   session: WarSession
+  loading: boolean
   searchQuery: string
-  filterTeam: string   // '', 'A', 'B'
-  filterRound: number  // 0=전체, 1~4
+  filterTeam: string
+  filterRound: number
 
+  loadParticipants: () => Promise<void>
   setParticipants: (participants: WarParticipant[]) => void
   updateEntry: (participantId: string, round: number, entry: Partial<WarRoundEntry>) => void
   setSearchQuery: (q: string) => void
@@ -28,11 +29,32 @@ interface WarStore {
   getFiltered: () => WarParticipant[]
 }
 
+const toParticipant = (row: Record<string, string>): WarParticipant => ({
+  id: row.id,
+  inGameName: row.in_game_name,
+  zaloName: row.zalo_name ?? '',
+  cp: row.cp,
+  round1: { team: row.r1_team as WarRoundEntry['team'], role: row.r1_role as WarRoundEntry['role'], note: row.r1_note },
+  round2: { team: row.r2_team as WarRoundEntry['team'], role: row.r2_role as WarRoundEntry['role'], note: row.r2_note },
+  round3: { team: row.r3_team as WarRoundEntry['team'], role: row.r3_role as WarRoundEntry['role'], note: row.r3_note },
+  round4: { team: row.r4_team as WarRoundEntry['team'], role: row.r4_role as WarRoundEntry['role'], note: row.r4_note },
+})
+
 export const useWarStore = create<WarStore>((set, get) => ({
-  session: defaultSession,
+  session: { ...defaultSession, participants: [] },
+  loading: false,
   searchQuery: '',
   filterTeam: '',
   filterRound: 0,
+
+  loadParticipants: async () => {
+    set({ loading: true })
+    const { data } = await supabase.from('war_participants').select('*').order('created_at')
+    set((s) => ({
+      session: { ...s.session, participants: (data ?? []).map(toParticipant) },
+      loading: false,
+    }))
+  },
 
   setParticipants: (participants) =>
     set((s) => ({ session: { ...s.session, participants } })),

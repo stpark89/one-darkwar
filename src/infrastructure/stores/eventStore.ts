@@ -1,69 +1,93 @@
 import { create } from 'zustand'
+import { supabase } from '@/lib/supabase'
 import type { EventSession, EventAttendance, AttendanceStatus } from '@/domain/entities/Event'
-import mockData from '../mockData.json'
 
 interface EventStore {
   events: EventSession[]
   attendance: EventAttendance[]
+  loading: boolean
   searchQuery: string
 
-  setEvents: (events: EventSession[]) => void
-  setAttendance: (attendance: EventAttendance[]) => void
-  addEvent: (name: string, date: string) => void
-  updateStatus: (memberId: string, eventKey: string, status: AttendanceStatus) => void
+  loadData: () => Promise<void>
+  addEvent: (name: string, date: string) => Promise<void>
+  updateStatus: (memberId: string, eventKey: string, status: AttendanceStatus) => Promise<void>
   setSearchQuery: (q: string) => void
-  syncMembers: (members: { id: string; inGameName: string }[]) => void
   getFiltered: () => EventAttendance[]
   getSummary: () => { memberId: string; inGameName: string; total: number; ct: number; db: number }[]
 }
 
 export const useEventStore = create<EventStore>((set, get) => ({
-  events: mockData.events as EventSession[],
-  attendance: mockData.attendance as EventAttendance[],
+  events: [],
+  attendance: [],
+  loading: false,
   searchQuery: '',
 
-  setEvents: (events) => set({ events }),
-  setAttendance: (attendance) => set({ attendance }),
+  loadData: async () => {
+    set({ loading: true })
 
-  addEvent: (name, date) => {
-    const { events, attendance } = get()
-    const eventKey = `e_${Date.now()}`
-    const newEvent: EventSession = { id: eventKey, eventKey, date, name }
-    set({
-      events: [...events, newEvent],
-      attendance: attendance.map((a) => ({
-        ...a,
-        records: { ...a.records, [eventKey]: '' },
-      })),
-    })
+    const [{ data: eventRows }, { data: memberRows }, { data: attRows }] = await Promise.all([
+      supabase.from('events').select('*').order('created_at'),
+      supabase.from('members').select('id, in_game_name'),
+      supabase.from('attendance').select('*'),
+    ])
+
+    const events: EventSession[] = (eventRows ?? []).map((r) => ({
+      id: r.id,
+      eventKey: r.id,
+      name: r.name,
+      date: r.event_date ?? '',
+    }))
+
+    const attendance: EventAttendance[] = (memberRows ?? []).map((m) => ({
+      memberId: m.id,
+      inGameName: m.in_game_name,
+      records: Object.fromEntries(
+        events.map((e) => {
+          const row = (attRows ?? []).find((a) => a.member_id === m.id && a.event_id === e.id)
+          return [e.eventKey, (row?.status ?? '') as AttendanceStatus]
+        }),
+      ),
+    }))
+
+    set({ events, attendance, loading: false })
   },
 
-  updateStatus: (memberId, eventKey, status) => {
+  addEvent: async (name, date) => {
+    const { data } = await supabase
+      .from('events')
+      .insert({ name, event_date: date || null })
+      .select()
+      .single()
+    if (!data) return
+
+    const newEvent: EventSession = { id: data.id, eventKey: data.id, name, date: date ?? '' }
     set((s) => ({
-      attendance: s.attendance.map((a) =>
-        a.memberId === memberId
-          ? { ...a, records: { ...a.records, [eventKey]: status } }
-          : a,
-      ),
+      events: [...s.events, newEvent],
+      attendance: s.attendance.map((a) => ({
+        ...a,
+        records: { ...a.records, [data.id]: '' },
+      })),
     }))
   },
 
-  setSearchQuery: (searchQuery) => set({ searchQuery }),
+  updateStatus: async (memberId, eventKey, status) => {
+    // 낙관적 업데이트 (즉시 UI 반영)
+    set((s) => ({
+      attendance: s.attendance.map((a) =>
+        a.memberId === memberId ? { ...a, records: { ...a.records, [eventKey]: status } } : a,
+      ),
+    }))
 
-  syncMembers: (members) => {
-    const { attendance, events } = get()
-    const existingIds = new Set(attendance.map((a) => a.memberId))
-    const newRows: EventAttendance[] = members
-      .filter((m) => !existingIds.has(m.id))
-      .map((m) => ({
-        memberId: m.id,
-        inGameName: m.inGameName,
-        records: Object.fromEntries(events.map((e) => [e.eventKey, ''])),
-      }))
-    if (newRows.length > 0) {
-      set({ attendance: [...attendance, ...newRows] })
+    if (status === '') {
+      await supabase.from('attendance').delete().eq('member_id', memberId).eq('event_id', eventKey)
+    } else {
+      await supabase
+        .from('attendance')
+        .upsert({ member_id: memberId, event_id: eventKey, status }, { onConflict: 'member_id,event_id' })
     }
   },
+
+  setSearchQuery: (searchQuery) => set({ searchQuery }),
 
   getFiltered: () => {
     const { attendance, searchQuery } = get()

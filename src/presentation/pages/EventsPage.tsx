@@ -1,16 +1,14 @@
 import { useState, useEffect } from 'react'
-import { Search, Plus, X } from 'lucide-react'
+import { Search, Plus, X, Loader2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useEventStore } from '@/infrastructure/stores/eventStore'
-import { useMemberStore } from '@/infrastructure/stores/memberStore'
 import { Input } from '@/presentation/components/ui/input'
 import { Button } from '@/presentation/components/ui/button'
 import { cn } from '@/lib/utils'
 
 export const EventsPage = () => {
   const { t } = useTranslation()
-  const { events, addEvent, updateStatus, getFiltered, searchQuery, setSearchQuery, getSummary, syncMembers } = useEventStore()
-  const { members } = useMemberStore()
+  const { events, addEvent, updateStatus, getFiltered, searchQuery, setSearchQuery, getSummary, loadData, loading } = useEventStore()
   const attendance = getFiltered()
   const summary = getSummary()
   const [activeTab, setActiveTab] = useState<'grid' | 'summary'>('grid')
@@ -18,9 +16,7 @@ export const EventsPage = () => {
   const [newEventName, setNewEventName] = useState('')
   const [newEventDate, setNewEventDate] = useState(() => new Date().toISOString().slice(0, 10))
 
-  useEffect(() => {
-    syncMembers(members)
-  }, [members, syncMembers])
+  useEffect(() => { loadData() }, [loadData])
 
   const handleAddEvent = () => {
     if (!newEventName.trim()) return
@@ -34,6 +30,12 @@ export const EventsPage = () => {
     const next = current === '' ? 'CT' : current === 'CT' ? 'DB' : ''
     updateStatus(memberId, eventKey, next as 'CT' | 'DB' | '')
   }
+
+  if (loading && events.length === 0) return (
+    <div className="flex items-center justify-center h-64 text-[var(--color-text-muted)]">
+      <Loader2 className="w-5 h-5 animate-spin mr-2" /> {t('common.loading')}
+    </div>
+  )
 
   return (
     <div className="p-6">

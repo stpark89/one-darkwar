@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Search, Plus, Pencil, Trash2, X } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Search, Plus, Pencil, Trash2, X, Loader2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useMemberStore } from '@/infrastructure/stores/memberStore'
 import { Button } from '@/presentation/components/ui/button'
@@ -11,22 +11,30 @@ const EMPTY: Partial<Member> = { inGameName: '', zaloName: '', cp: '', houseLeve
 
 export const MembersPage = () => {
   const { t } = useTranslation()
-  const { getFiltered, searchQuery, setSearchQuery, addMember, updateMember, deleteMember } = useMemberStore()
+  const { getFiltered, searchQuery, setSearchQuery, addMember, updateMember, deleteMember, loadMembers, loading } = useMemberStore()
   const members = getFiltered()
 
   const [form, setForm] = useState<Partial<Member> | null>(null)
   const [editId, setEditId] = useState<string | null>(null)
 
+  useEffect(() => { loadMembers() }, [loadMembers])
+
   const openAdd = () => { setForm({ ...EMPTY }); setEditId(null) }
   const openEdit = (m: Member) => { setForm({ ...m }); setEditId(m.id) }
   const closeForm = () => { setForm(null); setEditId(null) }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form?.inGameName?.trim()) return
-    if (editId) updateMember(editId, form)
-    else addMember({ inGameName: form.inGameName!, ...form })
+    if (editId) await updateMember(editId, form)
+    else await addMember({ inGameName: form.inGameName!, ...form })
     closeForm()
   }
+
+  if (loading && members.length === 0) return (
+    <div className="flex items-center justify-center h-64 text-[var(--color-text-muted)]">
+      <Loader2 className="w-5 h-5 animate-spin mr-2" /> {t('common.loading')}
+    </div>
+  )
 
   return (
     <div className="p-6">
