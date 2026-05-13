@@ -1,0 +1,145 @@
+import { useState } from 'react'
+import { Search, Plus, Pencil, Trash2, X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { useMemberStore } from '@/infrastructure/stores/memberStore'
+import { Button } from '@/presentation/components/ui/button'
+import { Input } from '@/presentation/components/ui/input'
+import { Badge } from '@/presentation/components/ui/badge'
+import type { Member } from '@/domain/entities/Member'
+
+const EMPTY: Partial<Member> = { inGameName: '', zaloName: '', cp: '', houseLevel: '', note: '' }
+
+export const MembersPage = () => {
+  const { t } = useTranslation()
+  const { getFiltered, searchQuery, setSearchQuery, addMember, updateMember, deleteMember } = useMemberStore()
+  const members = getFiltered()
+
+  const [form, setForm] = useState<Partial<Member> | null>(null)
+  const [editId, setEditId] = useState<string | null>(null)
+
+  const openAdd = () => { setForm({ ...EMPTY }); setEditId(null) }
+  const openEdit = (m: Member) => { setForm({ ...m }); setEditId(m.id) }
+  const closeForm = () => { setForm(null); setEditId(null) }
+
+  const handleSave = () => {
+    if (!form?.inGameName?.trim()) return
+    if (editId) updateMember(editId, form)
+    else addMember({ inGameName: form.inGameName!, ...form })
+    closeForm()
+  }
+
+  return (
+    <div className="p-6">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-xl font-bold text-[var(--color-text-primary)]">{t('members.title')}</h1>
+          <p className="text-sm text-[var(--color-text-muted)] mt-0.5">
+            {t('members.subtitle_count', { count: members.length })}
+          </p>
+        </div>
+        <Button onClick={openAdd} size="sm">
+          <Plus className="w-4 h-4" /> {t('members.add_btn')}
+        </Button>
+      </div>
+
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" />
+        <Input
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder={t('members.search_placeholder')}
+          className="pl-9"
+        />
+      </div>
+
+      <div className="rounded-lg border border-[var(--color-border-subtle)] overflow-hidden">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-[var(--color-border-subtle)] bg-[var(--color-bg-surface)]">
+              {[
+                t('members.col_no'),
+                t('members.in_game_name'),
+                t('members.zalo_name'),
+                t('members.cp'),
+                t('members.house_level'),
+                t('members.note'),
+                t('members.col_actions'),
+              ].map((h, i) => (
+                <th key={i} className="px-4 py-3 text-left text-xs font-semibold text-[var(--color-text-muted)] whitespace-nowrap">
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-[var(--color-border-subtle)]">
+            {members.map((m, i) => (
+              <tr key={m.id} className="hover:bg-[var(--color-bg-surface)] transition-colors group">
+                <td className="px-4 py-3 text-[var(--color-text-muted)] text-xs">{i + 1}</td>
+                <td className="px-4 py-3 font-medium text-[var(--color-text-primary)]">{m.inGameName}</td>
+                <td className="px-4 py-3 text-[var(--color-text-secondary)]">{m.zaloName || '-'}</td>
+                <td className="px-4 py-3">
+                  {m.cp ? <Badge variant="success">{m.cp}</Badge> : <span className="text-[var(--color-text-muted)]">-</span>}
+                </td>
+                <td className="px-4 py-3">
+                  {m.houseLevel ? <Badge variant="default">{m.houseLevel}</Badge> : <span className="text-[var(--color-text-muted)]">-</span>}
+                </td>
+                <td className="px-4 py-3 text-[var(--color-text-muted)] text-xs max-w-[150px] truncate">
+                  {m.note || '-'}
+                </td>
+                <td className="px-4 py-3">
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => openEdit(m)} className="p-1.5 rounded hover:bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:text-[var(--color-brand)]">
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                    <button onClick={() => deleteMember(m.id)} className="p-1.5 rounded hover:bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:text-[var(--color-danger)]">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {form && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-[var(--color-bg-surface)] rounded-xl border border-[var(--color-border)] w-full max-w-md p-6">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-base font-bold">
+                {editId ? t('members.edit_title') : t('members.add_title')}
+              </h2>
+              <button onClick={closeForm} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="space-y-3">
+              {[
+                { key: 'inGameName', label: t('members.in_game_name') + ' *', placeholder: t('members.in_game_placeholder') },
+                { key: 'zaloName', label: t('members.zalo_name'), placeholder: t('members.zalo_placeholder') },
+                { key: 'cp', label: t('members.cp'), placeholder: t('members.cp_placeholder') },
+                { key: 'houseLevel', label: t('members.house_level'), placeholder: t('members.level_placeholder') },
+                { key: 'note', label: t('members.note'), placeholder: t('members.note_placeholder') },
+              ].map(({ key, label, placeholder }) => (
+                <div key={key}>
+                  <label className="text-xs text-[var(--color-text-muted)] mb-1 block">{label}</label>
+                  <Input
+                    value={(form as Record<string, string>)[key] ?? ''}
+                    onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
+                    placeholder={placeholder}
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-2 mt-5">
+              <Button variant="outline" size="full" onClick={closeForm}>{t('common.cancel')}</Button>
+              <Button size="full" onClick={handleSave} disabled={!form.inGameName?.trim()}>
+                {editId ? t('common.save') : t('common.add')}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

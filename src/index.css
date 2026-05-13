@@ -1,0 +1,46 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand: oklch(0.623 0.214 259.1);
+  --color-bg-base: oklch(0.13 0.02 260);
+  --color-bg-surface: oklch(0.17 0.02 260);
+  --color-bg-elevated: oklch(0.21 0.02 260);
+  --color-text-primary: oklch(0.95 0 0);
+  --color-text-secondary: oklch(0.65 0.02 260);
+  --color-text-muted: oklch(0.45 0.02 260);
+  --color-border: oklch(0.28 0.02 260);
+  --color-border-subtle: oklch(0.22 0.02 260);
+  --color-success: oklch(0.65 0.18 145);
+  --color-warning: oklch(0.75 0.18 70);
+  --color-danger: oklch(0.62 0.22 25);
+
+  /* shadcn 호환 */
+  --color-background: var(--color-bg-base);
+  --color-foreground: var(--color-text-primary);
+  --color-primary: var(--color-brand);
+  --color-primary-foreground: oklch(1 0 0);
+  --color-secondary: var(--color-bg-elevated);
+  --color-secondary-foreground: var(--color-text-primary);
+  --color-muted: var(--color-bg-surface);
+  --color-muted-foreground: var(--color-text-secondary);
+  --color-input: var(--color-border);
+  --color-ring: var(--color-brand);
+  --color-card: var(--color-bg-surface);
+  --color-card-foreground: var(--color-text-primary);
+  --color-destructive: var(--color-danger);
+  --radius: 0.5rem;
+}
+
+@layer base {
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background-color: var(--color-bg-base);
+    color: var(--color-text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: var(--color-bg-surface); }
+  ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
+}

@@ -1,0 +1,4822 @@
+{
+  "members": [
+    {
+      "id": "1",
+      "inGameName": "ZGUNDAM",
+      "zaloName": "",
+      "cp": "3.54G",
+      "houseLevel": "I8",
+      "note": ""
+    },
+    {
+      "id": "2",
+      "inGameName": "New",
+      "zaloName": "",
+      "cp": "3.31G",
+      "houseLevel": "I8",
+      "note": ""
+    },
+    {
+      "id": "3",
+      "inGameName": "RRAVII",
+      "zaloName": "",
+      "cp": "3.24G",
+      "houseLevel": "I8",
+      "note": ""
+    },
+    {
+      "id": "4",
+      "inGameName": "Thỏ Bảy Màu",
+      "zaloName": "Đinh Thị Hoa :))",
+      "cp": "3.02G",
+      "houseLevel": "I8",
+      "note": "R5"
+    },
+    {
+      "id": "5",
+      "inGameName": "Lazy Farmer",
+      "zaloName": "",
+      "cp": "2.56G",
+      "houseLevel": "I8",
+      "note": ""
+    },
+    {
+      "id": "6",
+      "inGameName": "Kubê",
+      "zaloName": "",
+      "cp": "2.34G",
+      "houseLevel": "I8",
+      "note": ""
+    },
+    {
+      "id": "7",
+      "inGameName": "Junn",
+      "zaloName": "",
+      "cp": "2.12G",
+      "houseLevel": "i7",
+      "note": ""
+    },
+    {
+      "id": "8",
+      "inGameName": "Thỏ Bốn Màu",
+      "zaloName": "",
+      "cp": "1.96G",
+      "houseLevel": "i8",
+      "note": "R4"
+    },
+    {
+      "id": "9",
+      "inGameName": "Thỏ cùi chỏ",
+      "zaloName": "Nam",
+      "cp": "1.82G",
+      "houseLevel": "I7",
+      "note": ""
+    },
+    {
+      "id": "10",
+      "inGameName": "Sirotka",
+      "zaloName": "",
+      "cp": "1.79G",
+      "houseLevel": "I8",
+      "note": ""
+    },
+    {
+      "id": "11",
+      "inGameName": "Wiphad",
+      "zaloName": "",
+      "cp": "1.65G",
+      "houseLevel": "i8",
+      "note": ""
+    },
+    {
+      "id": "12",
+      "inGameName": "Bill Fashion",
+      "zaloName": "NQV",
+      "cp": "1.54G",
+      "houseLevel": "i7",
+      "note": ""
+    },
+    {
+      "id": "13",
+      "inGameName": "A Tú",
+      "zaloName": "",
+      "cp": "1.52G",
+      "houseLevel": "i7",
+      "note": ""
+    },
+    {
+      "id": "14",
+      "inGameName": "Argy",
+      "zaloName": "",
+      "cp": "1.51G",
+      "houseLevel": "i6",
+      "note": ""
+    },
+    {
+      "id": "15",
+      "inGameName": "Thỏ Ba Màu",
+      "zaloName": "Dứa",
+      "cp": "1.50G",
+      "houseLevel": "I7",
+      "note": "R4"
+    },
+    {
+      "id": "16",
+      "inGameName": "Hiếu",
+      "zaloName": "Hiếu",
+      "cp": "1.46G",
+      "houseLevel": "i7",
+      "note": ""
+    },
+    {
+      "id": "17",
+      "inGameName": "Bin Sama",
+      "zaloName": "Bin",
+      "cp": "1.44G",
+      "houseLevel": "i7",
+      "note": ""
+    },
+    {
+      "id": "18",
+      "inGameName": "Yuri",
+      "zaloName": "",
+      "cp": "1.43G",
+      "houseLevel": "i7",
+      "note": ""
+    },
+    {
+      "id": "19",
+      "inGameName": "Thỏ Sáu Màu",
+      "zaloName": "",
+      "cp": "1.3G",
+      "houseLevel": "i7",
+      "note": ""
+    },
+    {
+      "id": "20",
+      "inGameName": "Tuấn Anh",
+      "zaloName": "",
+      "cp": "1.35G",
+      "houseLevel": "i6",
+      "note": ""
+    },
+    {
+      "id": "21",
+      "inGameName": "Thỏ•Tiny",
+      "zaloName": "Tiny",
+      "cp": "1.34G",
+      "houseLevel": "I6",
+      "note": ""
+    },
+    {
+      "id": "22",
+      "inGameName": "GNUH",
+      "zaloName": "Quốc Hưng",
+      "cp": "1.2G",
+      "houseLevel": "",
+      "note": ""
+    },
+    {
+      "id": "23",
+      "inGameName": "Sói",
+      "zaloName": "Pikachu",
+      "cp": "1.2G",
+      "houseLevel": "I6",
+      "note": ""
+    },
+    {
+      "id": "24",
+      "inGameName": "Thỏ màu đỏ",
+      "zaloName": "Văn núp",
+      "cp": "1.2G",
+      "houseLevel": "I6",
+      "note": ""
+    },
+    {
+      "id": "25",
+      "inGameName": "Thỏ Hai Màu",
+      "zaloName": "Diệu Ly",
+      "cp": "1.2G",
+      "houseLevel": "I6",
+      "note": ""
+    },
+    {
+      "id": "26",
+      "inGameName": "Sói",
+      "zaloName": "",
+      "cp": "1.2G",
+      "houseLevel": "i6",
+      "note": ""
+    },
+    {
+      "id": "27",
+      "inGameName": "SUN",
+      "zaloName": "",
+      "cp": "1.2G",
+      "houseLevel": "i7",
+      "note": ""
+    },
+    {
+      "id": "28",
+      "inGameName": "Minh Đế",
+      "zaloName": "",
+      "cp": "1.26G",
+      "houseLevel": "i6",
+      "note": ""
+    },
+    {
+      "id": "29",
+      "inGameName": "Thỏ Một Màu",
+      "zaloName": "",
+      "cp": "1.25G",
+      "houseLevel": "i6",
+      "note": ""
+    },
+    {
+      "id": "30",
+      "inGameName": "HuG",
+      "zaloName": "Hưng ",
+      "cp": "1.19G",
+      "houseLevel": "I6",
+      "note": ""
+    },
+    {
+      "id": "31",
+      "inGameName": "Runa",
+      "zaloName": "",
+      "cp": "1.17G",
+      "houseLevel": "i7",
+      "note": ""
+    },
+    {
+      "id": "32",
+      "inGameName": "Sinh tố lúa mạch",
+      "zaloName": "Cảnh",
+      "cp": "1.15G",
+      "houseLevel": "I5",
+      "note": ""
+    },
+    {
+      "id": "33",
+      "inGameName": "Thỏ Sa Mạc",
+      "zaloName": "Ngân Vũ",
+      "cp": "1.08G",
+      "houseLevel": "I5",
+      "note": ""
+    },
+    {
+      "id": "34",
+      "inGameName": "Xpressohot",
+      "zaloName": "",
+      "cp": "1.08G",
+      "houseLevel": "",
+      "note": ""
+    },
+    {
+      "id": "35",
+      "inGameName": "Cây cỏ",
+      "zaloName": "",
+      "cp": "1.07G",
+      "houseLevel": "",
+      "note": ""
+    },
+    {
+      "id": "36",
+      "inGameName": "Angeleiv",
+      "zaloName": "",
+      "cp": "1.07G",
+      "houseLevel": "",
+      "note": ""
+    },
+    {
+      "id": "37",
+      "inGameName": "Thỏ Quay",
+      "zaloName": "Hung Ha ",
+      "cp": "1.1G",
+      "houseLevel": "I6",
+      "note": ""
+    },
+    {
+      "id": "38",
+      "inGameName": "Thỏ Mê Cỏ",
+      "zaloName": "AĐ",
+      "cp": "1.06G",
+      "houseLevel": "i5",
+      "note": ""
+    },
+    {
+      "id": "39",
+      "inGameName": "Yêu Lạc",
+      "zaloName": "",
+      "cp": "1.06G",
+      "houseLevel": "i6",
+      "note": ""
+    },
+    {
+      "id": "40",
+      "inGameName": "Jagerr",
+      "zaloName": "",
+      "cp": "1.06G",
+      "houseLevel": "",
+      "note": ""
+    },
+    {
+      "id": "41",
+      "inGameName": "Ỉn ỉn",
+      "zaloName": "Quang Huy",
+      "cp": "1.06 G",
+      "houseLevel": "I6",
+      "note": ""
+    },
+    {
+      "id": "42",
+      "inGameName": "Lửng 7 mạng",
+      "zaloName": "",
+      "cp": "1.02G",
+      "houseLevel": "",
+      "note": ""
+    },
+    {
+      "id": "43",
+      "inGameName": "DuDu",
+      "zaloName": "Nguyễn Ngọc Vân",
+      "cp": "1.13G",
+      "houseLevel": "I6",
+      "note": ""
+    },
+    {
+      "id": "44",
+      "inGameName": "Konnie",
+      "zaloName": "",
+      "cp": "1.0G",
+      "houseLevel": "i5",
+      "note": ""
+    },
+    {
+      "id": "45",
+      "inGameName": "Dino",
+      "zaloName": "",
+      "cp": "970m",
+      "houseLevel": "I6",
+      "note": ""
+    },
+    {
+      "id": "46",
+      "inGameName": "Donakata",
+      "zaloName": "",
+      "cp": "970M",
+      "houseLevel": "i5",
+      "note": ""
+    },
+    {
+      "id": "47",
+      "inGameName": "Thỏ mù màu",
+      "zaloName": "",
+      "cp": "955M",
+      "houseLevel": "I5",
+      "note": ""
+    },
+    {
+      "id": "48",
+      "inGameName": "Thỏ•Nương",
+      "zaloName": "Lão Nương",
+      "cp": "950M",
+      "houseLevel": "I5",
+      "note": ""
+    },
+    {
+      "id": "49",
+      "inGameName": "Just chilling",
+      "zaloName": "",
+      "cp": "930M",
+      "houseLevel": "i5",
+      "note": ""
+    },
+    {
+      "id": "50",
+      "inGameName": "Thỏ Còn Nhỏ",
+      "zaloName": "Lam Anh",
+      "cp": "914M",
+      "houseLevel": "i5",
+      "note": ""
+    },
+    {
+      "id": "51",
+      "inGameName": "Balooonn",
+      "zaloName": "",
+      "cp": "910M",
+      "houseLevel": "i5",
+      "note": ""
+    },
+    {
+      "id": "52",
+      "inGameName": "Bemagau",
+      "zaloName": "Gaumabe",
+      "cp": "900M",
+      "houseLevel": "i5",
+      "note": ""
+    },
+    {
+      "id": "53",
+      "inGameName": "Tau Rợt",
+      "zaloName": "Hoàng Anh",
+      "cp": "900M",
+      "houseLevel": "i5",
+      "note": ""
+    },
+    {
+      "id": "54",
+      "inGameName": "Paa",
+      "zaloName": "Diệu Ly",
+      "cp": "875m",
+      "houseLevel": "I5",
+      "note": ""
+    },
+    {
+      "id": "55",
+      "inGameName": "Luwei",
+      "zaloName": "",
+      "cp": "872M",
+      "houseLevel": "i5",
+      "note": ""
+    },
+    {
+      "id": "56",
+      "inGameName": "BuBu",
+      "zaloName": "Ánh Nguyệt",
+      "cp": "885m",
+      "houseLevel": "I5",
+      "note": ""
+    },
+    {
+      "id": "57",
+      "inGameName": "CAPYBABI",
+      "zaloName": "Phạm Dưỡng",
+      "cp": "850m",
+      "houseLevel": "I5",
+      "note": ""
+    },
+    {
+      "id": "58",
+      "inGameName": "XuXu",
+      "zaloName": "Httn",
+      "cp": "850m",
+      "houseLevel": "I5",
+      "note": ""
+    },
+    {
+      "id": "59",
+      "inGameName": "Thỏ Bỏ Chạy",
+      "zaloName": "Pate",
+      "cp": "826M",
+      "houseLevel": "i6",
+      "note": ""
+    },
+    {
+      "id": "60",
+      "inGameName": "NTKin",
+      "zaloName": "thuật",
+      "cp": "808m",
+      "houseLevel": "I6",
+      "note": ""
+    },
+    {
+      "id": "61",
+      "inGameName": "Thảo Kelly",
+      "zaloName": "",
+      "cp": "800M",
+      "houseLevel": "i5",
+      "note": ""
+    },
+    {
+      "id": "62",
+      "inGameName": "Kai - kilsd",
+      "zaloName": "",
+      "cp": "780M",
+      "houseLevel": "i5",
+      "note": ""
+    },
+    {
+      "id": "63",
+      "inGameName": "Gấu Bắc Cực",
+      "zaloName": "Vinh Phạm",
+      "cp": "770M",
+      "houseLevel": "I5",
+      "note": ""
+    },
+    {
+      "id": "64",
+      "inGameName": "Radagon",
+      "zaloName": "",
+      "cp": "752M",
+      "houseLevel": "i5",
+      "note": ""
+    },
+    {
+      "id": "65",
+      "inGameName": "Mai Lan",
+      "zaloName": "",
+      "cp": "760M",
+      "houseLevel": "i5",
+      "note": ""
+    },
+    {
+      "id": "66",
+      "inGameName": "Mầm non vân hồ",
+      "zaloName": "",
+      "cp": "730M",
+      "houseLevel": "i5",
+      "note": ""
+    },
+    {
+      "id": "67",
+      "inGameName": "Peace girl",
+      "zaloName": "",
+      "cp": "730M",
+      "houseLevel": "i5",
+      "note": ""
+    },
+    {
+      "id": "68",
+      "inGameName": "Slu7",
+      "zaloName": "",
+      "cp": "730M",
+      "houseLevel": "i5",
+      "note": ""
+    },
+    {
+      "id": "69",
+      "inGameName": "Lazy Engineer",
+      "zaloName": "",
+      "cp": "726M",
+      "houseLevel": "i5",
+      "note": ""
+    },
+    {
+      "id": "70",
+      "inGameName": "Joice",
+      "zaloName": "Joice",
+      "cp": "722M",
+      "houseLevel": "I-5",
+      "note": ""
+    },
+    {
+      "id": "71",
+      "inGameName": "Ốc Pu",
+      "zaloName": "",
+      "cp": "720M",
+      "houseLevel": "i5",
+      "note": ""
+    },
+    {
+      "id": "72",
+      "inGameName": "KJ",
+      "zaloName": "",
+      "cp": "720M",
+      "houseLevel": "i5",
+      "note": ""
+    },
+    {
+      "id": "73",
+      "inGameName": "Dkha²",
+      "zaloName": "Duy kha",
+      "cp": "709m",
+      "houseLevel": "i5",
+      "note": ""
+    },
+    {
+      "id": "74",
+      "inGameName": "Thỏ Pha Lê",
+      "zaloName": "Bé Koi",
+      "cp": "700M",
+      "houseLevel": "I5",
+      "note": ""
+    },
+    {
+      "id": "75",
+      "inGameName": "Alone Star",
+      "zaloName": "",
+      "cp": "695M",
+      "houseLevel": "i5",
+      "note": ""
+    },
+    {
+      "id": "76",
+      "inGameName": "Chị Bờ Vai",
+      "zaloName": "Phương Uyên",
+      "cp": "705M",
+      "houseLevel": "I5",
+      "note": ""
+    },
+    {
+      "id": "77",
+      "inGameName": "Kasoma",
+      "zaloName": "",
+      "cp": "690M",
+      "houseLevel": "i5",
+      "note": ""
+    },
+    {
+      "id": "78",
+      "inGameName": "Dkha",
+      "zaloName": "Duy kha",
+      "cp": "654m",
+      "houseLevel": "i5",
+      "note": ""
+    },
+    {
+      "id": "79",
+      "inGameName": "Thảo (SanSan)",
+      "zaloName": "",
+      "cp": "584M",
+      "houseLevel": "i5",
+      "note": ""
+    },
+    {
+      "id": "80",
+      "inGameName": "Hana",
+      "zaloName": "",
+      "cp": "574M",
+      "houseLevel": "I4",
+      "note": ""
+    },
+    {
+      "id": "81",
+      "inGameName": "Thỏ Tinh Nghịch",
+      "zaloName": "Anh Thư",
+      "cp": "541M",
+      "houseLevel": "",
+      "note": ""
+    },
+    {
+      "id": "82",
+      "inGameName": "Bò đi mid",
+      "zaloName": "",
+      "cp": "500M",
+      "houseLevel": "i5",
+      "note": ""
+    },
+    {
+      "id": "83",
+      "inGameName": "War girl",
+      "zaloName": "",
+      "cp": "480M",
+      "houseLevel": "",
+      "note": ""
+    },
+    {
+      "id": "84",
+      "inGameName": "Trình là gì",
+      "zaloName": "",
+      "cp": "468M",
+      "houseLevel": "i5",
+      "note": ""
+    },
+    {
+      "id": "85",
+      "inGameName": "Tẻn",
+      "zaloName": "",
+      "cp": "452M",
+      "houseLevel": "i4",
+      "note": ""
+    },
+    {
+      "id": "86",
+      "inGameName": "Louzie",
+      "zaloName": "",
+      "cp": "1,14G",
+      "houseLevel": "",
+      "note": ""
+    },
+    {
+      "id": "87",
+      "inGameName": "Yun Yan",
+      "zaloName": "",
+      "cp": "958M",
+      "houseLevel": "",
+      "note": ""
+    },
+    {
+      "id": "88",
+      "inGameName": "Liêm đẹp trai",
+      "zaloName": "",
+      "cp": "",
+      "houseLevel": "",
+      "note": ""
+    },
+    {
+      "id": "89",
+      "inGameName": "Theph sngkhram",
+      "zaloName": "",
+      "cp": "",
+      "houseLevel": "",
+      "note": ""
+    },
+    {
+      "id": "90",
+      "inGameName": "Dolly",
+      "zaloName": "",
+      "cp": "928M",
+      "houseLevel": "",
+      "note": ""
+    },
+    {
+      "id": "91",
+      "inGameName": "Mochi vị bơ",
+      "zaloName": "",
+      "cp": "",
+      "houseLevel": "",
+      "note": ""
+    },
+    {
+      "id": "92",
+      "inGameName": "Carot",
+      "zaloName": "",
+      "cp": "",
+      "houseLevel": "",
+      "note": ""
+    },
+    {
+      "id": "93",
+      "inGameName": "Woongs",
+      "zaloName": "",
+      "cp": "",
+      "houseLevel": "",
+      "note": ""
+    },
+    {
+      "id": "94",
+      "inGameName": "Juicemon",
+      "zaloName": "",
+      "cp": "",
+      "houseLevel": "",
+      "note": ""
+    },
+    {
+      "id": "95",
+      "inGameName": "Kim",
+      "zaloName": "",
+      "cp": "",
+      "houseLevel": "",
+      "note": ""
+    },
+    {
+      "id": "96",
+      "inGameName": "Hưng",
+      "zaloName": "",
+      "cp": "",
+      "houseLevel": "",
+      "note": ""
+    },
+    {
+      "id": "97",
+      "inGameName": "Linh 3",
+      "zaloName": "",
+      "cp": "1,15G",
+      "houseLevel": "",
+      "note": ""
+    },
+    {
+      "id": "98",
+      "inGameName": "Minh Pu",
+      "zaloName": "",
+      "cp": "",
+      "houseLevel": "",
+      "note": ""
+    },
+    {
+      "id": "99",
+      "inGameName": "Tiểu Gia Chủ",
+      "zaloName": "",
+      "cp": "",
+      "houseLevel": "",
+      "note": ""
+    }
+  ],
+  "warParticipants": [
+    {
+      "id": "1",
+      "inGameName": "ZGUNDAM",
+      "cp": "3.54G",
+      "zaloName": "",
+      "round1": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round2": {
+        "team": "A",
+        "role": "CT",
+        "note": "X"
+      },
+      "round3": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": ""
+      }
+    },
+    {
+      "id": "2",
+      "inGameName": "뱅new",
+      "cp": "3.31G",
+      "zaloName": "",
+      "round1": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round2": {
+        "team": "A",
+        "role": "CT",
+        "note": "X"
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      }
+    },
+    {
+      "id": "3",
+      "inGameName": "RRAVII",
+      "cp": "3.24G",
+      "zaloName": "",
+      "round1": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round2": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round3": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round4": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      }
+    },
+    {
+      "id": "4",
+      "inGameName": "Thỏ Bảy Màu",
+      "cp": "3.02G",
+      "zaloName": "Đinh Thị Hoa :))",
+      "round1": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round2": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round3": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round4": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      }
+    },
+    {
+      "id": "5",
+      "inGameName": "Lazy farmer",
+      "cp": "2.56G",
+      "zaloName": "",
+      "round1": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round2": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round3": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round4": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      }
+    },
+    {
+      "id": "6",
+      "inGameName": "KubeCat",
+      "cp": "2.34G",
+      "zaloName": "",
+      "round1": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round2": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": ""
+      }
+    },
+    {
+      "id": "7",
+      "inGameName": "junN",
+      "cp": "2.12G",
+      "zaloName": "",
+      "round1": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round2": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round3": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round4": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      }
+    },
+    {
+      "id": "8",
+      "inGameName": "Thỏ Bốn Màu",
+      "cp": "1.96G",
+      "zaloName": "Phát Trịnh",
+      "round1": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round2": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round3": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round4": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      }
+    },
+    {
+      "id": "9",
+      "inGameName": "Thỏ Cùi Chỏ",
+      "cp": "1.82G",
+      "zaloName": "Nam",
+      "round1": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round2": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round3": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round4": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      }
+    },
+    {
+      "id": "10",
+      "inGameName": "Sirotka",
+      "cp": "1.79G",
+      "zaloName": "",
+      "round1": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round2": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round3": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round4": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      }
+    },
+    {
+      "id": "11",
+      "inGameName": "Wiphad",
+      "cp": "1.65G",
+      "zaloName": "",
+      "round1": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round2": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round3": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round4": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      }
+    },
+    {
+      "id": "12",
+      "inGameName": "Bill Fashion",
+      "cp": "1.54G",
+      "zaloName": "NQV",
+      "round1": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round2": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round3": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round4": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      }
+    },
+    {
+      "id": "13",
+      "inGameName": "وخ ول وت(Tú)",
+      "cp": "1.52G",
+      "zaloName": "",
+      "round1": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round4": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      }
+    },
+    {
+      "id": "14",
+      "inGameName": "Argy",
+      "cp": "1.51G",
+      "zaloName": "",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      }
+    },
+    {
+      "id": "15",
+      "inGameName": "Thỏ Ba Màu",
+      "cp": "1.50G",
+      "zaloName": "Phạm Thơm",
+      "round1": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round2": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round3": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": ""
+      }
+    },
+    {
+      "id": "16",
+      "inGameName": "C l a y (Hiếu)",
+      "cp": "1.46G",
+      "zaloName": "",
+      "round1": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round2": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round3": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round4": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      }
+    },
+    {
+      "id": "17",
+      "inGameName": "Bin Sama",
+      "cp": "1.44G",
+      "zaloName": "Bin",
+      "round1": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round4": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      }
+    },
+    {
+      "id": "18",
+      "inGameName": "Yuri",
+      "cp": "1.43G",
+      "zaloName": "",
+      "round1": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round2": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": ""
+      }
+    },
+    {
+      "id": "19",
+      "inGameName": "Thỏ Sáu Màu",
+      "cp": "1.3G",
+      "zaloName": "Liêu Phúc",
+      "round1": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round2": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round3": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round4": {
+        "team": "B",
+        "role": "CT",
+        "note": "X"
+      }
+    },
+    {
+      "id": "20",
+      "inGameName": "Tuän Änh",
+      "cp": "1.35G",
+      "zaloName": "",
+      "round1": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round2": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round3": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round4": {
+        "team": "A",
+        "role": "CT",
+        "note": "X"
+      }
+    },
+    {
+      "id": "21",
+      "inGameName": "Thỏ•Tiny",
+      "cp": "1.34G",
+      "zaloName": "Tiny",
+      "round1": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round2": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round3": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round4": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      }
+    },
+    {
+      "id": "22",
+      "inGameName": "Thỏ Hai Màu",
+      "cp": "1.2G",
+      "zaloName": "Diệu Ly",
+      "round1": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round2": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round3": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round4": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      }
+    },
+    {
+      "id": "23",
+      "inGameName": "•G N U H•",
+      "cp": "1.2G",
+      "zaloName": "Quốc Hưng",
+      "round1": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round2": {
+        "team": "A",
+        "role": "CT",
+        "note": "X"
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "B",
+        "role": "CT",
+        "note": "X"
+      }
+    },
+    {
+      "id": "24",
+      "inGameName": "Sói",
+      "cp": "1.2G",
+      "zaloName": "Pikachu",
+      "round1": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round2": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round3": {
+        "team": "B",
+        "role": "DB",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": ""
+      }
+    },
+    {
+      "id": "25",
+      "inGameName": "Sun",
+      "cp": "1.2G",
+      "zaloName": "",
+      "round1": {
+        "team": "A",
+        "role": "DB",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round4": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      }
+    },
+    {
+      "id": "26",
+      "inGameName": "Thỏ màu đỏ",
+      "cp": "1.2G",
+      "zaloName": "Nguyễn Núp",
+      "round1": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round2": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      }
+    },
+    {
+      "id": "27",
+      "inGameName": "¥ Minh Đế ¥",
+      "cp": "1.26G",
+      "zaloName": "",
+      "round1": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round2": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round3": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": ""
+      }
+    },
+    {
+      "id": "28",
+      "inGameName": "Thỏ Một Màu",
+      "cp": "1.25G",
+      "zaloName": "Hungcombeo",
+      "round1": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round2": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round3": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": ""
+      }
+    },
+    {
+      "id": "29",
+      "inGameName": "Thỏ Quay",
+      "cp": "1.1G",
+      "zaloName": "",
+      "round1": {
+        "team": "A",
+        "role": "DB",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "A",
+        "role": "DB",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": ""
+      }
+    },
+    {
+      "id": "30",
+      "inGameName": "Hug",
+      "cp": "1.19G",
+      "zaloName": "Hug7",
+      "round1": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "A",
+        "role": "DB",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": "BG VNS"
+      }
+    },
+    {
+      "id": "31",
+      "inGameName": "RUNA",
+      "cp": "1.17G",
+      "zaloName": "",
+      "round1": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": ""
+      }
+    },
+    {
+      "id": "32",
+      "inGameName": "Sinh Tố Lúa Mạch",
+      "cp": "1.15G",
+      "zaloName": "Cảnh",
+      "round1": {
+        "team": "A",
+        "role": "DB",
+        "note": ""
+      },
+      "round2": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      }
+    },
+    {
+      "id": "33",
+      "inGameName": "Louzie",
+      "cp": "1.14G",
+      "zaloName": "",
+      "round1": {
+        "team": "A",
+        "role": "DB",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      }
+    },
+    {
+      "id": "34",
+      "inGameName": "DuDu",
+      "cp": "1.13G",
+      "zaloName": "Nguyễn Ngọc Vân",
+      "round1": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "B",
+        "role": "DB",
+        "note": ""
+      },
+      "round4": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      }
+    },
+    {
+      "id": "35",
+      "inGameName": "Koinee2211",
+      "cp": "1.0G",
+      "zaloName": "",
+      "round1": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": "ko tick"
+      }
+    },
+    {
+      "id": "36",
+      "inGameName": "Xpressoshot",
+      "cp": "1.08G",
+      "zaloName": "",
+      "round1": {
+        "team": "A",
+        "role": "DB",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "A",
+        "role": "DB",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": ""
+      }
+    },
+    {
+      "id": "37",
+      "inGameName": "Thỏ sa mạc",
+      "cp": "1.08G",
+      "zaloName": "Ngân Vũ",
+      "round1": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "A",
+        "role": "DB",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": ""
+      }
+    },
+    {
+      "id": "38",
+      "inGameName": "Angeleiv",
+      "cp": "1.07G",
+      "zaloName": "",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "B",
+        "role": "DB",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": ""
+      }
+    },
+    {
+      "id": "39",
+      "inGameName": "cây cỏ",
+      "cp": "1.07G",
+      "zaloName": "",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      }
+    },
+    {
+      "id": "40",
+      "inGameName": "Thỏ Mê Cỏ",
+      "cp": "1.06G",
+      "zaloName": "A Đ",
+      "round1": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round2": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round3": {
+        "team": "A",
+        "role": "DB",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": ""
+      }
+    },
+    {
+      "id": "41",
+      "inGameName": "Lee AFK",
+      "cp": "1.06G",
+      "zaloName": "Nguyễn Cường",
+      "round1": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "A",
+        "role": "DB",
+        "note": ""
+      }
+    },
+    {
+      "id": "42",
+      "inGameName": "Jagerrr",
+      "cp": "1.06G",
+      "zaloName": "",
+      "round1": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "B",
+        "role": "DB",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": ""
+      }
+    },
+    {
+      "id": "43",
+      "inGameName": "Un in",
+      "cp": "1.06G",
+      "zaloName": "Quang Huy",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "B",
+        "role": "DB",
+        "note": ""
+      }
+    },
+    {
+      "id": "44",
+      "inGameName": "Lửng 7 Mạng",
+      "cp": "1.02G",
+      "zaloName": "",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "A",
+        "role": "DB",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": "Ko tick"
+      }
+    },
+    {
+      "id": "45",
+      "inGameName": "Dino",
+      "cp": "970M",
+      "zaloName": "Quỳnh Như",
+      "round1": {
+        "team": "B",
+        "role": "DB",
+        "note": ""
+      },
+      "round2": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round3": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round4": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      }
+    },
+    {
+      "id": "46",
+      "inGameName": "Donataka",
+      "cp": "970M",
+      "zaloName": "",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "B",
+        "role": "DB",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "A",
+        "role": "DB",
+        "note": "X"
+      }
+    },
+    {
+      "id": "47",
+      "inGameName": "Yunyan",
+      "cp": "958M",
+      "zaloName": "",
+      "round1": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": ""
+      }
+    },
+    {
+      "id": "48",
+      "inGameName": "Thỏ Mù Màu",
+      "cp": "955M",
+      "zaloName": "Ngọc Huy",
+      "round1": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round2": {
+        "team": "B",
+        "role": "DB",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": "BG VNS"
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": ""
+      }
+    },
+    {
+      "id": "49",
+      "inGameName": "Thỏ•Nương",
+      "cp": "950M",
+      "zaloName": "Lão Nương",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round3": {
+        "team": "B",
+        "role": "DB",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": ""
+      }
+    },
+    {
+      "id": "50",
+      "inGameName": "just chilling",
+      "cp": "930M",
+      "zaloName": "",
+      "round1": {
+        "team": "A",
+        "role": "DB",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "A",
+        "role": "DB",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": ""
+      }
+    },
+    {
+      "id": "51",
+      "inGameName": "Thỏ Còn Nhỏ",
+      "cp": "914M",
+      "zaloName": "Lam Anh",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "A",
+        "role": "DB",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "A",
+        "role": "DB",
+        "note": ""
+      }
+    },
+    {
+      "id": "52",
+      "inGameName": "Ballooooon",
+      "cp": "910M",
+      "zaloName": "",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "A",
+        "role": "DB",
+        "note": ""
+      },
+      "round3": {
+        "team": "B",
+        "role": "DB",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": ""
+      }
+    },
+    {
+      "id": "53",
+      "inGameName": "Bemagau",
+      "cp": "900M",
+      "zaloName": "Gaumabe",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "A",
+        "role": "DB",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "B",
+        "role": "DB",
+        "note": ""
+      }
+    },
+    {
+      "id": "54",
+      "inGameName": "Tau Rợt",
+      "cp": "900M",
+      "zaloName": "Hoang Anh",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": ""
+      }
+    },
+    {
+      "id": "55",
+      "inGameName": "BuBu",
+      "cp": "885M",
+      "zaloName": "Nguyệt",
+      "round1": {
+        "team": "B",
+        "role": "DB",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": ""
+      }
+    },
+    {
+      "id": "56",
+      "inGameName": "Paa",
+      "cp": "875M",
+      "zaloName": "Diệu Ly",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "A",
+        "role": "DB",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": ""
+      }
+    },
+    {
+      "id": "57",
+      "inGameName": "Lu Wei",
+      "cp": "872M",
+      "zaloName": "Lu Wei",
+      "round1": {
+        "team": "A",
+        "role": "DB",
+        "note": ""
+      },
+      "round2": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round3": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round4": {
+        "team": "B",
+        "role": "DB",
+        "note": ""
+      }
+    },
+    {
+      "id": "58",
+      "inGameName": "Xu Xu",
+      "cp": "850M",
+      "zaloName": "HTTN",
+      "round1": {
+        "team": "B",
+        "role": "DB",
+        "note": ""
+      },
+      "round2": {
+        "team": "B",
+        "role": "DB",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "B",
+        "role": "DB",
+        "note": ""
+      }
+    },
+    {
+      "id": "59",
+      "inGameName": "CAPYBABY",
+      "cp": "850M",
+      "zaloName": "Phạm Dưỡng",
+      "round1": {
+        "team": "B",
+        "role": "DB",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": ""
+      }
+    },
+    {
+      "id": "60",
+      "inGameName": "Thỏ Bỏ Chạy",
+      "cp": "826M",
+      "zaloName": "Pate",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "A",
+        "role": "DB",
+        "note": ""
+      }
+    },
+    {
+      "id": "61",
+      "inGameName": "NTKin",
+      "cp": "808M",
+      "zaloName": "NTKin",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "B",
+        "role": "DB",
+        "note": ""
+      }
+    },
+    {
+      "id": "62",
+      "inGameName": "kai-kilsd",
+      "cp": "780M",
+      "zaloName": "",
+      "round1": {
+        "team": "B",
+        "role": "DB",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "B",
+        "role": "DB",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": ""
+      }
+    },
+    {
+      "id": "63",
+      "inGameName": "Gấu BắcCực",
+      "cp": "770M",
+      "zaloName": "Vinh Phạm",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "B",
+        "role": "DB",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "B",
+        "role": "DB",
+        "note": ""
+      }
+    },
+    {
+      "id": "64",
+      "inGameName": "Mai Lan",
+      "cp": "760M",
+      "zaloName": "Mỹ Lan",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round3": {
+        "team": "B",
+        "role": "DB",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": ""
+      }
+    },
+    {
+      "id": "65",
+      "inGameName": "RadaGon",
+      "cp": "752M",
+      "zaloName": "",
+      "round1": {
+        "team": "B",
+        "role": "DB",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": ""
+      }
+    },
+    {
+      "id": "66",
+      "inGameName": "Peace girl",
+      "cp": "730M",
+      "zaloName": "",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "A",
+        "role": "DB",
+        "note": "X"
+      }
+    },
+    {
+      "id": "67",
+      "inGameName": "slu7",
+      "cp": "730M",
+      "zaloName": "",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": ""
+      }
+    },
+    {
+      "id": "68",
+      "inGameName": "mầmnonvanho",
+      "cp": "730M",
+      "zaloName": "cauutzuka",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "A",
+        "role": "DB",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": ""
+      }
+    },
+    {
+      "id": "69",
+      "inGameName": "Tabishaziz4 (Lazy E)",
+      "cp": "726M",
+      "zaloName": "",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "A",
+        "role": "DB",
+        "note": "X"
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "A",
+        "role": "DB",
+        "note": "X"
+      }
+    },
+    {
+      "id": "70",
+      "inGameName": "Joice",
+      "cp": "722M",
+      "zaloName": "Joice",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "B",
+        "role": "DB",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": ""
+      }
+    },
+    {
+      "id": "71",
+      "inGameName": "KJ",
+      "cp": "720M",
+      "zaloName": "",
+      "round1": {
+        "team": "A",
+        "role": "DB",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "A",
+        "role": "DB",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": ""
+      }
+    },
+    {
+      "id": "72",
+      "inGameName": "Ốc Pu",
+      "cp": "720M",
+      "zaloName": "",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": ""
+      }
+    },
+    {
+      "id": "73",
+      "inGameName": "DKha",
+      "cp": "709M",
+      "zaloName": "Duy Kha",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "B",
+        "role": "DB",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "B",
+        "role": "DB",
+        "note": ""
+      }
+    },
+    {
+      "id": "74",
+      "inGameName": "-Chị Bờ Vai-",
+      "cp": "705M",
+      "zaloName": "Phương Uyên",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "B",
+        "role": "DB",
+        "note": ""
+      }
+    },
+    {
+      "id": "75",
+      "inGameName": "Thỏ Pha Lê",
+      "cp": "700M",
+      "zaloName": "Khôi",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "A",
+        "role": "DB",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "A",
+        "role": "DB",
+        "note": ""
+      }
+    },
+    {
+      "id": "76",
+      "inGameName": "Alone star",
+      "cp": "695M",
+      "zaloName": "Alone star",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": "Ko tick"
+      }
+    },
+    {
+      "id": "77",
+      "inGameName": "Kasoma",
+      "cp": "690M",
+      "zaloName": "Trâu",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "B ",
+        "role": "DB",
+        "note": ""
+      },
+      "round3": {
+        "team": "B",
+        "role": "DB",
+        "note": ""
+      },
+      "round4": {
+        "team": "B",
+        "role": "DB",
+        "note": ""
+      }
+    },
+    {
+      "id": "78",
+      "inGameName": "Myra",
+      "cp": "620M",
+      "zaloName": "",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": ""
+      }
+    },
+    {
+      "id": "79",
+      "inGameName": "SanSan (Thảo)",
+      "cp": "584M",
+      "zaloName": "",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "ko tick",
+        "note": "ko bỏ phiếu"
+      }
+    },
+    {
+      "id": "80",
+      "inGameName": "Hana",
+      "cp": "574M",
+      "zaloName": "",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "A",
+        "role": "DB",
+        "note": "X"
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "A",
+        "role": "DB",
+        "note": "X"
+      }
+    },
+    {
+      "id": "81",
+      "inGameName": "Thỏ Tinh Nghịch",
+      "cp": "541M",
+      "zaloName": "Anh Thư",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "A",
+        "role": "DB",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": "BG VNS"
+      }
+    },
+    {
+      "id": "82",
+      "inGameName": "Bò đi Mid",
+      "cp": "500M",
+      "zaloName": "",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "A",
+        "role": "DB",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": ""
+      }
+    },
+    {
+      "id": "83",
+      "inGameName": "Trình là gì",
+      "cp": "468M",
+      "zaloName": "",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "A",
+        "role": "DB",
+        "note": "X"
+      }
+    },
+    {
+      "id": "84",
+      "inGameName": "Tẻnnn",
+      "cp": "452M",
+      "zaloName": "Thảo Thảo",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "A",
+        "role": "DB",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": "BG VNS"
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": ""
+      }
+    },
+    {
+      "id": "85",
+      "inGameName": "Woongss gom",
+      "cp": "",
+      "zaloName": "",
+      "round1": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      },
+      "round2": {
+        "team": "A",
+        "role": "CT",
+        "note": "X"
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": ""
+      }
+    },
+    {
+      "id": "86",
+      "inGameName": "Dolly",
+      "cp": "",
+      "zaloName": "",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "B",
+        "role": "DB",
+        "note": ""
+      }
+    },
+    {
+      "id": "87",
+      "inGameName": "Liêm đẹp trai",
+      "cp": "",
+      "zaloName": "Lương Thanh Liêm",
+      "round1": {
+        "team": "B",
+        "role": "DB",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "A",
+        "role": "DB",
+        "note": ""
+      }
+    },
+    {
+      "id": "88",
+      "inGameName": "Carot",
+      "cp": "",
+      "zaloName": "Bin",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "B",
+        "role": "DB",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": ""
+      }
+    },
+    {
+      "id": "89",
+      "inGameName": "Theph s̄ngkhrām",
+      "cp": "",
+      "zaloName": "",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": "ko tick"
+      },
+      "round4": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      }
+    },
+    {
+      "id": "90",
+      "inGameName": "Mochi vị bơ",
+      "cp": "",
+      "zaloName": "",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": "ko tick"
+      }
+    },
+    {
+      "id": "91",
+      "inGameName": "Juicego",
+      "cp": "",
+      "zaloName": "",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      }
+    },
+    {
+      "id": "92",
+      "inGameName": "kimthenomad",
+      "cp": "",
+      "zaloName": "",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      }
+    },
+    {
+      "id": "93",
+      "inGameName": "Tiểu gia chủ",
+      "cp": "",
+      "zaloName": "",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      }
+    },
+    {
+      "id": "94",
+      "inGameName": "Linh 3",
+      "cp": "",
+      "zaloName": "",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      }
+    },
+    {
+      "id": "95",
+      "inGameName": "C o l l y",
+      "cp": "",
+      "zaloName": "",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "B",
+        "role": "CT",
+        "note": ""
+      }
+    },
+    {
+      "id": "96",
+      "inGameName": "Chunchun",
+      "cp": "",
+      "zaloName": "",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": ""
+      }
+    },
+    {
+      "id": "97",
+      "inGameName": "H ư n g",
+      "cp": "",
+      "zaloName": "",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      }
+    },
+    {
+      "id": "98",
+      "inGameName": "Little Mouse",
+      "cp": "",
+      "zaloName": "",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": ""
+      }
+    },
+    {
+      "id": "99",
+      "inGameName": "Minh Puu",
+      "cp": "",
+      "zaloName": "",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "A",
+        "role": "CT",
+        "note": ""
+      }
+    },
+    {
+      "id": "100",
+      "inGameName": "ố€ Puu",
+      "cp": "",
+      "zaloName": "",
+      "round1": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round2": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round3": {
+        "team": "",
+        "role": "",
+        "note": ""
+      },
+      "round4": {
+        "team": "",
+        "role": "",
+        "note": ""
+      }
+    }
+  ],
+  "events": [
+    {
+      "id": "3",
+      "eventKey": "e3",
+      "date": "2026-04-15",
+      "name": "OASIS 3"
+    },
+    {
+      "id": "4",
+      "eventKey": "e4",
+      "date": "2026-04-16",
+      "name": "OASIS 3"
+    },
+    {
+      "id": "5",
+      "eventKey": "e5",
+      "date": "2026-04-16",
+      "name": "Stronghold 3"
+    },
+    {
+      "id": "6",
+      "eventKey": "e6",
+      "date": "2026-04-17",
+      "name": "Oasis 3"
+    },
+    {
+      "id": "7",
+      "eventKey": "e7",
+      "date": "2026-04-25",
+      "name": "Strife Pass(E)"
+    },
+    {
+      "id": "8",
+      "eventKey": "e8",
+      "date": "2026-04-25",
+      "name": "Stronghold 3 (HwaR)"
+    },
+    {
+      "id": "9",
+      "eventKey": "e9",
+      "date": "2026-04-26",
+      "name": "Oasis 3"
+    },
+    {
+      "id": "10",
+      "eventKey": "e10",
+      "date": "2026-04-26",
+      "name": "Small Pass"
+    },
+    {
+      "id": "11",
+      "eventKey": "e11",
+      "date": "2026-04-26",
+      "name": "Stronghold 3"
+    },
+    {
+      "id": "12",
+      "eventKey": "e12",
+      "date": "",
+      "name": "online"
+    },
+    {
+      "id": "13",
+      "eventKey": "e13",
+      "date": "2026-04-26",
+      "name": "Pyramid 4"
+    },
+    {
+      "id": "14",
+      "eventKey": "e14",
+      "date": "",
+      "name": "online"
+    },
+    {
+      "id": "15",
+      "eventKey": "e15",
+      "date": "2026-04-27",
+      "name": "Oasis 1"
+    },
+    {
+      "id": "16",
+      "eventKey": "e16",
+      "date": "2026-04-27",
+      "name": "Pyramid 1"
+    },
+    {
+      "id": "17",
+      "eventKey": "e17",
+      "date": "2026-04-28",
+      "name": "Small Pass"
+    },
+    {
+      "id": "18",
+      "eventKey": "e18",
+      "date": "2026-04-30",
+      "name": "Oasis 3"
+    },
+    {
+      "id": "19",
+      "eventKey": "e19",
+      "date": "2026-04-30",
+      "name": "Oasis 3"
+    },
+    {
+      "id": "20",
+      "eventKey": "e20",
+      "date": "2026-05-02",
+      "name": "War-online"
+    },
+    {
+      "id": "21",
+      "eventKey": "e21",
+      "date": "2026-05-03",
+      "name": "Oasis 2"
+    },
+    {
+      "id": "22",
+      "eventKey": "e22",
+      "date": "2026-05-03",
+      "name": "Pyramid 2"
+    }
+  ],
+  "attendance": [
+    {
+      "memberId": "1",
+      "inGameName": "允雁-Yun Yan",
+      "records": {
+        "e3": "X",
+        "e4": "",
+        "e5": "X",
+        "e6": "",
+        "e7": "X",
+        "e8": "X",
+        "e9": "",
+        "e10": "",
+        "e11": "",
+        "e12": "O",
+        "e13": "",
+        "e14": "",
+        "e15": "",
+        "e16": "",
+        "e17": "X",
+        "e18": "",
+        "e19": "",
+        "e20": "X",
+        "e21": "",
+        "e22": ""
+      }
+    },
+    {
+      "memberId": "2",
+      "inGameName": "alone star",
+      "records": {
+        "e3": "",
+        "e4": "",
+        "e5": "",
+        "e6": "",
+        "e7": "X",
+        "e8": "X",
+        "e9": "",
+        "e10": "",
+        "e11": "",
+        "e12": "",
+        "e13": "",
+        "e14": "",
+        "e15": "",
+        "e16": "",
+        "e17": "",
+        "e18": "",
+        "e19": "",
+        "e20": "X",
+        "e21": "X",
+        "e22": ""
+      }
+    },
+    {
+      "memberId": "3",
+      "inGameName": "Angeleiv",
+      "records": {
+        "e3": "",
+        "e4": "",
+        "e5": "",
+        "e6": "",
+        "e7": "",
+        "e8": "",
+        "e9": "",
+        "e10": "",
+        "e11": "",
+        "e12": "",
+        "e13": "",
+        "e14": "",
+        "e15": "",
+        "e16": "",
+        "e17": "",
+        "e18": "",
+        "e19": "",
+        "e20": "X",
+        "e21": "",
+        "e22": ""
+      }
+    },
+    {
+      "memberId": "4",
+      "inGameName": "Anh Túوخ ول وت",
+      "records": {
+        "e3": "",
+        "e4": "",
+        "e5": "X",
+        "e6": "",
+        "e7": "X",
+        "e8": "X",
+        "e9": "",
+        "e10": "X",
+        "e11": "",
+        "e12": "O",
+        "e13": "X",
+        "e14": "O",
+        "e15": "",
+        "e16": "",
+        "e17": "",
+        "e18": "",
+        "e19": "",
+        "e20": "X",
+        "e21": "X",
+        "e22": ""
+      }
+    },
+    {
+      "memberId": "5",
+      "inGameName": "ArGy",
+      "records": {
+        "e3": "X",
+        "e4": "X",
+        "e5": "X",
+        "e6": "",
+        "e7": "X",
+        "e8": "",
+        "e9": "",
+        "e10": "X",
+        "e11": "",
+        "e12": "",
+        "e13": "X",
+        "e14": "O",
+        "e15": "",
+        "e16": "",
+        "e17": "",
+        "e18": "",
+        "e19": "X",
+        "e20": "X",
+        "e21": "",
+        "e22": ""
+      }
+    },
+    {
+      "memberId": "6",
+      "inGameName": "Ballooooon",
+      "records": {
+        "e3": "",
+        "e4": "X",
+        "e5": "",
+        "e6": "X",
+        "e7": "",
+        "e8": "",
+        "e9": "",
+        "e10": "X",
+        "e11": "X",
+        "e12": "",
+        "e13": "X",
+        "e14": "O",
+        "e15": "",
+        "e16": "X",
+        "e17": "",
+        "e18": "",
+        "e19": "",
+        "e20": "X",
+        "e21": "",
+        "e22": ""
+      }
+    },
+    {
+      "memberId": "7",
+      "inGameName": "Bemagau",
+      "records": {
+        "e3": "X",
+        "e4": "X",
+        "e5": "X",
+        "e6": "",
+        "e7": "X",
+        "e8": "X",
+        "e9": "",
+        "e10": "X",
+        "e11": "X",
+        "e12": "O",
+        "e13": "",
+        "e14": "O",
+        "e15": "X",
+        "e16": "X",
+        "e17": "X",
+        "e18": "X",
+        "e19": "X",
+        "e20": "X",
+        "e21": "",
+        "e22": "X"
+      }
+    },
+    {
+      "memberId": "8",
+      "inGameName": "Bill Fashion",
+      "records": {
+        "e3": "X",
+        "e4": "X",
+        "e5": "",
+        "e6": "X",
+        "e7": "X",
+        "e8": "X",
+        "e9": "",
+        "e10": "",
+        "e11": "",
+        "e12": "",
+        "e13": "",
+        "e14": "",
+        "e15": "X",
+        "e16": "",
+        "e17": "",
+        "e18": "",
+        "e19": "",
+        "e20": "X",
+        "e21": "",
+        "e22": ""
+      }
+    },
+    {
+      "memberId": "9",
+      "inGameName": "Bin sama",
+      "records": {
+        "e3": "",
+        "e4": "",
+        "e5": "",
+        "e6": "",
+        "e7": "X",
+        "e8": "",
+        "e9": "",
+        "e10": "",
+        "e11": "",
+        "e12": "",
+        "e13": "",
+        "e14": "O",
+        "e15": "",
+        "e16": "",
+        "e17": "",
+        "e18": "",
+        "e19": "",
+        "e20": "",
+        "e21": "",
+        "e22": ""
+      }
+    },
+    {
+      "memberId": "10",
+      "inGameName": "Bò đi Mid",
+      "records": {
+        "e3": "X",
+        "e4": "",
+        "e5": "X",
+        "e6": "",
+        "e7": "X",
+        "e8": "X",
+        "e9": "",
+        "e10": "X",
+        "e11": "",
+        "e12": "O",
+        "e13": "X",
+        "e14": "",
+        "e15": "",
+        "e16": "",
+        "e17": "",
+        "e18": "",
+        "e19": "",
+        "e20": "",
+        "e21": "",
+        "e22": ""
+      }
+    },
+    {
+      "memberId": "11",
+      "inGameName": "BuBu",
+      "records": {
+        "e3": "X",
+        "e4": "",
+        "e5": "",
+        "e6": "",
+        "e7": "X",
+        "e8": "",
+        "e9": "",
+        "e10": "",
+        "e11": "",
+        "e12": "",
+        "e13": "X",
+        "e14": "O",
+        "e15": "",
+        "e16": "",
+        "e17": "",
+        "e18": "",
+        "e19": "",
+        "e20": "X",
+        "e21": "",
+        "e22": ""
+      }
+    },
+    {
+      "memberId": "12",
+      "inGameName": "C o l l y",
+      "records": {
+        "e3": "",
+        "e4": "",
+        "e5": "",
+        "e6": "",
+        "e7": "X",
+        "e8": "X",
+        "e9": "",
+        "e10": "",
+        "e11": "",
+        "e12": "",
+        "e13": "",
+        "e14": "",
+        "e15": "",
+        "e16": "",
+        "e17": "",
+        "e18": "",
+        "e19": "",
+        "e20": "",
+        "e21": "",
+        "e22": ""
+      }
+    },
+    {
+      "memberId": "13",
+      "inGameName": "CAPPYBABI",
+      "records": {
+        "e3": "X",
+        "e4": "",
+        "e5": "",
+        "e6": "",
+        "e7": "",
+        "e8": "X",
+        "e9": "",
+        "e10": "X",
+        "e11": "",
+        "e12": "",
+        "e13": "",
+        "e14": "O",
+        "e15": "",
+        "e16": "",
+        "e17": "X",
+        "e18": "",
+        "e19": "",
+        "e20": "",
+        "e21": "",
+        "e22": ""
+      }
+    },
+    {
+      "memberId": "14",
+      "inGameName": "Carott",
+      "records": {
+        "e3": "",
+        "e4": "",
+        "e5": "",
+        "e6": "",
+        "e7": "",
+        "e8": "",
+        "e9": "",
+        "e10": "",
+        "e11": "",
+        "e12": "",
+        "e13": "",
+        "e14": "",
+        "e15": "",
+        "e16": "",
+        "e17": "X",
+        "e18": "",
+        "e19": "",
+        "e20": "X",
+        "e21": "",
+        "e22": ""
+      }
+    },
+    {
+      "memberId": "15",
+      "inGameName": "cây cỏ",
+      "records": {
+        "e3": "",
+        "e4": "",
+        "e5": "",
+        "e6": "",
+        "e7": "",
+        "e8": "",
+        "e9": "",
+        "e10": "",
+        "e11": "",
+        "e12": "",
+        "e13": "",
+        "e14": "",
+        "e15": "",
+        "e16": "",
+        "e17": "",
+        "e18": "",
+        "e19": "",
+        "e20": "X",
+        "e21": "",
+        "e22": ""
+      }
+    },
+    {
+      "memberId": "16",
+      "inGameName": "Chị Bờ Vai",
+      "records": {
+        "e3": "",
+        "e4": "",
+        "e5": "X",
+        "e6": "X",
+        "e7": "X",
+        "e8": "X",
+        "e9": "",
+        "e10": "X",
+        "e11": "",
+        "e12": "",
+        "e13": "X",
+        "e14": "O",
+        "e15": "",
+        "e16": "",
+        "e17": "",
+        "e18": "",
+        "e19": "",
+        "e20": "X",
+        "e21": "",
+        "e22": "X"
+      }
+    },
+    {
+      "memberId": "17",
+      "inGameName": "Chunchun",
+      "records": {
+        "e3": "",
+        "e4": "",
+        "e5": "",
+        "e6": "",
+        "e7": "",
+        "e8": "",
+        "e9": "",
+        "e10": "",
+        "e11": "",
+        "e12": "",
+        "e13": "",
+        "e14": "",
+        "e15": "",
+        "e16": "",
+        "e17": "",
+        "e18": "",
+        "e19": "",
+        "e20": "",
+        "e21": "",
+        "e22": ""
+      }
+    },
+    {
+      "memberId": "18",
+      "inGameName": "Ｃｌａｙ",
+      "records": {
+        "e3": "",
+        "e4": "",
+        "e5": "",
+        "e6": "X",
+        "e7": "X",
+        "e8": "X",
+        "e9": "",
+        "e10": "X",
+        "e11": "",
+        "e12": "",
+        "e13": "",
+        "e14": "",
+        "e15": "",
+        "e16": "",
+        "e17": "",
+        "e18": "",
+        "e19": "",
+        "e20": "X",
+        "e21": "",
+        "e22": ""
+      }
+    },
+    {
+      "memberId": "19",
+      "inGameName": "Dino",
+      "records": {
+        "e3": "X",
+        "e4": "X",
+        "e5": "X",
+        "e6": "",
+        "e7": "X",
+        "e8": "",
+        "e9": "",
+        "e10": "X",
+        "e11": "",
+        "e12": "O",
+        "e13": "X",
+        "e14": "",
+        "e15": "",
+        "e16": "",
+        "e17": "",
+        "e18": "",
+        "e19": "",
+        "e20": "X",
+        "e21": "X",
+        "e22": ""
+      }
+    },
+    {
+      "memberId": "20",
+      "inGameName": "Dkha",
+      "records": {
+        "e3": "",
+        "e4": "",
+        "e5": "X",
+        "e6": "",
+        "e7": "X",
+        "e8": "X",
+        "e9": "",
+        "e10": "X",
+        "e11": "",
+        "e12": "O",
+        "e13": "X",
+        "e14": "",
+        "e15": "",
+        "e16": "",
+        "e17": "X",
+        "e18": "",
+        "e19": "",
+        "e20": "X",
+        "e21": "X",
+        "e22": ""
+      }
+    },
+    {
+      "memberId": "21",
+      "inGameName": "Dolly",
+      "records": {
+        "e3": "",
+        "e4": "",
+        "e5": "",
+        "e6": "",
+        "e7": "",
+        "e8": "",
+        "e9": "",
+        "e10": "",
+        "e11": "",
+        "e12": "",
+        "e13": "",
+        "e14": "",
+        "e15": "",
+        "e16": "",
+        "e17": "",
+        "e18": "X",
+        "e19": "X",
+        "e20": "X",
+        "e21": "",
+        "e22": "X"
+      }
+    },
+    {
+      "memberId": "22",
+      "inGameName": "Donataka",
+      "records": {
+        "e3": "X",
+        "e4": "X",
+        "e5": "X",
+        "e6": "",
+        "e7": "X",
+        "e8": "",
+        "e9": "",
+        "e10": "X",
+        "e11": "",
+        "e12": "",
+        "e13": "",
+        "e14": "O",
+        "e15": "",
+        "e16": "",
+        "e17": "X",
+        "e18": "",
+        "e19": "",
+        "e20": "X",
+        "e21": "",
+        "e22": ""
+      }
+    },
+    {
+      "memberId": "23",
+      "inGameName": "DuDu",
+      "records": {
+        "e3": "X",
+        "e4": "",
+        "e5": "",
+        "e6": "",
+        "e7": "X",
+        "e8": "X",
+        "e9": "",
+        "e10": "X",
+        "e11": "",
+        "e12": "",
+        "e13": "X",
+        "e14": "O",
+        "e15": "",
+        "e16": "",
+        "e17": "X",
+        "e18": "",
+        "e19": "",
+        "e20": "X",
+        "e21": "",
+        "e22": "X"
+      }
+    },
+    {
+      "memberId": "24",
+      "inGameName": "G N U H",
+      "records": {
+        "e3": "",
+        "e4": "",
+        "e5": "",
+        "e6": "",
+        "e7": "",
+        "e8": "",
+        "e9": "",
+        "e10": "",
+        "e11": "",
+        "e12": "",
+        "e13": "",
+        "e14": "",
+        "e15": "",
+        "e16": "",
+        "e17": "",
+        "e18": "",
+        "e19": "",
+        "e20": "",
+        "e21": "",
+        "e22": ""
+      }
+    },
+    {
+      "memberId": "25",
+      "inGameName": "Gấu Bắc Cực",
+      "records": {
+        "e3": "X",
+        "e4": "",
+        "e5": "",
+        "e6": "",
+        "e7": "X",
+        "e8": "",
+        "e9": "",
+        "e10": "",
+        "e11": "",
+        "e12": "O",
+        "e13": "X",
+        "e14": "O",
+        "e15": "",
+        "e16": "",
+        "e17": "X",
+        "e18": "",
+        "e19": "",
+        "e20": "X",
+        "e21": "",
+        "e22": ""
+      }
+    },
+    {
+      "memberId": "26",
+      "inGameName": "H ư n g",
+      "records": {
+        "e3": "",
+        "e4": "",
+        "e5": "",
+        "e6": "",
+        "e7": "",
+        "e8": "",
+        "e9": "",
+        "e10": "",
+        "e11": "",
+        "e12": "",
+        "e13": "",
+        "e14": "",
+        "e15": "",
+        "e16": "",
+        "e17": "",
+        "e18": "",
+        "e19": "",
+        "e20": "",
+        "e21": "",
+        "e22": ""
+      }
+    },
+    {
+      "memberId": "27",
+      "inGameName": "Hana",
+      "records": {
+        "e3": "X",
+        "e4": "",
+        "e5": "X",
+        "e6": "",
+        "e7": "",
+        "e8": "X",
+        "e9": "",
+        "e10": "",
+        "e11": "X",
+        "e12": "O",
+        "e13": "X",
+        "e14": "",
+        "e15": "",
+        "e16": "",
+        "e17": "X",
+        "e18": "X",
+        "e19": "X",
+        "e20": "X",
+        "e21": "X",
+        "e22": ""
+      }
+    },
+    {
+      "memberId": "28",
+      "inGameName": "HuG",
+      "records": {
+        "e3": "",
+        "e4": "",
+        "e5": "",
+        "e6": "",
+        "e7": "X",
+        "e8": "X",
+        "e9": "",
+        "e10": "",
+        "e11": "",
+        "e12": "",
+        "e13": "",
+        "e14": "",
+        "e15": "",
+        "e16": "",
+        "e17": "X",
+        "e18": "",
+        "e19": "",
+        "e20": "X",
+        "e21": "",
+        "e22": ""
+      }
+    },
+    {
+      "memberId": "29",
+      "inGameName": "Ỉn ỉn",
+      "records": {
+        "e3": "X",
+        "e4": "",
+        "e5": "",
+        "e6": "",
+        "e7": "X",
+        "e8": "X",
+        "e9": "",
+        "e10": "",
+        "e11": "",
+        "e12": "",
+        "e13": "",
+        "e14": "",
+        "e15": "",
+        "e16": "",
+        "e17": "X",
+        "e18": "",
+        "e19": "",
+        "e20": "X",
+        "e21": "",
+        "e22": "X"
+      }
+    },
+    {
+      "memberId": "30",
+      "inGameName": "Jagerrr",
+      "records": {
+        "e3": "X",
+        "e4": "",
+        "e5": "",
+        "e6": "",
+        "e7": "X",
+        "e8": "X",
+        "e9": "",
+        "e10": "",
+        "e11": "",
+        "e12": "",
+        "e13": "",
+        "e14": "",
+        "e15": "X",
+        "e16": "",
+        "e17": "X",
+        "e18": "",
+        "e19": "",
+        "e20": "X",
+        "e21": "",
+        "e22": "X"
+      }
+    },
+    {
+      "memberId": "31",
+      "inGameName": "Joice",
+      "records": {
+        "e3": "",
+        "e4": "",
+        "e5": "",
+        "e6": "",
+        "e7": "",
+        "e8": "X",
+        "e9": "",
+        "e10": "",
+        "e11": "X",
+        "e12": "O",
+        "e13": "X",
+        "e14": "",
+        "e15": "",
+        "e16": "",
+        "e17": "X",
+        "e18": "",
+        "e19": "",
+        "e20": "",
+        "e21": "",
+        "e22": "X"
+      }
+    },
+    {
+      "memberId": "32",
+      "inGameName": "Juicego",
+      "records": {
+        "e3": "",
+        "e4": "",
+        "e5": "",
+        "e6": "",
+        "e7": "",
+        "e8": "",
+        "e9": "",
+        "e10": "",
+        "e11": "",
+        "e12": "",
+        "e13": "",
+        "e14": "",
+        "e15": "",
+        "e16": "",
+        "e17": "",
+        "e18": "",
+        "e19": "",
+        "e20": "",
+        "e21": "",
+        "e22": ""
+      }
+    },
+    {
+      "memberId": "33",
+      "inGameName": "junN",
+      "records": {
+        "e3": "",
+        "e4": "",
+        "e5": "",
+        "e6": "X",
+        "e7": "X",
+        "e8": "X",
+        "e9": "",
+        "e10": "X",
+        "e11": "X",
+        "e12": "",
+        "e13": "X",
+        "e14": "O",
+        "e15": "",
+        "e16": "",
+        "e17": "X",
+        "e18": "",
+        "e19": "X",
+        "e20": "X",
+        "e21": "X",
+        "e22": "X"
+      }
+    },
+    {
+      "memberId": "34",
+      "inGameName": "just chilling",
+      "records": {
+        "e3": "X",
+        "e4": "",
+        "e5": "X",
+        "e6": "",
+        "e7": "X",
+        "e8": "X",
+        "e9": "",
+        "e10": "",
+        "e11": "",
+        "e12": "",
+        "e13": "",
+        "e14": "",
+        "e15": "",
+        "e16": "X",
+        "e17": "X",
+        "e18": "X",
+        "e19": "X",
+        "e20": "",
+        "e21": "",
+        "e22": ""
+      }
+    },
+    {
+      "memberId": "35",
+      "inGameName": "kai-kilsd",
+      "records": {
+        "e3": "",
+        "e4": "",
+        "e5": "X",
+        "e6": "",
+        "e7": "",
+        "e8": "X",
+        "e9": "",
+        "e10": "",
+        "e11": "",
+        "e12": "O",
+        "e13": "X",
+        "e14": "O",
+        "e15": "",
+        "e16": "",
+        "e17": "",
+        "e18": "",
+        "e19": "",
+        "e20": "X",
+        "e21": "",
+        "e22": "X"
+      }
+    },
+    {
+      "memberId": "36",
+      "inGameName": "kimthenomad",
+      "records": {
+        "e3": "",
+        "e4": "",
+        "e5": "",
+        "e6": "",
+        "e7": "",
+        "e8": "",
+        "e9": "",
+        "e10": "",
+        "e11": "",
+        "e12": "",
+        "e13": "",
+        "e14": "",
+        "e15": "",
+        "e16": "",
+        "e17": "",
+        "e18": "",
+        "e19": "",
+        "e20": "",
+        "e21": "",
+        "e22": ""
+      }
+    },
+    {
+      "memberId": "37",
+      "inGameName": "Konnie2211",
+      "records": {
+        "e3": "",
+        "e4": "X",
+        "e5": "",
+        "e6": "X",
+        "e7": "",
+        "e8": "X",
+        "e9": "",
+        "e10": "",
+        "e11": "",
+        "e12": "",
+        "e13": "",
+        "e14": "",
+        "e15": "X",
+        "e16": "",
+        "e17": "",
+        "e18": "",
+        "e19": "X",
+        "e20": "X",
+        "e21": "",
+        "e22": "X"
+      }
+    },
+    {
+      "memberId": "38",
+      "inGameName": "Kosoma",
+      "records": {
+        "e3": "X",
+        "e4": "X",
+        "e5": "X",
+        "e6": "X",
+        "e7": "X",
+        "e8": "X",
+        "e9": "X",
+        "e10": "X",
+        "e11": "X",
+        "e12": "O",
+        "e13": "X",
+        "e14": "O",
+        "e15": "",
+        "e16": "X",
+        "e17": "X",
+        "e18": "X",
+        "e19": "X",
+        "e20": "X",
+        "e21": "",
+        "e22": "X"
+      }
+    },
+    {
+      "memberId": "39",
+      "inGameName": "Kube",
+      "records": {
+        "e3": "",
+        "e4": "",
+        "e5": "X",
+        "e6": "X",
+        "e7": "",
+        "e8": "",
+        "e9": "",
+        "e10": "",
+        "e11": "",
+        "e12": "",
+        "e13": "X",
+        "e14": "",
+        "e15": "",
+        "e16": "",
+        "e17": "",
+        "e18": "",
+        "e19": "",
+        "e20": "X",
+        "e21": "",
+        "e22": ""
+      }
+    },
+    {
+      "memberId": "40",
+      "inGameName": "Lazy Engineer",
+      "records": {
+        "e3": "",
+        "e4": "",
+        "e5": "",
+        "e6": "",
+        "e7": "X",
+        "e8": "X",
+        "e9": "",
+        "e10": "",
+        "e11": "",
+        "e12": "",
+        "e13": "X",
+        "e14": "",
+        "e15": "",
+        "e16": "",
+        "e17": "",
+        "e18": "",
+        "e19": "",
+        "e20": "",
+        "e21": "",
+        "e22": ""
+      }
+    },
+    {
+      "memberId": "41",
+      "inGameName": "Lazy Famer",
+      "records": {
+        "e3": "X",
+        "e4": "X",
+        "e5": "",
+        "e6": "X",
+        "e7": "",
+        "e8": "X",
+        "e9": "",
+        "e10": "X",
+        "e11": "",
+        "e12": "O",
+        "e13": "X",
+        "e14": "O",
+        "e15": "X",
+        "e16": "",
+        "e17": "",
+        "e18": "",
+        "e19": "",
+        "e20": "X",
+        "e21": "X",
+        "e22": ""
+      }
+    },
+    {
+      "memberId": "42",
+      "inGameName": "Liêm Đẹp Trai",
+      "records": {
+        "e3": "",
+        "e4": "",
+        "e5": "",
+        "e6": "",
+        "e7": "X",
+        "e8": "",
+        "e9": "",
+        "e10": "",
+        "e11": "",
+        "e12": "",
+        "e13": "",
+        "e14": "",
+        "e15": "",
+        "e16": "",
+        "e17": "X",
+        "e18": "",
+        "e19": "",
+        "e20": "X",
+        "e21": "",
+        "e22": ""
+      }
+    },
+    {
+      "memberId": "43",
+      "inGameName": "Linh 3",
+      "records": {
+        "e3": "",
+        "e4": "",
+        "e5": "",
+        "e6": "",
+        "e7": "",
+        "e8": "",
+        "e9": "",
+        "e10": "",
+        "e11": "",
+        "e12": "",
+        "e13": "",
+        "e14": "",
+        "e15": "",
+        "e16": "",
+        "e17": "",
+        "e18": "",
+        "e19": "",
+        "e20": "",
+        "e21": "",
+        "e22": ""
+      }
+    },
+    {
+      "memberId": "44",
+      "inGameName": "Little Mouse",
+      "records": {
+        "e3": "",
+        "e4": "",
+        "e5": "",
+        "e6": "",
+        "e7": "",
+        "e8": "",
+        "e9": "",
+        "e10": "",
+        "e11": "",
+        "e12": "",
+        "e13": "",
+        "e14": "",
+        "e15": "",
+        "e16": "",
+        "e17": "",
+        "e18": "",
+        "e19": "",
+        "e20": "",
+        "e21": "",
+        "e22": ""
+      }
+    },
+    {
+      "memberId": "45",
+      "inGameName": "Louize",
+      "records": {
+        "e3": "X",
+        "e4": "X",
+        "e5": "X",
+        "e6": "X",
+        "e7": "X",
+        "e8": "",
+        "e9": "",
+        "e10": "X",
+        "e11": "",
+        "e12": "O",
+        "e13": "X",
+        "e14": "",
+        "e15": "",
+        "e16": "",
+        "e17": "X",
+        "e18": "",
+        "e19": "",
+        "e20": "X",
+        "e21": "",
+        "e22": ""
+      }
+    },
+    {
+      "memberId": "46",
+      "inGameName": "Lu wei",
+      "records": {
+        "e3": "X",
+        "e4": "X",
+        "e5": "X",
+        "e6": "X",
+        "e7": "X",
+        "e8": "X",
+        "e9": "X",
+        "e10": "X",
+        "e11": "X",
+        "e12": "O",
+        "e13": "X",
+        "e14": "O",
+        "e15": "",
+        "e16": "X",
+        "e17": "X",
+        "e18": "X",
+        "e19": "X",
+        "e20": "X",
+        "e21": "X",
+        "e22": "X"
+      }
+    },
+    {
+      "memberId": "47",
+      "inGameName": "Lửng 7 mạng",
+      "records": {
+        "e3": "X",
+        "e4": "",
+        "e5": "",
+        "e6": "",
+        "e7": "X",
+        "e8": "",
+        "e9": "",
+        "e10": "",
+        "e11": "",
+        "e12": "",
+        "e13": "",
+        "e14": "",
+        "e15": "",
+        "e16": "X",
+        "e17": "",
+        "e18": "",
+        "e19": "",
+        "e20": "",
+        "e21": "",
+        "e22": ""
+      }
+    },
+    {
+      "memberId": "48",
+      "inGameName": "M Y R A",
+      "records": {
+        "e3": "",
+        "e4": "",
+        "e5": "X",
+        "e6": "X",
+        "e7": "",
+        "e8": "",
+        "e9": "",
+        "e10": "",
+        "e11": "",
+        "e12": "",
+        "e13": "",
+        "e14": "",
+        "e15": "",
+        "e16": "",
+        "e17": "",
+        "e18": "X",
+        "e19": "",
+        "e20": "X",
+        "e21": "",
+        "e22": "X"
+      }
+    },
+    {
+      "memberId": "49",
+      "inGameName": "Maii Laan",
+      "records": {
+        "e3": "",
+        "e4": "",
+        "e5": "X",
+        "e6": "",
+        "e7": "",
+        "e8": "",
+        "e9": "",
+        "e10": "",
+        "e11": "",
+        "e12": "",
+        "e13": "",
+        "e14": "",
+        "e15": "",
+        "e16": "",
+        "e17": "",
+        "e18": "",
+        "e19": "",
+        "e20": "X",
+        "e21": "",
+        "e22": ""
+      }
+    },
+    {
+      "memberId": "50",
+      "inGameName": "Mầm non vân hồ",
+      "records": {
+        "e3": "",
+        "e4": "",
+        "e5": "",
+        "e6": "",
+        "e7": "",
+        "e8": "",
+        "e9": "",
+        "e10": "",
+        "e11": "",
+        "e12": "O",
+        "e13": "",
+        "e14": "",
+        "e15": "",
+        "e16": "",
+        "e17": "",
+        "e18": "",
+        "e19": "",
+        "e20": "X",
+        "e21": "",
+        "e22": ""
+      }
+    }
+  ]
+}
