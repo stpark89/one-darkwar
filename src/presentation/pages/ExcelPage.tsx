@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils'
 export const ExcelPage = () => {
   const { t } = useTranslation()
   const { members, setMembers } = useMemberStore()
-  const { session } = useWarStore()
+  const { getMemberRows, rounds } = useWarStore()
   const { events, attendance } = useEventStore()
   const fileRef = useRef<HTMLInputElement>(null)
   const [importResult, setImportResult] = useState<string | null>(null)
@@ -52,7 +52,7 @@ export const ExcelPage = () => {
         <div className="grid grid-cols-3 gap-3">
           {[
             { label: t('excel.export_members'), desc: `${members.length}${t('common.count_people')}`, onClick: () => exportMembersToExcel(members), color: 'text-[var(--color-success)]' },
-            { label: t('excel.export_war'), desc: `${session.participants.length}${t('common.count_people')}`, onClick: () => exportWarToExcel(session.participants), color: 'text-[var(--color-warning)]' },
+            { label: t('excel.export_war'), desc: `${rounds.length}회차`, onClick: () => exportWarToExcel(getMemberRows(), rounds), color: 'text-[var(--color-warning)]' },
             { label: t('excel.export_events'), desc: `${events.length}`, onClick: () => exportEventsToExcel(events, attendance), color: 'text-[var(--color-brand)]' },
           ].map(({ label, desc, onClick, color }) => (
             <button

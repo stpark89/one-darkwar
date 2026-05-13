@@ -1,6 +1,6 @@
 import * as XLSX from 'xlsx'
 import type { Member } from '@/domain/entities/Member'
-import type { WarParticipant } from '@/domain/entities/War'
+import type { MemberWarRow, WarRound } from '@/domain/entities/War'
 import type { EventSession, EventAttendance } from '@/domain/entities/Event'
 
 export function exportMembersToExcel(members: Member[]) {
@@ -17,25 +17,15 @@ export function exportMembersToExcel(members: Member[]) {
   XLSX.writeFile(wb, 'one-darkwar-members.xlsx')
 }
 
-export function exportWarToExcel(participants: WarParticipant[]) {
-  const rows = participants.map((p, i) => ({
-    'STT': i + 1,
-    'TÊN INGAME': p.inGameName,
-    'CP': p.cp,
-    'TÊN ZALO': p.zaloName,
-    'Đợt 1: Team': p.round1.team,
-    'Đợt 1: Vai trò': p.round1.role,
-    'Ghi chú 1': p.round1.note,
-    'Đợt 2: Team': p.round2.team,
-    'Đợt 2: Vai trò': p.round2.role,
-    'Ghi chú 2': p.round2.note,
-    'Đợt 3: Team': p.round3.team,
-    'Đợt 3: Vai trò': p.round3.role,
-    'Ghi chú 3': p.round3.note,
-    'Đợt 4: Team': p.round4.team,
-    'Đợt 4: Vai trò': p.round4.role,
-    'Ghi chú 4': p.round4.note,
-  }))
+export function exportWarToExcel(memberRows: MemberWarRow[], rounds: WarRound[]) {
+  const rows = memberRows.map((m, i) => {
+    const row: Record<string, string | number> = { 'STT': i + 1, 'TÊN INGAME': m.inGameName, 'TỔNG': m.total }
+    rounds.forEach(r => {
+      const e = m.entryMap[r.id] ?? { team: '', role: '' }
+      row[`Đợt ${r.sortOrder} (${r.date})`] = e.team && e.role ? `${e.team}·${e.role}` : ''
+    })
+    return row
+  })
   const ws = XLSX.utils.json_to_sheet(rows)
   const wb = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(wb, ws, 'BLACK GOLD')
@@ -55,15 +45,11 @@ export function exportEventsToExcel(events: EventSession[], attendance: EventAtt
   XLSX.writeFile(wb, 'one-darkwar-events.xlsx')
 }
 
-export async function importFromExcel(file: File): Promise<{
-  members?: Member[]
-  warParticipants?: WarParticipant[]
-}> {
+export async function importFromExcel(file: File): Promise<{ members?: Member[] }> {
   const buf = await file.arrayBuffer()
   const wb = XLSX.read(buf, { type: 'array' })
-  const result: { members?: Member[]; warParticipants?: WarParticipant[] } = {}
+  const result: { members?: Member[] } = {}
 
-  // 멤버 시트
   const memberSheet = wb.Sheets['MEMBERS'] ?? wb.Sheets[wb.SheetNames[0]]
   if (memberSheet) {
     const rows = XLSX.utils.sheet_to_json<Record<string, string>>(memberSheet)

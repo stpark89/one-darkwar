@@ -1,92 +1,163 @@
 import { create } from 'zustand'
 import { supabase } from '@/lib/supabase'
-import type { WarParticipant, WarSession, WarRoundEntry } from '@/domain/entities/War'
+import type { Season, WarRound, WarEntry, WarTeam, WarRole, MemberWarRow } from '@/domain/entities/War'
 
-const defaultSession: Omit<WarSession, 'participants'> = {
-  id: 'black-gold-1',
-  name: 'BLACK GOLD',
-  rounds: [
-    { label: 'Đợt 1', date: '2026-03-29' },
-    { label: 'Đợt 2', date: '2026-04-19' },
-    { label: 'Đợt 3', date: '2026-04-26' },
-    { label: 'Đợt 4', date: '2026-05-10' },
-  ],
+interface SummaryRow {
+  memberId: string
+  inGameName: string
+  total: number
+  ct: number
+  db: number
+  teamA: number
+  teamB: number
 }
 
 interface WarStore {
-  session: WarSession
+  seasons: Season[]
+  activeSeason: Season | null
+  rounds: WarRound[]
+  entries: WarEntry[]
+  members: { id: string; inGameName: string }[]
   loading: boolean
   searchQuery: string
   filterTeam: string
-  filterRound: number
 
-  loadParticipants: () => Promise<void>
-  setParticipants: (participants: WarParticipant[]) => void
-  updateEntry: (participantId: string, round: number, entry: Partial<WarRoundEntry>) => void
+  loadData: () => Promise<void>
+  addRound: (date: string) => Promise<void>
+  updateEntry: (roundId: string, memberId: string, team: WarTeam, role: WarRole) => Promise<void>
   setSearchQuery: (q: string) => void
   setFilterTeam: (team: string) => void
-  setFilterRound: (round: number) => void
-  getFiltered: () => WarParticipant[]
+  getMemberRows: () => MemberWarRow[]
+  getSummary: () => SummaryRow[]
 }
 
-const toParticipant = (row: Record<string, string>): WarParticipant => ({
-  id: row.id,
-  inGameName: row.in_game_name,
-  zaloName: row.zalo_name ?? '',
-  cp: row.cp,
-  round1: { team: row.r1_team as WarRoundEntry['team'], role: row.r1_role as WarRoundEntry['role'], note: row.r1_note },
-  round2: { team: row.r2_team as WarRoundEntry['team'], role: row.r2_role as WarRoundEntry['role'], note: row.r2_note },
-  round3: { team: row.r3_team as WarRoundEntry['team'], role: row.r3_role as WarRoundEntry['role'], note: row.r3_note },
-  round4: { team: row.r4_team as WarRoundEntry['team'], role: row.r4_role as WarRoundEntry['role'], note: row.r4_note },
-})
+export const nextEntry = (team: string, role: string): [WarTeam, WarRole] => {
+  if (!team || !role) return ['A', 'CT']
+  if (team === 'A' && role === 'CT') return ['A', 'DB']
+  if (team === 'A' && role === 'DB') return ['B', 'CT']
+  if (team === 'B' && role === 'CT') return ['B', 'DB']
+  return ['', '']
+}
 
 export const useWarStore = create<WarStore>((set, get) => ({
-  session: { ...defaultSession, participants: [] },
+  seasons: [],
+  activeSeason: null,
+  rounds: [],
+  entries: [],
+  members: [],
   loading: false,
   searchQuery: '',
   filterTeam: '',
-  filterRound: 0,
 
-  loadParticipants: async () => {
+  loadData: async () => {
     set({ loading: true })
-    const { data } = await supabase.from('war_participants').select('*').order('created_at')
-    set((s) => ({
-      session: { ...s.session, participants: (data ?? []).map(toParticipant) },
-      loading: false,
+
+    const [{ data: seasonRows }, { data: memberRows }] = await Promise.all([
+      supabase.from('seasons').select('*').order('created_at'),
+      supabase.from('members').select('id, in_game_name').order('created_at'),
+    ])
+
+    const seasons: Season[] = (seasonRows ?? []).map(r => ({
+      id: r.id, name: r.name, isActive: r.is_active,
     }))
+    const activeSeason = seasons.find(s => s.isActive) ?? seasons[seasons.length - 1] ?? null
+    const members = (memberRows ?? []).map(r => ({ id: r.id, inGameName: r.in_game_name }))
+
+    if (!activeSeason) {
+      set({ seasons, activeSeason: null, rounds: [], entries: [], members, loading: false })
+      return
+    }
+
+    const { data: roundRows } = await supabase
+      .from('war_rounds').select('*')
+      .eq('season_id', activeSeason.id).order('sort_order')
+
+    const rounds: WarRound[] = (roundRows ?? []).map(r => ({
+      id: r.id, seasonId: r.season_id, sortOrder: r.sort_order, date: r.round_date ?? '',
+    }))
+
+    const roundIds = rounds.map(r => r.id)
+    const { data: entryRows } = roundIds.length > 0
+      ? await supabase.from('war_entries').select('*').in('round_id', roundIds)
+      : { data: [] }
+
+    const entries: WarEntry[] = (entryRows ?? []).map(r => ({
+      roundId: r.round_id, memberId: r.member_id,
+      team: r.team as WarTeam, role: r.role as WarRole,
+    }))
+
+    set({ seasons, activeSeason, rounds, entries, members, loading: false })
   },
 
-  setParticipants: (participants) =>
-    set((s) => ({ session: { ...s.session, participants } })),
+  addRound: async (date) => {
+    const { activeSeason, rounds } = get()
+    if (!activeSeason) return
+    const { data } = await supabase
+      .from('war_rounds')
+      .insert({ season_id: activeSeason.id, sort_order: rounds.length + 1, round_date: date || null })
+      .select().single()
+    if (!data) return
+    const newRound: WarRound = { id: data.id, seasonId: data.season_id, sortOrder: data.sort_order, date: data.round_date ?? '' }
+    set(s => ({ rounds: [...s.rounds, newRound] }))
+  },
 
-  updateEntry: (participantId, round, entry) => {
-    set((s) => ({
-      session: {
-        ...s.session,
-        participants: s.session.participants.map((p) => {
-          if (p.id !== participantId) return p
-          const key = `round${round}` as keyof WarParticipant
-          return { ...p, [key]: { ...(p[key] as WarRoundEntry), ...entry } }
-        }),
-      },
-    }))
+  updateEntry: async (roundId, memberId, team, role) => {
+    // 낙관적 업데이트
+    set(s => {
+      const others = s.entries.filter(e => !(e.roundId === roundId && e.memberId === memberId))
+      if (!team && !role) return { entries: others }
+      return { entries: [...others, { roundId, memberId, team, role }] }
+    })
+
+    if (!team && !role) {
+      await supabase.from('war_entries').delete().eq('round_id', roundId).eq('member_id', memberId)
+    } else {
+      await supabase.from('war_entries').upsert(
+        { round_id: roundId, member_id: memberId, team, role },
+        { onConflict: 'round_id,member_id' }
+      )
+    }
   },
 
   setSearchQuery: (searchQuery) => set({ searchQuery }),
   setFilterTeam: (filterTeam) => set({ filterTeam }),
-  setFilterRound: (filterRound) => set({ filterRound }),
 
-  getFiltered: () => {
-    const { session, searchQuery, filterTeam, filterRound } = get()
-    let list = session.participants
+  getMemberRows: () => {
+    const { entries, rounds, members, searchQuery, filterTeam } = get()
+    let rows: MemberWarRow[] = members.map(m => {
+      const entryMap: Record<string, { team: WarTeam; role: WarRole }> = {}
+      rounds.forEach(r => {
+        const e = entries.find(en => en.roundId === r.id && en.memberId === m.id)
+        entryMap[r.id] = { team: e?.team ?? '', role: e?.role ?? '' }
+      })
+      const total = Object.values(entryMap).filter(e => e.role !== '').length
+      return { memberId: m.id, inGameName: m.inGameName, entryMap, total }
+    })
+
     if (searchQuery) {
       const q = searchQuery.toLowerCase()
-      list = list.filter((p) => p.inGameName.toLowerCase().includes(q))
+      rows = rows.filter(r => r.inGameName.toLowerCase().includes(q))
     }
-    if (filterTeam && filterRound > 0) {
-      const key = `round${filterRound}` as keyof WarParticipant
-      list = list.filter((p) => (p[key] as WarRoundEntry).team === filterTeam)
+    if (filterTeam) {
+      rows = rows.filter(r =>
+        Object.values(r.entryMap).some(e => e.team === filterTeam && e.role !== '')
+      )
     }
-    return list
+    return rows
+  },
+
+  getSummary: () => {
+    const { entries, members } = get()
+    return members.map(m => {
+      const me = entries.filter(e => e.memberId === m.id)
+      const ct = me.filter(e => e.role === 'CT').length
+      const db = me.filter(e => e.role === 'DB').length
+      return {
+        memberId: m.id, inGameName: m.inGameName,
+        ct, db, total: ct + db,
+        teamA: me.filter(e => e.team === 'A').length,
+        teamB: me.filter(e => e.team === 'B').length,
+      }
+    }).sort((a, b) => b.total - a.total)
   },
 }))

@@ -1,26 +1,29 @@
 export type WarTeam = 'A' | 'B' | ''
-export type WarRole = 'CT' | 'DB' | ''   // CT=지휘관, DB=예비
+export type WarRole = 'CT' | 'DB' | ''
 
-export interface WarRoundEntry {
+export interface Season {
+  id: string
+  name: string
+  isActive: boolean
+}
+
+export interface WarRound {
+  id: string
+  seasonId: string
+  sortOrder: number
+  date: string
+}
+
+export interface WarEntry {
+  roundId: string
+  memberId: string
   team: WarTeam
   role: WarRole
-  note: string
 }
 
-export interface WarParticipant {
-  id: string
+export interface MemberWarRow {
+  memberId: string
   inGameName: string
-  cp: string
-  zaloName: string
-  round1: WarRoundEntry
-  round2: WarRoundEntry
-  round3: WarRoundEntry
-  round4: WarRoundEntry
-}
-
-export interface WarSession {
-  id: string
-  name: string          // 예: "BLACK GOLD"
-  rounds: { label: string; date: string }[]
-  participants: WarParticipant[]
+  entryMap: Record<string, { team: WarTeam; role: WarRole }>
+  total: number
 }
