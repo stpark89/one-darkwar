@@ -11,6 +11,7 @@ interface EventStore {
   loadData: () => Promise<void>
   addEvent: (name: string, date: string) => Promise<void>
   updateStatus: (memberId: string, eventKey: string, status: AttendanceStatus) => Promise<void>
+  syncMemberName: (memberId: string, newName: string) => void
   setSearchQuery: (q: string) => void
   getFiltered: () => EventAttendance[]
   getSummary: () => { memberId: string; inGameName: string; total: number; ct: number; db: number }[]
@@ -86,6 +87,9 @@ export const useEventStore = create<EventStore>((set, get) => ({
         .upsert({ member_id: memberId, event_id: eventKey, status }, { onConflict: 'member_id,event_id' })
     }
   },
+
+  syncMemberName: (memberId, newName) =>
+    set(s => ({ attendance: s.attendance.map(a => a.memberId === memberId ? { ...a, inGameName: newName } : a) })),
 
   setSearchQuery: (searchQuery) => set({ searchQuery }),
 

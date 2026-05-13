@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 import { supabase } from '@/lib/supabase'
 import type { Member, CreateMemberInput } from '@/domain/entities/Member'
+import { useWarStore } from './warStore'
+import { useEventStore } from './eventStore'
 
 interface MemberStore {
   members: Member[]
@@ -78,6 +80,10 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
     set((s) => ({
       members: s.members.map((m) => (m.id === id ? { ...m, ...input } : m)).sort(sortBycp),
     }))
+    if (input.inGameName !== undefined) {
+      useWarStore.getState().syncMemberName(id, input.inGameName)
+      useEventStore.getState().syncMemberName(id, input.inGameName)
+    }
   },
 
   deleteMember: async (id) => {
