@@ -55,6 +55,8 @@ export default {
     add_round_btn: 'Thêm đợt',
     add_round_title: 'Thêm đợt',
     round_date_label: 'Ngày',
+    delete_round_title: 'Xóa đợt',
+    delete_round_confirm: 'Tất cả bản ghi tham chiến của đợt này sẽ bị xóa. Tiếp tục?',
     ranking_total: '{{count}} lần',
     no_season: 'Chưa có mùa giải.',
   },

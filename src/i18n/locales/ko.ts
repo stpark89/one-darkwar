@@ -55,6 +55,8 @@ export default {
     add_round_btn: '회차 추가',
     add_round_title: '회차 추가',
     round_date_label: '날짜',
+    delete_round_title: '회차 삭제',
+    delete_round_confirm: '이 회차의 모든 참가 기록이 함께 삭제됩니다. 계속하시겠습니까?',
     ranking_total: '{{count}}회 참가',
     no_season: '등록된 시즌이 없습니다.',
   },

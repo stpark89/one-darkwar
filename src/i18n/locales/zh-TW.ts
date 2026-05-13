@@ -55,6 +55,8 @@ export default {
     add_round_btn: '新增回合',
     add_round_title: '新增回合',
     round_date_label: '日期',
+    delete_round_title: '刪除回合',
+    delete_round_confirm: '此回合的所有參戰記錄將一併刪除。確定繼續？',
     ranking_total: '{{count}} 次',
     no_season: '尚無賽季資料。',
   },

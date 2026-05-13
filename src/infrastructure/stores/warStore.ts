@@ -24,6 +24,7 @@ interface WarStore {
 
   loadData: () => Promise<void>
   addRound: (date: string) => Promise<void>
+  deleteRound: (roundId: string) => Promise<void>
   updateEntry: (roundId: string, memberId: string, team: WarTeam, role: WarRole) => Promise<void>
   setSearchQuery: (q: string) => void
   setFilterTeam: (team: string) => void
@@ -99,6 +100,15 @@ export const useWarStore = create<WarStore>((set, get) => ({
     if (!data) return
     const newRound: WarRound = { id: data.id, seasonId: data.season_id, sortOrder: data.sort_order, date: data.round_date ?? '' }
     set(s => ({ rounds: [...s.rounds, newRound] }))
+  },
+
+  deleteRound: async (roundId) => {
+    // war_entries는 DB cascade로 자동 삭제
+    await supabase.from('war_rounds').delete().eq('id', roundId)
+    set(s => ({
+      rounds: s.rounds.filter(r => r.id !== roundId),
+      entries: s.entries.filter(e => e.roundId !== roundId),
+    }))
   },
 
   updateEntry: async (roundId, memberId, team, role) => {

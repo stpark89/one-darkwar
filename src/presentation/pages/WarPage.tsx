@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Search, Plus, X, Loader2 } from 'lucide-react'
+import { Search, Plus, X, Loader2, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useWarStore, nextEntry } from '@/infrastructure/stores/warStore'
 import type { WarTeam, WarRole } from '@/domain/entities/War'
@@ -31,7 +31,7 @@ export const WarPage = () => {
     searchQuery, setSearchQuery,
     filterTeam, setFilterTeam,
     getMemberRows, getSummary,
-    addRound, updateEntry, loadData,
+    addRound, deleteRound, updateEntry, loadData,
   } = useWarStore()
 
   const memberRows = getMemberRows()
@@ -39,6 +39,7 @@ export const WarPage = () => {
   const [activeTab, setActiveTab] = useState<'grid' | 'summary'>('grid')
   const [showAddRound, setShowAddRound] = useState(false)
   const [newRoundDate, setNewRoundDate] = useState(() => new Date().toISOString().slice(0, 10))
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
 
   useEffect(() => { loadData() }, [loadData])
 
@@ -129,9 +130,17 @@ export const WarPage = () => {
                   {t('war.col_total')}
                 </th>
                 {rounds.map(r => (
-                  <th key={r.id} className="px-3 py-3 text-center text-[var(--color-text-muted)] min-w-[72px]">
+                  <th key={r.id} className="px-3 py-3 text-center text-[var(--color-text-muted)] min-w-[72px] group">
                     <div className="text-[10px] font-normal">{r.date?.slice(5) ?? ''}</div>
-                    <div className="font-semibold">{t('war.round', { n: r.sortOrder })}</div>
+                    <div className="font-semibold flex items-center justify-center gap-1">
+                      {t('war.round', { n: r.sortOrder })}
+                      <button
+                        onClick={() => setDeleteConfirmId(r.id)}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity text-[var(--color-danger)] hover:text-red-400 ml-0.5"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
                   </th>
                 ))}
               </tr>
@@ -202,6 +211,42 @@ export const WarPage = () => {
           </div>
         </div>
       )}
+
+      {/* 회차 삭제 확인 모달 */}
+      {deleteConfirmId && (() => {
+        const round = rounds.find(r => r.id === deleteConfirmId)
+        return (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+            <div className="bg-[var(--color-bg-surface)] rounded-xl border border-[var(--color-border)] w-full max-w-sm p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-[var(--color-danger)]/15 flex items-center justify-center flex-shrink-0">
+                  <Trash2 className="w-5 h-5 text-[var(--color-danger)]" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-[var(--color-text-primary)]">{t('war.delete_round_title')}</h2>
+                  <p className="text-sm text-[var(--color-text-muted)] mt-0.5">
+                    {t('war.round', { n: round?.sortOrder })} · {round?.date}
+                  </p>
+                </div>
+              </div>
+              <p className="text-sm text-[var(--color-text-secondary)] mb-5">{t('war.delete_round_confirm')}</p>
+              <div className="flex gap-2">
+                <Button variant="outline" size="full" onClick={() => setDeleteConfirmId(null)}>{t('common.cancel')}</Button>
+                <Button
+                  size="full"
+                  className="bg-[var(--color-danger)] hover:bg-red-700 text-white"
+                  onClick={async () => {
+                    await deleteRound(deleteConfirmId)
+                    setDeleteConfirmId(null)
+                  }}
+                >
+                  {t('common.delete')}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
     </div>
   )
 }

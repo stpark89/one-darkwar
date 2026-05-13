@@ -55,6 +55,8 @@ export default {
     add_round_btn: 'Add Round',
     add_round_title: 'Add Round',
     round_date_label: 'Date',
+    delete_round_title: 'Delete Round',
+    delete_round_confirm: 'All war entries for this round will be deleted. Continue?',
     ranking_total: '{{count}} times',
     no_season: 'No season registered.',
   },
