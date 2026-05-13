@@ -1,11 +1,18 @@
 import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
-import { Users, Swords, CalendarDays, FileSpreadsheet, ChevronUp } from 'lucide-react'
+import { Users, Swords, CalendarDays, FileSpreadsheet, ChevronUp, ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { LANGUAGES, type LangCode } from '@/i18n'
 import { cn } from '@/lib/utils'
 
-export const Sidebar = () => {
+interface SidebarProps {
+  collapsed: boolean
+  onToggleCollapse: () => void
+  mobileOpen: boolean
+  onCloseMobile: () => void
+}
+
+export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile }: SidebarProps) => {
   const { t, i18n } = useTranslation()
   const [langOpen, setLangOpen] = useState(false)
 
@@ -19,16 +26,30 @@ export const Sidebar = () => {
   ]
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-56 flex flex-col bg-[var(--color-bg-surface)] border-r border-[var(--color-border-subtle)] z-20">
+    <aside
+      className={cn(
+        'fixed left-0 top-0 h-full flex flex-col bg-[var(--color-bg-surface)] border-r border-[var(--color-border-subtle)] z-40 transition-all duration-200',
+        'w-64 md:w-56',
+        collapsed && 'md:w-14',
+        mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
+      )}
+    >
       {/* 로고 */}
-      <div className="flex items-center gap-3 px-5 py-5 border-b border-[var(--color-border-subtle)]">
+      <div className={cn('flex items-center border-b border-[var(--color-border-subtle)]', collapsed ? 'md:justify-center px-5 md:px-0 py-5' : 'gap-3 px-5 py-5')}>
         <div className="w-8 h-8 rounded-lg bg-[var(--color-brand)] flex items-center justify-center flex-shrink-0">
           <Swords className="w-4 h-4 text-white" />
         </div>
-        <div>
+        <div className={cn('transition-all', collapsed && 'md:hidden')}>
           <p className="text-xs font-bold text-[var(--color-text-primary)] leading-tight">ONE</p>
           <p className="text-[10px] text-[var(--color-text-muted)]">DARK WAR</p>
         </div>
+        {/* 모바일 닫기 버튼 */}
+        <button
+          onClick={onCloseMobile}
+          className="ml-auto md:hidden p-1 rounded text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
+        >
+          <X className="w-4 h-4" />
+        </button>
       </div>
 
       {/* 네비게이션 */}
@@ -37,9 +58,12 @@ export const Sidebar = () => {
           <NavLink
             key={to}
             to={to}
+            title={collapsed ? label : undefined}
+            onClick={onCloseMobile}
             className={({ isActive }) =>
               cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all',
+                collapsed && 'md:justify-center md:px-0',
                 isActive
                   ? 'bg-[var(--color-brand)]/15 text-[var(--color-brand)] font-semibold'
                   : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-elevated)] hover:text-[var(--color-text-primary)]',
@@ -47,30 +71,34 @@ export const Sidebar = () => {
             }
           >
             <Icon className="w-4 h-4 flex-shrink-0" />
-            {label}
+            <span className={cn(collapsed && 'md:hidden')}>{label}</span>
           </NavLink>
         ))}
       </nav>
 
       {/* 언어 선택 */}
-      <div className="px-3 py-3 border-t border-[var(--color-border-subtle)]">
-        <p className="text-[10px] text-[var(--color-text-muted)] px-1 mb-1.5">{t('nav.language')}</p>
+      <div className={cn('px-3 py-3 border-t border-[var(--color-border-subtle)]', collapsed && 'md:flex md:justify-center md:px-0')}>
+        {!collapsed && (
+          <p className="text-[10px] text-[var(--color-text-muted)] px-1 mb-1.5 md:block">{t('nav.language')}</p>
+        )}
 
-        {/* 현재 언어 버튼 */}
         <button
           onClick={() => setLangOpen((v) => !v)}
-          className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-[var(--color-bg-elevated)] hover:bg-[var(--color-border)] transition-colors"
+          title={collapsed ? currentLang.label : undefined}
+          className={cn(
+            'w-full flex items-center justify-between px-3 py-2 rounded-lg bg-[var(--color-bg-elevated)] hover:bg-[var(--color-border)] transition-colors',
+            collapsed && 'md:w-9 md:h-9 md:justify-center md:px-0',
+          )}
         >
-          <span className="flex items-center gap-2 text-sm text-[var(--color-text-primary)]">
-            <span className="text-base">{currentLang.flag}</span>
-            {currentLang.label}
+          <span className={cn('flex items-center gap-2 text-sm text-[var(--color-text-primary)]')}>
+            <span className="text-base leading-none">{currentLang.flag}</span>
+            <span className={cn(collapsed && 'md:hidden')}>{currentLang.label}</span>
           </span>
-          <ChevronUp className={cn('w-3.5 h-3.5 text-[var(--color-text-muted)] transition-transform', langOpen ? '' : 'rotate-180')} />
+          <ChevronUp className={cn('w-3.5 h-3.5 text-[var(--color-text-muted)] transition-transform', langOpen ? '' : 'rotate-180', collapsed && 'md:hidden')} />
         </button>
 
-        {/* 언어 목록 (위로 펼침) */}
         {langOpen && (
-          <div className="mt-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-surface)] shadow-xl overflow-hidden">
+          <div className={cn('mt-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-surface)] shadow-xl overflow-hidden', collapsed && 'md:absolute md:left-16 md:bottom-16 md:w-40')}>
             {LANGUAGES.map((lang) => (
               <button
                 key={lang.code}
@@ -96,9 +124,15 @@ export const Sidebar = () => {
         )}
       </div>
 
-      {/* 버전 */}
-      <div className="px-5 py-2.5 border-t border-[var(--color-border-subtle)]">
-        <p className="text-[10px] text-[var(--color-text-muted)]">v0.1.0 · ONE DARK WAR</p>
+      {/* 버전 + 데스크톱 토글 버튼 */}
+      <div className={cn('px-5 py-2.5 border-t border-[var(--color-border-subtle)] flex items-center', collapsed ? 'md:justify-center md:px-0' : 'justify-between')}>
+        <p className={cn('text-[10px] text-[var(--color-text-muted)]', collapsed && 'md:hidden')}>v0.1.0 · ONE DARK WAR</p>
+        <button
+          onClick={onToggleCollapse}
+          className="hidden md:flex items-center justify-center w-6 h-6 rounded hover:bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
+        >
+          {collapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
+        </button>
       </div>
     </aside>
   )
