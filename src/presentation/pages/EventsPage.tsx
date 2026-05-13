@@ -4,14 +4,33 @@ import { useTranslation } from 'react-i18next'
 import { useEventStore } from '@/infrastructure/stores/eventStore'
 import { Input } from '@/presentation/components/ui/input'
 import { Button } from '@/presentation/components/ui/button'
+import { SortIcon, nextSortDir } from '@/presentation/components/ui/sort-icon'
+import type { SortDir } from '@/presentation/components/ui/sort-icon'
 import { cn } from '@/lib/utils'
 
 export const EventsPage = () => {
   const { t } = useTranslation()
   const { events, addEvent, updateStatus, getFiltered, searchQuery, setSearchQuery, getSummary, loadData, loading } = useEventStore()
-  const attendance = getFiltered()
+  const baseAttendance = getFiltered()
   const summary = getSummary()
   const [activeTab, setActiveTab] = useState<'grid' | 'summary'>('grid')
+  const [sortKey, setSortKey] = useState<'inGameName' | 'total'>('total')
+  const [sortDir, setSortDir] = useState<SortDir>('desc')
+
+  const handleSort = (key: 'inGameName' | 'total') => {
+    if (key !== sortKey) { setSortKey(key); setSortDir(key === 'total' ? 'desc' : 'asc'); return }
+    const next = nextSortDir(sortDir, key === 'total')
+    setSortDir(next)
+    if (next === null) { setSortKey('total'); setSortDir('desc') }
+  }
+
+  const attendance = [...baseAttendance].sort((a, b) => {
+    if (!sortDir) return 0
+    const totalA = Object.values(a.records).filter(v => v === 'CT' || v === 'DB').length
+    const totalB = Object.values(b.records).filter(v => v === 'CT' || v === 'DB').length
+    const cmp = sortKey === 'inGameName' ? a.inGameName.localeCompare(b.inGameName) : totalA - totalB
+    return sortDir === 'asc' ? cmp : -cmp
+  })
   const [showAddEvent, setShowAddEvent] = useState(false)
   const [newEventName, setNewEventName] = useState('')
   const [newEventDate, setNewEventDate] = useState(() => new Date().toISOString().slice(0, 10))
@@ -77,11 +96,17 @@ export const EventsPage = () => {
           <table className="text-xs">
             <thead className="sticky top-0 z-10">
               <tr className="bg-[var(--color-bg-surface)] border-b border-[var(--color-border-subtle)]">
-                <th className="px-3 py-3 text-left text-[var(--color-text-muted)] whitespace-nowrap sticky left-0 bg-[var(--color-bg-surface)] min-w-[140px]">
-                  {t('events.col_name')}
+                <th
+                  onClick={() => handleSort('inGameName')}
+                  className="px-3 py-3 text-left text-[var(--color-text-muted)] whitespace-nowrap sticky left-0 bg-[var(--color-bg-surface)] min-w-[140px] cursor-pointer select-none hover:text-[var(--color-text-primary)] transition-colors"
+                >
+                  {t('events.col_name')}<SortIcon dir={sortKey === 'inGameName' ? sortDir : null} />
                 </th>
-                <th className="px-3 py-3 text-center text-[var(--color-text-muted)] whitespace-nowrap min-w-[52px]">
-                  {t('events.col_attended')}
+                <th
+                  onClick={() => handleSort('total')}
+                  className="px-3 py-3 text-center text-[var(--color-text-muted)] whitespace-nowrap min-w-[52px] cursor-pointer select-none hover:text-[var(--color-text-primary)] transition-colors"
+                >
+                  {t('events.col_attended')}<SortIcon dir={sortKey === 'total' ? sortDir : null} />
                 </th>
                 {events.map((e) => (
                   <th key={e.eventKey} className="px-2 py-3 text-center text-[var(--color-text-muted)] whitespace-nowrap min-w-[64px]">

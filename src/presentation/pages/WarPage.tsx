@@ -5,6 +5,8 @@ import { useWarStore, nextEntry } from '@/infrastructure/stores/warStore'
 import type { WarTeam, WarRole } from '@/domain/entities/War'
 import { Input } from '@/presentation/components/ui/input'
 import { Button } from '@/presentation/components/ui/button'
+import { SortIcon, nextSortDir } from '@/presentation/components/ui/sort-icon'
+import type { SortDir } from '@/presentation/components/ui/sort-icon'
 import { cn } from '@/lib/utils'
 
 const ENTRY_STYLE: Record<string, string> = {
@@ -34,12 +36,42 @@ export const WarPage = () => {
     addRound, deleteRound, updateEntry, loadData,
   } = useWarStore()
 
-  const memberRows = getMemberRows()
+  const baseMemberRows = getMemberRows()
   const summary = getSummary()
   const [activeTab, setActiveTab] = useState<'grid' | 'summary'>('grid')
   const [showAddRound, setShowAddRound] = useState(false)
   const [newRoundDate, setNewRoundDate] = useState(() => new Date().toISOString().slice(0, 10))
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
+  const [sortKey, setSortKey] = useState<string>('total')
+  const [sortDir, setSortDir] = useState<SortDir>('desc')
+
+  const handleSort = (key: string) => {
+    if (key !== sortKey) { setSortKey(key); setSortDir('desc'); return }
+    const next = nextSortDir(sortDir, true)
+    setSortDir(next)
+    if (next === null) { setSortKey('total'); setSortDir('desc') }
+  }
+
+  const entryScore = (team: string, role: string) => {
+    if (!team || !role) return 0
+    if (team === 'A' && role === 'CT') return 4
+    if (team === 'A' && role === 'DB') return 3
+    if (team === 'B' && role === 'CT') return 2
+    return 1
+  }
+
+  const memberRows = [...baseMemberRows].sort((a, b) => {
+    if (!sortDir) return 0
+    let cmp = 0
+    if (sortKey === 'inGameName') cmp = a.inGameName.localeCompare(b.inGameName)
+    else if (sortKey === 'total') cmp = a.total - b.total
+    else {
+      const ea = a.entryMap[sortKey] ?? { team: '', role: '' }
+      const eb = b.entryMap[sortKey] ?? { team: '', role: '' }
+      cmp = entryScore(ea.team, ea.role) - entryScore(eb.team, eb.role)
+    }
+    return sortDir === 'asc' ? cmp : -cmp
+  })
 
   useEffect(() => { loadData() }, [loadData])
 
@@ -123,19 +155,26 @@ export const WarPage = () => {
           <table className="text-xs">
             <thead className="sticky top-0 z-10">
               <tr className="bg-[var(--color-bg-surface)] border-b border-[var(--color-border-subtle)]">
-                <th className="px-3 py-3 text-left text-[var(--color-text-muted)] sticky left-0 bg-[var(--color-bg-surface)] min-w-[140px] whitespace-nowrap">
-                  {t('war.col_name')}
+                <th
+                  onClick={() => handleSort('inGameName')}
+                  className="px-3 py-3 text-left text-[var(--color-text-muted)] sticky left-0 bg-[var(--color-bg-surface)] min-w-[140px] whitespace-nowrap cursor-pointer select-none hover:text-[var(--color-text-primary)] transition-colors"
+                >
+                  {t('war.col_name')}<SortIcon dir={sortKey === 'inGameName' ? sortDir : null} />
                 </th>
-                <th className="px-3 py-3 text-center text-[var(--color-text-muted)] min-w-[48px] whitespace-nowrap">
-                  {t('war.col_total')}
+                <th
+                  onClick={() => handleSort('total')}
+                  className="px-3 py-3 text-center text-[var(--color-text-muted)] min-w-[48px] whitespace-nowrap cursor-pointer select-none hover:text-[var(--color-text-primary)] transition-colors"
+                >
+                  {t('war.col_total')}<SortIcon dir={sortKey === 'total' ? sortDir : null} />
                 </th>
                 {rounds.map(r => (
-                  <th key={r.id} className="px-3 py-3 text-center text-[var(--color-text-muted)] min-w-[72px] group">
+                  <th key={r.id} onClick={() => handleSort(r.id)} className="px-3 py-3 text-center text-[var(--color-text-muted)] min-w-[72px] group cursor-pointer select-none hover:text-[var(--color-text-primary)] transition-colors">
                     <div className="text-[10px] font-normal">{r.date?.slice(5) ?? ''}</div>
                     <div className="font-semibold flex items-center justify-center gap-1">
                       {t('war.round', { n: r.sortOrder })}
+                      <SortIcon dir={sortKey === r.id ? sortDir : null} />
                       <button
-                        onClick={() => setDeleteConfirmId(r.id)}
+                        onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(r.id) }}
                         className="opacity-0 group-hover:opacity-100 transition-opacity text-[var(--color-danger)] hover:text-red-400 ml-0.5"
                       >
                         <Trash2 className="w-3 h-3" />
@@ -152,17 +191,22 @@ export const WarPage = () => {
                     {row.inGameName}
                   </td>
                   <td className="px-3 py-2.5 text-center">
-                    <span className="text-[var(--color-success)] font-bold">{row.total}</span>
+                    <span className="text-[var(--color-success)] font-bold">
+                      {filterTeam
+                        ? Object.values(row.entryMap).filter(e => e.team === filterTeam && e.role !== '').length
+                        : row.total}
+                    </span>
                   </td>
                   {rounds.map(r => {
                     const e = row.entryMap[r.id] ?? { team: '', role: '' }
+                    const visible = !filterTeam || e.team === filterTeam
                     return (
                       <td
                         key={r.id}
                         onClick={() => handleCellClick(r.id, row.memberId, e.team, e.role)}
                         className="px-3 py-2.5 text-center cursor-pointer select-none transition-colors hover:bg-[var(--color-bg-elevated)]"
                       >
-                        <EntryCell team={e.team} role={e.role} />
+                        <EntryCell team={visible ? e.team : ''} role={visible ? e.role : ''} />
                       </td>
                     )
                   })}

@@ -5,19 +5,49 @@ import { useMemberStore } from '@/infrastructure/stores/memberStore'
 import { Button } from '@/presentation/components/ui/button'
 import { Input } from '@/presentation/components/ui/input'
 import { Badge } from '@/presentation/components/ui/badge'
+import { SortIcon, nextSortDir } from '@/presentation/components/ui/sort-icon'
+import type { SortDir } from '@/presentation/components/ui/sort-icon'
 import type { Member } from '@/domain/entities/Member'
 
 const EMPTY: Partial<Member> = { inGameName: '', zaloName: '', cp: '', houseLevel: '', note: '' }
 
+const parseCp = (cp: string) => {
+  const v = parseFloat(cp)
+  if (isNaN(v)) return 0
+  if (cp.toUpperCase().includes('G')) return v * 1000
+  if (cp.toUpperCase().includes('M')) return v
+  return v
+}
+
+type SortKey = 'inGameName' | 'cp' | 'houseLevel'
+
 export const MembersPage = () => {
   const { t } = useTranslation()
   const { getFiltered, searchQuery, setSearchQuery, addMember, updateMember, deleteMember, loadMembers, loading } = useMemberStore()
-  const members = getFiltered()
+  const base = getFiltered()
 
   const [form, setForm] = useState<Partial<Member> | null>(null)
   const [editId, setEditId] = useState<string | null>(null)
+  const [sortKey, setSortKey] = useState<SortKey>('cp')
+  const [sortDir, setSortDir] = useState<SortDir>('desc')
 
   useEffect(() => { loadMembers() }, [loadMembers])
+
+  const handleSort = (key: SortKey) => {
+    if (key !== sortKey) { setSortKey(key); setSortDir(key === 'cp' ? 'desc' : 'asc'); return }
+    const next = nextSortDir(sortDir, key === 'cp')
+    setSortDir(next)
+    if (next === null) { setSortKey('cp'); setSortDir('desc') }
+  }
+
+  const members = [...base].sort((a, b) => {
+    if (!sortDir) return 0
+    let cmp = 0
+    if (sortKey === 'cp') cmp = parseCp(a.cp) - parseCp(b.cp)
+    else if (sortKey === 'inGameName') cmp = a.inGameName.localeCompare(b.inGameName)
+    else if (sortKey === 'houseLevel') cmp = a.houseLevel.localeCompare(b.houseLevel)
+    return sortDir === 'asc' ? cmp : -cmp
+  })
 
   const openAdd = () => { setForm({ ...EMPTY }); setEditId(null) }
   const openEdit = (m: Member) => { setForm({ ...m }); setEditId(m.id) }
@@ -34,6 +64,16 @@ export const MembersPage = () => {
     <div className="flex items-center justify-center h-64 text-[var(--color-text-muted)]">
       <Loader2 className="w-5 h-5 animate-spin mr-2" /> {t('common.loading')}
     </div>
+  )
+
+  const th = (key: SortKey, label: string, center = false) => (
+    <th
+      onClick={() => handleSort(key)}
+      className={`px-4 py-3 text-xs font-semibold text-[var(--color-text-muted)] whitespace-nowrap cursor-pointer select-none hover:text-[var(--color-text-primary)] transition-colors ${center ? 'text-center' : 'text-left'}`}
+    >
+      {label}
+      <SortIcon dir={sortKey === key ? sortDir : null} />
+    </th>
   )
 
   return (
@@ -64,19 +104,21 @@ export const MembersPage = () => {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[var(--color-border-subtle)] bg-[var(--color-bg-surface)]">
-              {[
-                t('members.col_no'),
-                t('members.in_game_name'),
-                t('members.zalo_name'),
-                t('members.cp'),
-                t('members.house_level'),
-                t('members.note'),
-                t('members.col_actions'),
-              ].map((h, i) => (
-                <th key={i} className="px-4 py-3 text-left text-xs font-semibold text-[var(--color-text-muted)] whitespace-nowrap">
-                  {h}
-                </th>
-              ))}
+              <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--color-text-muted)] whitespace-nowrap w-10">
+                {t('members.col_no')}
+              </th>
+              {th('inGameName', t('members.in_game_name'))}
+              <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--color-text-muted)] whitespace-nowrap">
+                {t('members.zalo_name')}
+              </th>
+              {th('cp', t('members.cp'))}
+              {th('houseLevel', t('members.house_level'))}
+              <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--color-text-muted)] whitespace-nowrap">
+                {t('members.note')}
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--color-text-muted)] whitespace-nowrap">
+                {t('members.col_actions')}
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[var(--color-border-subtle)]">
