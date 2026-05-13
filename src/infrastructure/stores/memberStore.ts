@@ -16,6 +16,16 @@ interface MemberStore {
   getFiltered: () => Member[]
 }
 
+const parseCp = (cp: string): number => {
+  const v = parseFloat(cp)
+  if (isNaN(v)) return 0
+  if (cp.toUpperCase().includes('G')) return v * 1000
+  if (cp.toUpperCase().includes('M')) return v
+  return v
+}
+
+const sortBycp = (a: Member, b: Member) => parseCp(b.cp) - parseCp(a.cp)
+
 const toMember = (row: Record<string, string>): Member => ({
   id: row.id,
   inGameName: row.in_game_name,
@@ -32,11 +42,11 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
 
   loadMembers: async () => {
     set({ loading: true })
-    const { data } = await supabase.from('members').select('*').order('created_at')
-    set({ members: (data ?? []).map(toMember), loading: false })
+    const { data } = await supabase.from('members').select('*')
+    set({ members: (data ?? []).map(toMember).sort(sortBycp), loading: false })
   },
 
-  setMembers: (members) => set({ members }),
+  setMembers: (members) => set({ members: [...members].sort(sortBycp) }),
 
   addMember: async (input) => {
     const { data } = await supabase
@@ -52,7 +62,7 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
       .single()
     if (!data) return ''
     const newMember = toMember(data)
-    set((s) => ({ members: [...s.members, newMember] }))
+    set((s) => ({ members: [...s.members, newMember].sort(sortBycp) }))
     return newMember.id
   },
 
@@ -65,7 +75,9 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
     if (input.note !== undefined) updates.note = input.note
 
     await supabase.from('members').update(updates).eq('id', id)
-    set((s) => ({ members: s.members.map((m) => (m.id === id ? { ...m, ...input } : m)) }))
+    set((s) => ({
+      members: s.members.map((m) => (m.id === id ? { ...m, ...input } : m)).sort(sortBycp),
+    }))
   },
 
   deleteMember: async (id) => {
