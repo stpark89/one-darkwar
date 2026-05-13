@@ -7,7 +7,7 @@ interface MemberStore {
   searchQuery: string
 
   setMembers: (members: Member[]) => void
-  addMember: (input: CreateMemberInput) => void
+  addMember: (input: CreateMemberInput) => string
   updateMember: (id: string, input: Partial<Member>) => void
   deleteMember: (id: string) => void
   setSearchQuery: (q: string) => void
@@ -30,6 +30,7 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
       note: input.note ?? '',
     }
     set((s) => ({ members: [...s.members, newMember] }))
+    return newMember.id
   },
 
   updateMember: (id, input) => {

@@ -1,4 +1,4 @@
-export type AttendanceStatus = 'X' | 'O' | ''  // X=참석, O=온라인, ''=불참
+export type AttendanceStatus = 'CT' | 'DB' | ''  // CT=공식, DB=예비, ''=불참
 
 export interface EventAttendance {
   memberId: string
