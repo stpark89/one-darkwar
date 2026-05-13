@@ -91,7 +91,7 @@ export const EventsPage = () => {
             </thead>
             <tbody className="divide-y divide-[var(--color-border-subtle)]">
               {attendance.map((a) => {
-                const total = Object.values(a.records).filter((v) => v === 'Y').length
+                const total = Object.values(a.records).filter((v) => v === 'CT' || v === 'DB').length
                 return (
                   <tr key={a.memberId} className="hover:bg-[var(--color-bg-surface)] transition-colors">
                     <td className="px-3 py-2.5 font-medium text-[var(--color-text-primary)] whitespace-nowrap sticky left-0 bg-[var(--color-bg-base)] hover:bg-[var(--color-bg-surface)]">
