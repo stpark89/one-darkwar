@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Outlet, Navigate, useNavigate } from 'react-router-dom'
 import { Menu, Swords, Loader2, User, ShieldCheck, KeyRound, LogOut } from 'lucide-react'
 import { Sidebar } from './Sidebar'
+import { ChatWidget } from './ChatWidget'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
@@ -116,6 +117,7 @@ export const Layout = () => {
 
         <Outlet />
       </main>
+      <ChatWidget />
     </div>
   )
 }

@@ -6,7 +6,6 @@ import { WarPage } from '@/presentation/pages/WarPage'
 import { EventsPage } from '@/presentation/pages/EventsPage'
 import { ExcelPage } from '@/presentation/pages/ExcelPage'
 import { ContributionPage } from '@/presentation/pages/ContributionPage'
-import { OnlineUsersPage } from '@/presentation/pages/OnlineUsersPage'
 import { SignInPage } from '@/presentation/pages/SignInPage'
 import { SignUpPage } from '@/presentation/pages/SignUpPage'
 import { ChangePasswordPage } from '@/presentation/pages/ChangePasswordPage'
@@ -37,7 +36,6 @@ function App() {
           <Route path="/events" element={<EventsPage />} />
           <Route path="/contribution" element={<ContributionPage />} />
           <Route path="/excel" element={<ExcelPage />} />
-          <Route path="/online" element={<OnlineUsersPage />} />
           <Route path="/change-password" element={<ChangePasswordPage />} />
         </Route>
       </Routes>

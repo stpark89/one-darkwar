@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { Users, Swords, CalendarDays, FileSpreadsheet, BarChart3, ChevronUp, ChevronLeft, ChevronRight, X, LogOut, ShieldCheck, User, KeyRound, Wifi } from 'lucide-react'
+import { Users, Swords, CalendarDays, FileSpreadsheet, BarChart3, ChevronUp, ChevronLeft, ChevronRight, X, LogOut, ShieldCheck, User, KeyRound } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { LANGUAGES, type LangCode } from '@/i18n'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
@@ -31,7 +31,6 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
     { to: '/war', icon: Swords, label: t('nav.war') },
     { to: '/events', icon: CalendarDays, label: t('nav.events') },
     ...(user?.role === 'ROLE_ADMIN' ? [{ to: '/contribution', icon: BarChart3, label: t('nav.contribution') }] : []),
-    { to: '/online', icon: Wifi, label: t('nav.online') },
     { to: '/excel', icon: FileSpreadsheet, label: t('nav.excel') },
   ]
 
