@@ -151,7 +151,7 @@ function renderContent(content: string, myName: string, isMine: boolean) {
 export const ChatWidget = () => {
   const { user, isGuest } = useAuthStore()
   const { members, loadMembers } = useMemberStore()
-  const { attendance, loadPending: loadEvents } = useEventStore()
+  const { attendance, loadData: loadEvents } = useEventStore()
   const t = i18n.t.bind(i18n)
   const [open, setOpen] = useState(false)
   const [tab, setTab] = useState<'chat' | 'online'>('chat')
