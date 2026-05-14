@@ -27,16 +27,20 @@ export const EventsPage = () => {
     if (next === null) { setSortKey('total'); setSortDir('desc') }
   }
 
-  const attendance = [...baseAttendance].sort((a, b) => {
-    if (!sortDir) return 0
-    const totalA = Object.values(a.records).filter(v => v === 'CT' || v === 'DB').length
-    const totalB = Object.values(b.records).filter(v => v === 'CT' || v === 'DB').length
-    const cmp = sortKey === 'inGameName' ? a.inGameName.localeCompare(b.inGameName) : totalA - totalB
-    return sortDir === 'asc' ? cmp : -cmp
-  })
   const hiddenCount = events.filter(e => e.hidden).length
   // 최신순(역순) + 숨김 필터
   const visibleEvents = [...events].reverse().filter(e => showHidden || !e.hidden)
+
+  const attendance = [...baseAttendance].sort((a, b) => {
+    if (!sortDir) return 0
+    const calcTotal = (rec: Record<string, string>) =>
+      visibleEvents.reduce((acc, e) => {
+        const s = rec[e.eventKey] ?? ''
+        return acc + (s === 'CT' || s === 'DB' ? 1 : 0)
+      }, 0)
+    const cmp = sortKey === 'inGameName' ? a.inGameName.localeCompare(b.inGameName) : calcTotal(a.records) - calcTotal(b.records)
+    return sortDir === 'asc' ? cmp : -cmp
+  })
 
   const [showAddEvent, setShowAddEvent] = useState(false)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
@@ -132,7 +136,7 @@ export const EventsPage = () => {
                       <span className="hidden sm:inline">{e.name.length > 8 ? e.name.slice(0, 8) + '…' : e.name}</span>
                     </div>
                     {canEdit && (
-                      <div className="flex items-center justify-center gap-0.5 mt-1">
+                      <div className="hidden sm:flex items-center justify-center gap-0.5 mt-1">
                         <button
                           onClick={() => toggleHidden(e.id)}
                           className={cn(
@@ -160,7 +164,10 @@ export const EventsPage = () => {
             </thead>
             <tbody className="divide-y divide-[var(--color-border-subtle)]">
               {attendance.map((a) => {
-                const total = Object.values(a.records).filter((v) => v === 'CT' || v === 'DB').length
+                const total = visibleEvents.reduce((acc, e) => {
+                  const s = a.records[e.eventKey] ?? ''
+                  return acc + (s === 'CT' || s === 'DB' ? 1 : 0)
+                }, 0)
                 return (
                   <tr key={a.memberId} className="hover:bg-[var(--color-bg-surface)] transition-colors">
                     <td className="px-2 sm:px-3 py-2 sm:py-2.5 font-medium text-[var(--color-text-primary)] whitespace-nowrap sticky left-0 bg-[var(--color-bg-base)] hover:bg-[var(--color-bg-surface)]">

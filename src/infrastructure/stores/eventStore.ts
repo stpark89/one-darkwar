@@ -130,12 +130,12 @@ export const useEventStore = create<EventStore>((set, get) => ({
   },
 
   getSummary: () => {
-    const { attendance } = get()
+    const { attendance, events, showHidden } = get()
+    const visibleKeys = new Set(events.filter(e => showHidden || !e.hidden).map(e => e.eventKey))
     return attendance
       .map((a) => {
-        const values = Object.values(a.records)
-        const ct = values.filter((v) => v === 'CT').length
-        const db = values.filter((v) => v === 'DB').length
+        const ct = Object.entries(a.records).filter(([k, v]) => visibleKeys.has(k) && v === 'CT').length
+        const db = Object.entries(a.records).filter(([k, v]) => visibleKeys.has(k) && v === 'DB').length
         return { memberId: a.memberId, inGameName: a.inGameName, ct, db, total: ct + db }
       })
       .sort((a, b) => b.total - a.total)
