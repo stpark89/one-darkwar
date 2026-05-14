@@ -11,15 +11,22 @@ interface ApprovalStore {
   pendingUsers: PendingUser[]
   pendingCount: number
   loading: boolean
+  rejectedUsers: PendingUser[]
+  rejectedLoading: boolean
   loadPending: () => Promise<void>
+  loadRejected: () => Promise<void>
   approveUser: (userId: string) => Promise<void>
   rejectUser: (userId: string) => Promise<void>
+  restoreUser: (userId: string) => Promise<void>
+  purgeUser: (userId: string) => Promise<void>
 }
 
 export const useApprovalStore = create<ApprovalStore>((set, get) => ({
   pendingUsers: [],
   pendingCount: 0,
   loading: false,
+  rejectedUsers: [],
+  rejectedLoading: false,
 
   loadPending: async () => {
     set({ loading: true })
@@ -35,6 +42,22 @@ export const useApprovalStore = create<ApprovalStore>((set, get) => ({
       createdAt: r.created_at,
     }))
     set({ pendingUsers: users, pendingCount: users.length, loading: false })
+  },
+
+  loadRejected: async () => {
+    set({ rejectedLoading: true })
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, in_game_name, created_at, status')
+      .eq('status', 'REJECTED')
+      .order('created_at', { ascending: false })
+    if (error) console.error('[approvalStore] loadRejected error:', error)
+    const users: PendingUser[] = (data ?? []).map((r) => ({
+      id: r.id,
+      inGameName: r.in_game_name,
+      createdAt: r.created_at,
+    }))
+    set({ rejectedUsers: users, rejectedLoading: false })
   },
 
   approveUser: async (userId) => {
@@ -58,9 +81,34 @@ export const useApprovalStore = create<ApprovalStore>((set, get) => ({
   },
 
   rejectUser: async (userId) => {
-    // 프로필 삭제 → Supabase auth 사용자는 남지만 프로필이 없어 로그인 불가
-    await supabase.from('profiles').delete().eq('id', userId)
+    await supabase.from('profiles').update({ status: 'REJECTED' }).eq('id', userId)
     const users = get().pendingUsers.filter((u) => u.id !== userId)
     set({ pendingUsers: users, pendingCount: users.length })
+  },
+
+  restoreUser: async (userId) => {
+    const target = get().rejectedUsers.find((u) => u.id === userId)
+    await supabase.from('profiles').update({ status: 'APPROVED' }).eq('id', userId)
+    if (target) {
+      const { data: existing } = await supabase.from('members').select('id').eq('id', userId).single()
+      if (!existing) {
+        await supabase.from('members').insert({
+          id: userId,
+          in_game_name: target.inGameName,
+          zalo_name: '',
+          cp: '',
+          house_level: '',
+          note: '',
+        })
+      }
+    }
+    const users = get().rejectedUsers.filter((u) => u.id !== userId)
+    set({ rejectedUsers: users })
+  },
+
+  purgeUser: async (userId) => {
+    await supabase.from('profiles').delete().eq('id', userId)
+    const users = get().rejectedUsers.filter((u) => u.id !== userId)
+    set({ rejectedUsers: users })
   },
 }))
