@@ -166,6 +166,7 @@ export const ChatWidget = () => {
 
   const [mentionSearch, setMentionSearch] = useState<string | null>(null)
   const [mentionIndex, setMentionIndex] = useState(0)
+  const [showHint, setShowHint] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
@@ -174,8 +175,6 @@ export const ChatWidget = () => {
 
   useEffect(() => { if (user) { loadMembers(); loadEvents() } }, [user, loadMembers, loadEvents])
 
-  // 명령어 힌트: 입력창이 비어있을 때만 표시
-  const showCommandHint = input === '' && tab === 'chat'
 
   const mentionCandidates =
     mentionSearch !== null
@@ -306,12 +305,14 @@ export const ChatWidget = () => {
 
   const insertCommand = (cmd: string) => {
     setInput(cmd + ' ')
+    setShowHint(false)
     setTimeout(() => inputRef.current?.focus(), 0)
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value
     setInput(val)
+    if (val) setShowHint(false)
     const cursor = e.target.selectionStart ?? val.length
     const before = val.slice(0, cursor)
     const match = before.match(/@([\w가-힣]*)$/)
@@ -456,30 +457,29 @@ export const ChatWidget = () => {
               </div>
 
               {/* 입력 영역 */}
-              <div className="relative px-3 pb-3 border-t border-[var(--color-border-subtle)]">
+              <div className="relative px-3 py-3 border-t border-[var(--color-border-subtle)]">
 
-                {/* 명령어 힌트 패널 — 입력 없을 때만 표시 */}
-                <div className={cn(
-                  'overflow-hidden transition-all duration-200',
-                  showCommandHint ? 'max-h-40 opacity-100 pt-3 pb-2' : 'max-h-0 opacity-0',
-                )}>
-                  <div className="flex items-center gap-1.5 mb-2">
-                    <Bot className="w-3 h-3 text-[var(--color-brand)]" />
-                    <span className="text-[10px] font-semibold text-[var(--color-brand)]">{t('bot.hint_label')}</span>
+                {/* 명령어 힌트 팝업 — 봇 버튼 클릭 시 토글 */}
+                {showHint && (
+                  <div className="absolute bottom-full left-3 right-3 mb-1 bg-[var(--color-bg-elevated)] border border-[var(--color-brand)]/30 rounded-xl shadow-lg overflow-hidden z-10">
+                    <div className="flex items-center gap-1.5 px-3 py-2 border-b border-[var(--color-border-subtle)]">
+                      <Bot className="w-3 h-3 text-[var(--color-brand)]" />
+                      <span className="text-[10px] font-semibold text-[var(--color-brand)]">{t('bot.hint_label')}</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-px bg-[var(--color-border-subtle)]">
+                      {COMMAND_KEYS.map((c) => (
+                        <button
+                          key={c.cmd}
+                          onClick={() => insertCommand(c.cmd)}
+                          className="flex flex-col items-start px-3 py-2.5 bg-[var(--color-bg-elevated)] hover:bg-[var(--color-brand)]/10 transition-colors text-left"
+                        >
+                          <span className="text-[11px] font-semibold text-[var(--color-text-primary)]">{c.cmd}</span>
+                          <span className="text-[10px] text-[var(--color-text-muted)] leading-tight mt-0.5">{t(c.descKey)}</span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-1">
-                    {COMMAND_KEYS.map((c) => (
-                      <button
-                        key={c.cmd}
-                        onClick={() => insertCommand(c.cmd)}
-                        className="flex flex-col items-start px-2.5 py-1.5 rounded-lg bg-[var(--color-bg-elevated)] hover:bg-[var(--color-brand)]/10 hover:text-[var(--color-brand)] transition-colors text-left"
-                      >
-                        <span className="text-[11px] font-semibold text-[var(--color-text-primary)]">{c.cmd}</span>
-                        <span className="text-[10px] text-[var(--color-text-muted)] leading-tight">{t(c.descKey)}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                )}
 
                 {/* 멘션 드롭다운 */}
                 {mentionSearch !== null && mentionCandidates.length > 0 && (
@@ -505,12 +505,25 @@ export const ChatWidget = () => {
                 )}
 
                 <div className="flex gap-2">
+                  {/* 봇 명령어 토글 버튼 */}
+                  <button
+                    onClick={() => setShowHint((v) => !v)}
+                    className={cn(
+                      'w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors',
+                      showHint
+                        ? 'bg-[var(--color-brand)] text-white'
+                        : 'bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:text-[var(--color-brand)]',
+                    )}
+                    title={t('bot.hint_label')}
+                  >
+                    <Bot className="w-4 h-4" />
+                  </button>
                   <input
                     ref={inputRef}
                     value={input}
                     onChange={handleChange}
                     onKeyDown={handleKeyDown}
-                    placeholder="메시지 입력... (@멘션 · /명령어)"
+                    placeholder="메시지 입력... (@멘션)"
                     className="flex-1 text-sm bg-[var(--color-bg-elevated)] border border-[var(--color-border-subtle)] rounded-xl px-3 py-2 outline-none focus:border-[var(--color-brand)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)]"
                   />
                   <button
