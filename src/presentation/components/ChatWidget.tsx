@@ -225,18 +225,23 @@ export const ChatWidget = () => {
                         <span className="text-[10px] text-[var(--color-text-muted)] px-1">{msg.in_game_name}</span>
                       )}
                       <div className={cn('flex items-end gap-1.5 max-w-[85%]', isMine && 'flex-row-reverse')}>
-                        <div className={cn(
-                          'px-3 py-2 rounded-2xl text-sm break-words',
-                          isMine
-                            ? 'bg-[var(--color-brand)] text-white rounded-br-sm'
-                            : 'bg-[var(--color-bg-elevated)] text-[var(--color-text-primary)] rounded-bl-sm',
-                        )}>
-                          {msg.content}
+                        <div className="flex flex-col gap-1">
+                          <div className={cn(
+                            'px-3 py-2 rounded-2xl text-sm break-words',
+                            isMine
+                              ? 'bg-[var(--color-brand)] text-white rounded-br-sm'
+                              : 'bg-[var(--color-bg-elevated)] text-[var(--color-text-primary)] rounded-bl-sm',
+                          )}>
+                            {msg.content}
+                          </div>
                           {translated && (
                             <div className={cn(
-                              'mt-1.5 pt-1.5 text-[11px] leading-relaxed',
-                              isMine ? 'border-t border-white/30 text-white/80' : 'border-t border-[var(--color-border-subtle)] text-[var(--color-text-muted)]',
+                              'px-3 py-2 rounded-xl text-[11px] leading-relaxed border',
+                              isMine
+                                ? 'bg-white/10 text-white border-white/20 rounded-tr-sm self-end'
+                                : 'bg-[var(--color-bg-base)] text-[var(--color-text-secondary)] border-[var(--color-border-subtle)] rounded-tl-sm',
                             )}>
+                              <span className="text-[9px] opacity-60 mr-1">🌐</span>
                               {translated}
                             </div>
                           )}
