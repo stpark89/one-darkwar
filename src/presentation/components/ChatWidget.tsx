@@ -41,7 +41,7 @@ interface OnlineUser {
 const LOAD_LIMIT = 50
 
 // @멘션 파싱 → 하이라이트 렌더링
-function renderContent(content: string, myName: string) {
+function renderContent(content: string, myName: string, isMine: boolean) {
   const parts = content.split(/(@\S+)/g)
   return parts.map((part, i) => {
     if (part.startsWith('@')) {
@@ -53,7 +53,9 @@ function renderContent(content: string, myName: string) {
             'font-semibold rounded px-0.5',
             isMe
               ? 'bg-yellow-400/30 text-yellow-300'
-              : 'text-[var(--color-brand)] opacity-90',
+              : isMine
+                ? 'bg-white/20 text-white'
+                : 'text-[var(--color-brand)]',
           )}
         >
           {part}
@@ -317,7 +319,7 @@ export const ChatWidget = () => {
                             // 내가 멘션된 메시지: 테두리 강조
                             !isMine && isMentioned && 'ring-1 ring-yellow-400/50',
                           )}>
-                            {renderContent(msg.content, user.inGameName)}
+                            {renderContent(msg.content, user.inGameName, isMine)}
                           </div>
                           {translated && (
                             <div className={cn(
