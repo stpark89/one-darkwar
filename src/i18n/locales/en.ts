@@ -108,6 +108,7 @@ export default {
     new_password_label: 'New Password',
     change_password_btn: 'Save Password',
     change_password_success: 'Password changed successfully.',
+    guest_login: 'Enter as Guest',
   },
   contribution: {
     title: 'Contribution',

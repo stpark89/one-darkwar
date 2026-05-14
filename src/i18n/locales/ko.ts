@@ -108,6 +108,7 @@ export default {
     new_password_label: '새 비밀번호',
     change_password_btn: '변경 저장',
     change_password_success: '비밀번호가 성공적으로 변경되었습니다.',
+    guest_login: '게스트로 입장하기',
   },
   contribution: {
     title: '기여도 현황',

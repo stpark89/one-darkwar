@@ -108,6 +108,7 @@ export default {
     new_password_label: '新密碼',
     change_password_btn: '儲存密碼',
     change_password_success: '密碼已成功變更。',
+    guest_login: '以訪客身份進入',
   },
   contribution: {
     title: '貢獻度',

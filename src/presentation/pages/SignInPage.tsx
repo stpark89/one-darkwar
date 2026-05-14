@@ -106,9 +106,8 @@ export const SignInPage = () => {
           className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-[var(--color-border-subtle)] text-sm text-[var(--color-text-muted)] hover:bg-[var(--color-bg-surface)] hover:text-[var(--color-text-primary)] transition-colors"
         >
           <UserX className="w-4 h-4" />
-          게스트로 입장하기
+          {t('auth.guest_login')}
         </button>
-        <p className="text-center text-[11px] text-[var(--color-text-muted)] mt-2">조회만 가능 · 채팅 불가</p>
       </div>
     </div>
   )

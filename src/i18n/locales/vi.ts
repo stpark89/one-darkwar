@@ -108,6 +108,7 @@ export default {
     new_password_label: 'Mật khẩu mới',
     change_password_btn: 'Lưu mật khẩu',
     change_password_success: 'Đổi mật khẩu thành công.',
+    guest_login: 'Vào với tư cách Khách',
   },
   contribution: {
     title: 'Đóng góp',
