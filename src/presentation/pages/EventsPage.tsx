@@ -114,21 +114,22 @@ export const EventsPage = () => {
               <tr className="bg-[var(--color-bg-surface)] border-b border-[var(--color-border-subtle)]">
                 <th
                   onClick={() => handleSort('inGameName')}
-                  className="px-3 py-3 text-left text-[var(--color-text-muted)] whitespace-nowrap sticky left-0 bg-[var(--color-bg-surface)] min-w-[140px] cursor-pointer select-none hover:text-[var(--color-text-primary)] transition-colors"
+                  className="px-2 sm:px-3 py-2.5 sm:py-3 text-left text-[var(--color-text-muted)] whitespace-nowrap sticky left-0 bg-[var(--color-bg-surface)] min-w-[90px] sm:min-w-[140px] cursor-pointer select-none hover:text-[var(--color-text-primary)] transition-colors"
                 >
                   {t('events.col_name')}<SortIcon dir={sortKey === 'inGameName' ? sortDir : null} />
                 </th>
                 <th
                   onClick={() => handleSort('total')}
-                  className="px-3 py-3 text-center text-[var(--color-text-muted)] whitespace-nowrap min-w-[52px] cursor-pointer select-none hover:text-[var(--color-text-primary)] transition-colors"
+                  className="px-1 sm:px-3 py-2.5 sm:py-3 text-center text-[var(--color-text-muted)] whitespace-nowrap min-w-[32px] sm:min-w-[52px] cursor-pointer select-none hover:text-[var(--color-text-primary)] transition-colors"
                 >
                   {t('events.col_attended')}<SortIcon dir={sortKey === 'total' ? sortDir : null} />
                 </th>
                 {visibleEvents.map((e) => (
-                  <th key={e.eventKey} className={cn('px-2 py-3 text-center text-[var(--color-text-muted)] whitespace-nowrap min-w-[64px] group', e.hidden && 'opacity-40')}>
-                    <div className="text-[10px] font-normal">{e.date?.slice(5) ?? ''}</div>
-                    <div className="font-semibold flex items-center justify-center gap-1">
-                      {e.name.length > 8 ? e.name.slice(0, 8) + '…' : e.name}
+                  <th key={e.eventKey} className={cn('px-1 sm:px-2 py-2.5 sm:py-3 text-center text-[var(--color-text-muted)] whitespace-nowrap min-w-[42px] sm:min-w-[64px] group', e.hidden && 'opacity-40')}>
+                    <div className="hidden sm:block text-[10px] font-normal">{e.date?.slice(5) ?? ''}</div>
+                    <div className="font-semibold flex items-center justify-center gap-0.5 sm:gap-1">
+                      <span className="sm:hidden">{e.name.length > 4 ? e.name.slice(0, 4) + '…' : e.name}</span>
+                      <span className="hidden sm:inline">{e.name.length > 8 ? e.name.slice(0, 8) + '…' : e.name}</span>
                       {canEdit && (
                         <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5">
                           <button
@@ -157,10 +158,10 @@ export const EventsPage = () => {
                 const total = Object.values(a.records).filter((v) => v === 'CT' || v === 'DB').length
                 return (
                   <tr key={a.memberId} className="hover:bg-[var(--color-bg-surface)] transition-colors">
-                    <td className="px-3 py-2.5 font-medium text-[var(--color-text-primary)] whitespace-nowrap sticky left-0 bg-[var(--color-bg-base)] hover:bg-[var(--color-bg-surface)]">
+                    <td className="px-2 sm:px-3 py-2 sm:py-2.5 font-medium text-[var(--color-text-primary)] whitespace-nowrap sticky left-0 bg-[var(--color-bg-base)] hover:bg-[var(--color-bg-surface)]">
                       {a.inGameName}
                     </td>
-                    <td className="px-3 py-2.5 text-center">
+                    <td className="px-1 sm:px-3 py-2 sm:py-2.5 text-center">
                       <span className="text-[var(--color-success)] font-bold">{total}</span>
                     </td>
                     {visibleEvents.map((e) => {
@@ -170,7 +171,7 @@ export const EventsPage = () => {
                           key={e.eventKey}
                           onClick={() => canEdit && handleCellClick(a.memberId, e.eventKey, status)}
                           className={cn(
-                            'px-2 py-2.5 text-center cursor-pointer select-none transition-colors text-[11px] font-bold',
+                            'px-1 sm:px-2 py-2 sm:py-2.5 text-center cursor-pointer select-none transition-colors text-[10px] sm:text-[11px] font-bold',
                             status === 'CT' && 'bg-[var(--color-success)]/15 text-[var(--color-success)] hover:bg-[var(--color-success)]/25',
                             status === 'DB' && 'bg-[var(--color-warning)]/15 text-[var(--color-warning)] hover:bg-[var(--color-warning)]/25',
                             status === '' && 'text-[var(--color-text-muted)] hover:bg-[var(--color-bg-elevated)]',
