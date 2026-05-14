@@ -1,18 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
-import { MessageCircle, X, Send, Users, Languages, Loader2 } from 'lucide-react'
+import { MessageCircle, X, Send, Users, Languages, Loader2, Bot } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { useMemberStore } from '@/infrastructure/stores/memberStore'
+import { useEventStore } from '@/infrastructure/stores/eventStore'
+import type { Member } from '@/domain/entities/Member'
+import type { EventAttendance } from '@/domain/entities/Event'
 import { cn } from '@/lib/utils'
 import i18n from '@/i18n'
 
-// MyMemory API: 무료, API키 불필요, 1000 req/일
 const MYMEMORY_LANG: Record<string, string> = {
-  ko: 'ko',
-  en: 'en',
-  vi: 'vi',
-  'zh-TW': 'zh-TW',
-  zh: 'zh',
+  ko: 'ko', en: 'en', vi: 'vi', 'zh-TW': 'zh-TW', zh: 'zh',
 }
 
 async function translateText(text: string, targetLang: string): Promise<string> {
@@ -39,8 +37,92 @@ interface OnlineUser {
 }
 
 const LOAD_LIMIT = 50
+const BOT_ID = '__bot__'
 
-// @멘션 파싱 → 하이라이트 렌더링
+const parseCp = (cp: string): number => {
+  const v = parseFloat(cp)
+  if (isNaN(v)) return 0
+  if (cp.toUpperCase().includes('G')) return v * 1000
+  if (cp.toUpperCase().includes('M')) return v
+  return v
+}
+
+const getAttendCount = (memberId: string, attendance: EventAttendance[]) => {
+  const rec = attendance.find((a) => a.memberId === memberId)
+  if (!rec) return 0
+  return Object.values(rec.records).filter((s) => s === 'CT' || s === 'DB').length
+}
+
+const COMMAND_KEYS = [
+  { cmd: '/랭킹', descKey: 'bot.cmd_ranking_desc' },
+  { cmd: '/멤버', descKey: 'bot.cmd_member_desc' },
+  { cmd: '/인원', descKey: 'bot.cmd_count_desc' },
+  { cmd: '/도움말', descKey: 'bot.cmd_help_desc' },
+] as const
+
+function handleBotCommand(text: string, members: Member[], attendance: EventAttendance[]): string | null {
+  const t = i18n.t.bind(i18n)
+  const [cmd, ...args] = text.trim().split(/\s+/)
+  const command = cmd.toLowerCase()
+
+  if (command === '/도움말' || command === '/help') {
+    const rows = COMMAND_KEYS.map((c) => `${c.cmd.padEnd(8)} — ${t(c.descKey)}`)
+    return [t('bot.help_title'), '', ...rows].join('\n')
+  }
+
+  if (command === '/랭킹') {
+    const n = Math.min(Math.max(parseInt(args[0] ?? '5') || 5, 1), 20)
+    const sorted = [...members].sort((a, b) => parseCp(b.cp) - parseCp(a.cp)).slice(0, n)
+    if (sorted.length === 0) return t('bot.ranking_empty')
+    const rows = sorted.map((m, i) => {
+      const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${String(i + 1).padStart(2)}.`
+      const cp = m.cp ? m.cp.padStart(7) : '      -'
+      const evCount = getAttendCount(m.id, attendance)
+      const ev = evCount > 0 ? ` · ${t('bot.ranking_event', { count: evCount })}` : ''
+      return `${medal} ${m.inGameName}  ${cp}${ev}`
+    })
+    return [t('bot.ranking_title', { n }), '', ...rows].join('\n')
+  }
+
+  if (command === '/멤버' || command === '/member') {
+    const query = args.join(' ').toLowerCase()
+    if (!query) return t('bot.member_usage')
+    const found = members.filter((m) => m.inGameName.toLowerCase().includes(query))
+    if (found.length === 0) return t('bot.member_not_found', { name: args.join(' ') })
+    return found.slice(0, 3).map((m) => {
+      const evCount = getAttendCount(m.id, attendance)
+      return [
+        `👤 ${m.inGameName}`,
+        `  ${t('bot.member_cp').padEnd(8)}: ${m.cp || '-'}`,
+        `  ${t('bot.member_house').padEnd(8)}: ${m.houseLevel || '-'}`,
+        `  ${t('bot.member_event').padEnd(8)}: ${t('bot.member_event_count', { count: evCount })}`,
+        m.zaloName ? `  ${t('bot.member_uid').padEnd(8)}: ${m.zaloName}` : '',
+        m.note ? `  ${t('bot.member_note').padEnd(8)}: ${m.note}` : '',
+      ].filter(Boolean).join('\n')
+    }).join('\n\n')
+  }
+
+  if (command === '/인원' || command === '/count') {
+    return t('bot.count_result', { count: members.length })
+  }
+
+  if (text.startsWith('/')) {
+    return t('bot.unknown_cmd')
+  }
+
+  return null
+}
+
+function makeBotMessage(content: string): Message {
+  return {
+    id: -Date.now(),
+    user_id: BOT_ID,
+    in_game_name: i18n.t('bot.name'),
+    content,
+    created_at: new Date().toISOString(),
+  }
+}
+
 function renderContent(content: string, myName: string, isMine: boolean) {
   const parts = content.split(/(@\S+)/g)
   return parts.map((part, i) => {
@@ -69,6 +151,8 @@ function renderContent(content: string, myName: string, isMine: boolean) {
 export const ChatWidget = () => {
   const { user, isGuest } = useAuthStore()
   const { members, loadMembers } = useMemberStore()
+  const { attendance, loadPending: loadEvents } = useEventStore()
+  const t = i18n.t.bind(i18n)
   const [open, setOpen] = useState(false)
   const [tab, setTab] = useState<'chat' | 'online'>('chat')
   const [messages, setMessages] = useState<Message[]>([])
@@ -80,20 +164,19 @@ export const ChatWidget = () => {
   const [connected, setConnected] = useState(false)
   const [reconnectKey, setReconnectKey] = useState(0)
 
-  // 멘션
   const [mentionSearch, setMentionSearch] = useState<string | null>(null)
   const [mentionIndex, setMentionIndex] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
-
   const bottomRef = useRef<HTMLDivElement>(null)
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
   const openRef = useRef(open)
   useEffect(() => { openRef.current = open }, [open])
 
-  // 전체 멤버 목록 로드
-  useEffect(() => { if (user) loadMembers() }, [user, loadMembers])
+  useEffect(() => { if (user) { loadMembers(); loadEvents() } }, [user, loadMembers, loadEvents])
 
-  // 멘션 후보 — 전체 멤버 중 검색어 매칭
+  // 명령어 힌트: 입력창이 비어있을 때만 표시
+  const showCommandHint = input === '' && tab === 'chat'
+
   const mentionCandidates =
     mentionSearch !== null
       ? members.filter((m) =>
@@ -186,6 +269,13 @@ export const ChatWidget = () => {
     if (!text || !user) return
     setInput('')
     setMentionSearch(null)
+
+    const botReply = handleBotCommand(text, members, attendance)
+    if (botReply !== null) {
+      setMessages((prev) => [...prev, makeBotMessage(botReply)])
+      return
+    }
+
     const { error } = await supabase.from('messages').insert({
       user_id: user.id,
       in_game_name: user.inGameName,
@@ -214,6 +304,11 @@ export const ChatWidget = () => {
     }, 0)
   }
 
+  const insertCommand = (cmd: string) => {
+    setInput(cmd + ' ')
+    setTimeout(() => inputRef.current?.focus(), 0)
+  }
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value
     setInput(val)
@@ -230,25 +325,14 @@ export const ChatWidget = () => {
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (mentionSearch !== null && mentionCandidates.length > 0) {
-      if (e.key === 'ArrowDown') {
-        e.preventDefault()
-        setMentionIndex((i) => Math.min(i + 1, mentionCandidates.length - 1))
-        return
-      }
-      if (e.key === 'ArrowUp') {
-        e.preventDefault()
-        setMentionIndex((i) => Math.max(i - 1, 0))
-        return
-      }
+      if (e.key === 'ArrowDown') { e.preventDefault(); setMentionIndex((i) => Math.min(i + 1, mentionCandidates.length - 1)); return }
+      if (e.key === 'ArrowUp') { e.preventDefault(); setMentionIndex((i) => Math.max(i - 1, 0)); return }
       if (e.key === 'Tab' || (e.key === 'Enter' && !e.nativeEvent.isComposing)) {
         e.preventDefault()
         insertMention(mentionCandidates[mentionIndex].inGameName)
         return
       }
-      if (e.key === 'Escape') {
-        setMentionSearch(null)
-        return
-      }
+      if (e.key === 'Escape') { setMentionSearch(null); return }
     }
     if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
       e.preventDefault()
@@ -296,27 +380,43 @@ export const ChatWidget = () => {
           {tab === 'chat' && (
             <>
               <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3">
-                {messages.length === 0 && (
+                {messages.length === 0 && !showCommandHint && (
                   <p className="text-center text-xs text-[var(--color-text-muted)] mt-8">첫 메시지를 보내보세요!</p>
                 )}
                 {messages.map((msg) => {
+                  const isBot = msg.user_id === BOT_ID
                   const isMine = msg.user_id === user.id
                   const isTranslating = translatingIds.has(msg.id)
                   const translated = translations.get(msg.id)
                   const isMentioned = msg.content.includes(`@${user.inGameName}`)
+
+                  if (isBot) {
+                    return (
+                      <div key={msg.id} className="flex flex-col gap-0.5">
+                        <div className="flex items-center gap-1.5 px-1">
+                          <div className="w-4 h-4 rounded-full bg-[var(--color-brand)]/20 flex items-center justify-center flex-shrink-0">
+                            <Bot className="w-2.5 h-2.5 text-[var(--color-brand)]" />
+                          </div>
+                          <span className="text-[10px] text-[var(--color-brand)] font-semibold">{t('bot.name')}</span>
+                        </div>
+                        <div className="max-w-[92%] px-3 py-2.5 rounded-2xl rounded-tl-sm bg-[var(--color-brand)]/8 border border-[var(--color-brand)]/20 text-xs text-[var(--color-text-primary)] whitespace-pre-wrap leading-relaxed font-mono">
+                          {msg.content}
+                        </div>
+                        <span className="text-[10px] text-[var(--color-text-muted)] px-1">
+                          {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                    )
+                  }
+
                   return (
                     <div key={msg.id} className={cn('flex flex-col gap-0.5 group', isMine && 'items-end')}>
-                      {!isMine && (
-                        <span className="text-[10px] text-[var(--color-text-muted)] px-1">{msg.in_game_name}</span>
-                      )}
+                      {!isMine && <span className="text-[10px] text-[var(--color-text-muted)] px-1">{msg.in_game_name}</span>}
                       <div className={cn('flex items-end gap-1.5 max-w-[85%]', isMine && 'flex-row-reverse')}>
                         <div className="flex flex-col gap-1">
                           <div className={cn(
                             'px-3 py-2 rounded-2xl text-sm break-words',
-                            isMine
-                              ? 'bg-[var(--color-brand)] text-white rounded-br-sm'
-                              : 'bg-[var(--color-bg-elevated)] text-[var(--color-text-primary)] rounded-bl-sm',
-                            // 내가 멘션된 메시지: 테두리 강조
+                            isMine ? 'bg-[var(--color-brand)] text-white rounded-br-sm' : 'bg-[var(--color-bg-elevated)] text-[var(--color-text-primary)] rounded-bl-sm',
                             !isMine && isMentioned && 'ring-1 ring-yellow-400/50',
                           )}>
                             {renderContent(msg.content, user.inGameName, isMine)}
@@ -339,9 +439,7 @@ export const ChatWidget = () => {
                           className={cn(
                             'flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-all',
                             'opacity-60 sm:opacity-0 sm:group-hover:opacity-100',
-                            translated
-                              ? 'bg-[var(--color-brand)]/20 text-[var(--color-brand)]'
-                              : 'bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]',
+                            translated ? 'bg-[var(--color-brand)]/20 text-[var(--color-brand)]' : 'bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]',
                           )}
                           title="번역"
                         >
@@ -358,7 +456,31 @@ export const ChatWidget = () => {
               </div>
 
               {/* 입력 영역 */}
-              <div className="relative px-3 py-3 border-t border-[var(--color-border-subtle)]">
+              <div className="relative px-3 pb-3 border-t border-[var(--color-border-subtle)]">
+
+                {/* 명령어 힌트 패널 — 입력 없을 때만 표시 */}
+                <div className={cn(
+                  'overflow-hidden transition-all duration-200',
+                  showCommandHint ? 'max-h-40 opacity-100 pt-3 pb-2' : 'max-h-0 opacity-0',
+                )}>
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <Bot className="w-3 h-3 text-[var(--color-brand)]" />
+                    <span className="text-[10px] font-semibold text-[var(--color-brand)]">{t('bot.hint_label')}</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-1">
+                    {COMMAND_KEYS.map((c) => (
+                      <button
+                        key={c.cmd}
+                        onClick={() => insertCommand(c.cmd)}
+                        className="flex flex-col items-start px-2.5 py-1.5 rounded-lg bg-[var(--color-bg-elevated)] hover:bg-[var(--color-brand)]/10 hover:text-[var(--color-brand)] transition-colors text-left"
+                      >
+                        <span className="text-[11px] font-semibold text-[var(--color-text-primary)]">{c.cmd}</span>
+                        <span className="text-[10px] text-[var(--color-text-muted)] leading-tight">{t(c.descKey)}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 {/* 멘션 드롭다운 */}
                 {mentionSearch !== null && mentionCandidates.length > 0 && (
                   <div className="absolute bottom-full left-3 right-3 mb-1 bg-[var(--color-bg-elevated)] border border-[var(--color-border)] rounded-xl shadow-lg overflow-hidden z-10">
@@ -370,9 +492,7 @@ export const ChatWidget = () => {
                           onMouseDown={(e) => { e.preventDefault(); insertMention(m.inGameName) }}
                           className={cn(
                             'w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left transition-colors',
-                            i === mentionIndex
-                              ? 'bg-[var(--color-brand)]/15 text-[var(--color-brand)]'
-                              : 'text-[var(--color-text-primary)] hover:bg-[var(--color-bg-surface)]',
+                            i === mentionIndex ? 'bg-[var(--color-brand)]/15 text-[var(--color-brand)]' : 'text-[var(--color-text-primary)] hover:bg-[var(--color-bg-surface)]',
                           )}
                         >
                           <span className={cn('w-1.5 h-1.5 rounded-full flex-shrink-0', isOnline ? 'bg-green-500' : 'bg-[var(--color-border)]')} />
@@ -390,7 +510,7 @@ export const ChatWidget = () => {
                     value={input}
                     onChange={handleChange}
                     onKeyDown={handleKeyDown}
-                    placeholder="메시지 입력... (@멘션)"
+                    placeholder="메시지 입력... (@멘션 · /명령어)"
                     className="flex-1 text-sm bg-[var(--color-bg-elevated)] border border-[var(--color-border-subtle)] rounded-xl px-3 py-2 outline-none focus:border-[var(--color-brand)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)]"
                   />
                   <button
