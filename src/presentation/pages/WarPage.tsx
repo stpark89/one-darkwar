@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Search, Plus, X, Loader2, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useWarStore, nextEntry } from '@/infrastructure/stores/warStore'
+import { useAuthStore } from '@/infrastructure/stores/authStore'
 import type { WarTeam, WarRole } from '@/domain/entities/War'
 import { Input } from '@/presentation/components/ui/input'
 import { Button } from '@/presentation/components/ui/button'
@@ -28,6 +29,9 @@ const EntryCell = ({ team, role }: { team: string; role: string }) => {
 
 export const WarPage = () => {
   const { t } = useTranslation()
+  const { user } = useAuthStore()
+  const canEdit = user?.role === 'ROLE_ADMIN'
+
   const {
     activeSeason, rounds, loading,
     searchQuery, setSearchQuery,
@@ -120,9 +124,11 @@ export const WarPage = () => {
               {t('war.tab_ranking')}
             </button>
           </div>
-          <Button size="sm" onClick={() => setShowAddRound(true)}>
-            <Plus className="w-4 h-4" /> {t('war.add_round_btn')}
-          </Button>
+          {canEdit && (
+            <Button size="sm" onClick={() => setShowAddRound(true)}>
+              <Plus className="w-4 h-4" /> {t('war.add_round_btn')}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -173,12 +179,12 @@ export const WarPage = () => {
                     <div className="font-semibold flex items-center justify-center gap-1">
                       {t('war.round', { n: r.sortOrder })}
                       <SortIcon dir={sortKey === r.id ? sortDir : null} />
-                      <button
+                      {canEdit && <button
                         onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(r.id) }}
                         className="opacity-0 group-hover:opacity-100 transition-opacity text-[var(--color-danger)] hover:text-red-400 ml-0.5"
                       >
                         <Trash2 className="w-3 h-3" />
-                      </button>
+                      </button>}
                     </div>
                   </th>
                 ))}
@@ -203,8 +209,8 @@ export const WarPage = () => {
                     return (
                       <td
                         key={r.id}
-                        onClick={() => handleCellClick(r.id, row.memberId, e.team, e.role)}
-                        className="px-3 py-2.5 text-center cursor-pointer select-none transition-colors hover:bg-[var(--color-bg-elevated)]"
+                        onClick={() => canEdit && handleCellClick(r.id, row.memberId, e.team, e.role)}
+                        className={cn('px-3 py-2.5 text-center select-none transition-colors hover:bg-[var(--color-bg-elevated)]', canEdit && 'cursor-pointer')}
                       >
                         <EntryCell team={visible ? e.team : ''} role={visible ? e.role : ''} />
                       </td>

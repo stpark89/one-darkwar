@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { NavLink } from 'react-router-dom'
-import { Users, Swords, CalendarDays, FileSpreadsheet, BarChart3, ChevronUp, ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { NavLink, useNavigate } from 'react-router-dom'
+import { Users, Swords, CalendarDays, FileSpreadsheet, BarChart3, ChevronUp, ChevronLeft, ChevronRight, X, LogOut, ShieldCheck, User } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { LANGUAGES, type LangCode } from '@/i18n'
+import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { cn } from '@/lib/utils'
 
 interface SidebarProps {
@@ -14,7 +15,14 @@ interface SidebarProps {
 
 export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile }: SidebarProps) => {
   const { t, i18n } = useTranslation()
+  const { user, signOut } = useAuthStore()
+  const navigate = useNavigate()
   const [langOpen, setLangOpen] = useState(false)
+
+  const handleSignOut = async () => {
+    await signOut()
+    navigate('/sign-in', { replace: true })
+  }
 
   const currentLang = LANGUAGES.find((l) => l.code === i18n.language) ?? LANGUAGES[0]
 
@@ -124,6 +132,41 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
           </div>
         )}
       </div>
+
+      {/* 유저 정보 + 로그아웃 */}
+      {user && (
+        <div className={cn('px-3 py-3 border-t border-[var(--color-border-subtle)]', collapsed && 'md:flex md:justify-center md:px-0')}>
+          <div className={cn('flex items-center gap-2 px-2 py-2 rounded-lg', collapsed && 'md:justify-center md:px-0')}>
+            <div className="w-7 h-7 rounded-full bg-[var(--color-brand)]/20 flex items-center justify-center flex-shrink-0">
+              {user.role === 'ROLE_ADMIN'
+                ? <ShieldCheck className="w-3.5 h-3.5 text-[var(--color-brand)]" />
+                : <User className="w-3.5 h-3.5 text-[var(--color-text-muted)]" />}
+            </div>
+            <div className={cn('flex-1 min-w-0', collapsed && 'md:hidden')}>
+              <p className="text-xs font-semibold text-[var(--color-text-primary)] truncate">{user.inGameName}</p>
+              <p className="text-[10px] text-[var(--color-text-muted)]">
+                {user.role === 'ROLE_ADMIN' ? t('auth.role_admin') : t('auth.role_user')}
+              </p>
+            </div>
+            <button
+              onClick={handleSignOut}
+              title={t('auth.sign_out')}
+              className={cn('p-1.5 rounded hover:bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:text-[var(--color-danger)] transition-colors flex-shrink-0', collapsed && 'md:hidden')}
+            >
+              <LogOut className="w-3.5 h-3.5" />
+            </button>
+          </div>
+          {collapsed && (
+            <button
+              onClick={handleSignOut}
+              title={t('auth.sign_out')}
+              className="hidden md:flex items-center justify-center w-9 h-9 rounded hover:bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:text-[var(--color-danger)] transition-colors mx-auto mt-1"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+      )}
 
       {/* 버전 + 데스크톱 토글 버튼 */}
       <div className={cn('px-5 py-2.5 border-t border-[var(--color-border-subtle)] flex items-center', collapsed ? 'md:justify-center md:px-0' : 'justify-between')}>

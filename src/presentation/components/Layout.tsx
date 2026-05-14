@@ -1,12 +1,22 @@
 import { useState } from 'react'
-import { Outlet } from 'react-router-dom'
-import { Menu, Swords } from 'lucide-react'
+import { Outlet, Navigate } from 'react-router-dom'
+import { Menu, Swords, Loader2 } from 'lucide-react'
 import { Sidebar } from './Sidebar'
+import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { cn } from '@/lib/utils'
 
 export const Layout = () => {
+  const { user, loading } = useAuthStore()
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+
+  if (loading) return (
+    <div className="min-h-screen bg-[var(--color-bg-base)] flex items-center justify-center">
+      <Loader2 className="w-6 h-6 animate-spin text-[var(--color-brand)]" />
+    </div>
+  )
+
+  if (!user) return <Navigate to="/sign-in" replace />
 
   return (
     <div className="flex min-h-screen">

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Search, Plus, X, Loader2, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useEventStore } from '@/infrastructure/stores/eventStore'
+import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { Input } from '@/presentation/components/ui/input'
 import { Button } from '@/presentation/components/ui/button'
 import { SortIcon, nextSortDir } from '@/presentation/components/ui/sort-icon'
@@ -11,6 +12,8 @@ import { cn } from '@/lib/utils'
 export const EventsPage = () => {
   const { t } = useTranslation()
   const { events, addEvent, deleteEvent, updateStatus, getFiltered, searchQuery, setSearchQuery, getSummary, loadData, loading } = useEventStore()
+  const { user } = useAuthStore()
+  const canEdit = user?.role === 'ROLE_ADMIN'
   const baseAttendance = getFiltered()
   const summary = getSummary()
   const [activeTab, setActiveTab] = useState<'grid' | 'summary'>('grid')
@@ -81,9 +84,11 @@ export const EventsPage = () => {
               {t('events.tab_ranking')}
             </button>
           </div>
-          <Button size="sm" onClick={() => setShowAddEvent(true)}>
-            <Plus className="w-4 h-4" /> {t('events.add_event_btn')}
-          </Button>
+          {canEdit && (
+            <Button size="sm" onClick={() => setShowAddEvent(true)}>
+              <Plus className="w-4 h-4" /> {t('events.add_event_btn')}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -114,12 +119,14 @@ export const EventsPage = () => {
                     <div className="text-[10px] font-normal">{e.date?.slice(5) ?? ''}</div>
                     <div className="font-semibold flex items-center justify-center gap-1">
                       {e.name.length > 8 ? e.name.slice(0, 8) + '…' : e.name}
-                      <button
-                        onClick={() => setDeleteConfirmId(e.id)}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity text-[var(--color-danger)] hover:text-red-400"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </button>
+                      {canEdit && (
+                        <button
+                          onClick={() => setDeleteConfirmId(e.id)}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity text-[var(--color-danger)] hover:text-red-400"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      )}
                     </div>
                   </th>
                 ))}
@@ -141,7 +148,7 @@ export const EventsPage = () => {
                       return (
                         <td
                           key={e.eventKey}
-                          onClick={() => handleCellClick(a.memberId, e.eventKey, status)}
+                          onClick={() => canEdit && handleCellClick(a.memberId, e.eventKey, status)}
                           className={cn(
                             'px-2 py-2.5 text-center cursor-pointer select-none transition-colors text-[11px] font-bold',
                             status === 'CT' && 'bg-[var(--color-success)]/15 text-[var(--color-success)] hover:bg-[var(--color-success)]/25',

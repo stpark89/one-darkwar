@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Layout } from '@/presentation/components/Layout'
 import { MembersPage } from '@/presentation/pages/MembersPage'
@@ -5,11 +6,19 @@ import { WarPage } from '@/presentation/pages/WarPage'
 import { EventsPage } from '@/presentation/pages/EventsPage'
 import { ExcelPage } from '@/presentation/pages/ExcelPage'
 import { ContributionPage } from '@/presentation/pages/ContributionPage'
+import { SignInPage } from '@/presentation/pages/SignInPage'
+import { SignUpPage } from '@/presentation/pages/SignUpPage'
+import { useAuthStore } from '@/infrastructure/stores/authStore'
 
 function App() {
+  const { loadSession } = useAuthStore()
+  useEffect(() => { loadSession() }, [loadSession])
+
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/sign-in" element={<SignInPage />} />
+        <Route path="/sign-up" element={<SignUpPage />} />
         <Route element={<Layout />}>
           <Route index element={<Navigate to="/members" replace />} />
           <Route path="/members" element={<MembersPage />} />

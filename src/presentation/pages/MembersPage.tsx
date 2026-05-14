@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Search, Plus, Pencil, Trash2, X, Loader2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useMemberStore } from '@/infrastructure/stores/memberStore'
+import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { Button } from '@/presentation/components/ui/button'
 import { Input } from '@/presentation/components/ui/input'
 import { Badge } from '@/presentation/components/ui/badge'
@@ -24,6 +25,8 @@ type SortKey = 'inGameName' | 'cp' | 'houseLevel'
 export const MembersPage = () => {
   const { t } = useTranslation()
   const { getFiltered, searchQuery, setSearchQuery, addMember, updateMember, deleteMember, loadMembers, loading } = useMemberStore()
+  const { user } = useAuthStore()
+  const canEdit = user?.role === 'ROLE_ADMIN'
   const base = getFiltered()
 
   const [form, setForm] = useState<Partial<Member> | null>(null)
@@ -85,9 +88,11 @@ export const MembersPage = () => {
             {t('members.subtitle_count', { count: members.length })}
           </p>
         </div>
-        <Button onClick={openAdd} size="sm">
-          <Plus className="w-4 h-4" /> {t('members.add_btn')}
-        </Button>
+        {canEdit && (
+          <Button onClick={openAdd} size="sm">
+            <Plus className="w-4 h-4" /> {t('members.add_btn')}
+          </Button>
+        )}
       </div>
 
       <div className="relative mb-4">
@@ -137,14 +142,16 @@ export const MembersPage = () => {
                   {m.note || '-'}
                 </td>
                 <td className="px-4 py-3">
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => openEdit(m)} className="p-1.5 rounded hover:bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:text-[var(--color-brand)]">
-                      <Pencil className="w-3.5 h-3.5" />
-                    </button>
-                    <button onClick={() => deleteMember(m.id)} className="p-1.5 rounded hover:bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:text-[var(--color-danger)]">
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                  {canEdit && (
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button onClick={() => openEdit(m)} className="p-1.5 rounded hover:bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:text-[var(--color-brand)]">
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                      <button onClick={() => deleteMember(m.id)} className="p-1.5 rounded hover:bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:text-[var(--color-danger)]">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
                 </td>
               </tr>
             ))}
