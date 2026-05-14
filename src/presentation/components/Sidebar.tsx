@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { Users, Swords, CalendarDays, FileSpreadsheet, BarChart3, ChevronUp, ChevronLeft, ChevronRight, X, LogOut, ShieldCheck, User, KeyRound } from 'lucide-react'
+import { Users, Swords, CalendarDays, FileSpreadsheet, BarChart3, ChevronUp, ChevronLeft, ChevronRight, X, LogOut, ShieldCheck, User, KeyRound, UserX } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { LANGUAGES, type LangCode } from '@/i18n'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
@@ -15,7 +15,7 @@ interface SidebarProps {
 
 export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile }: SidebarProps) => {
   const { t, i18n } = useTranslation()
-  const { user, signOut } = useAuthStore()
+  const { user, signOut, isGuest } = useAuthStore()
   const navigate = useNavigate()
   const [langOpen, setLangOpen] = useState(false)
 
@@ -134,48 +134,70 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
       </div>
 
       {/* 유저 정보 + 비밀번호 변경 + 로그아웃 */}
-      {user && (
-        <div className={cn('px-3 py-3 border-t border-[var(--color-border-subtle)]', collapsed && 'md:flex md:flex-col md:items-center md:px-0')}>
-          {/* 유저 정보 */}
-          <div className={cn('flex items-center gap-2 px-2 py-2 rounded-lg', collapsed && 'md:justify-center md:px-0')}>
-            <div className="w-7 h-7 rounded-full bg-[var(--color-brand)]/20 flex items-center justify-center flex-shrink-0">
-              {user.role === 'ROLE_ADMIN'
-                ? <ShieldCheck className="w-3.5 h-3.5 text-[var(--color-brand)]" />
-                : <User className="w-3.5 h-3.5 text-[var(--color-text-muted)]" />}
+      <div className={cn('px-3 py-3 border-t border-[var(--color-border-subtle)]', collapsed && 'md:flex md:flex-col md:items-center md:px-0')}>
+        {isGuest ? (
+          <>
+            <div className={cn('flex items-center gap-2 px-2 py-2 rounded-lg', collapsed && 'md:justify-center md:px-0')}>
+              <div className="w-7 h-7 rounded-full bg-[var(--color-bg-elevated)] flex items-center justify-center flex-shrink-0">
+                <UserX className="w-3.5 h-3.5 text-[var(--color-text-muted)]" />
+              </div>
+              <div className={cn('flex-1 min-w-0', collapsed && 'md:hidden')}>
+                <p className="text-xs font-semibold text-[var(--color-text-primary)]">게스트</p>
+                <p className="text-[10px] text-[var(--color-text-muted)]">조회 전용</p>
+              </div>
             </div>
-            <div className={cn('flex-1 min-w-0', collapsed && 'md:hidden')}>
-              <p className="text-xs font-semibold text-[var(--color-text-primary)] truncate">{user.inGameName}</p>
-              <p className="text-[10px] text-[var(--color-text-muted)]">
-                {user.role === 'ROLE_ADMIN' ? t('auth.role_admin') : t('auth.role_user')}
-              </p>
+            <button
+              onClick={() => { handleSignOut(); onCloseMobile() }}
+              title="로그인 화면으로"
+              className={cn(
+                'w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-[var(--color-brand)] hover:bg-[var(--color-brand)]/10 transition-colors mt-0.5',
+                collapsed && 'md:w-9 md:h-9 md:justify-center md:px-0',
+              )}
+            >
+              <LogOut className="w-3.5 h-3.5 flex-shrink-0" />
+              <span className={cn(collapsed && 'md:hidden')}>로그인 화면으로</span>
+            </button>
+          </>
+        ) : user && (
+          <>
+            <div className={cn('flex items-center gap-2 px-2 py-2 rounded-lg', collapsed && 'md:justify-center md:px-0')}>
+              <div className="w-7 h-7 rounded-full bg-[var(--color-brand)]/20 flex items-center justify-center flex-shrink-0">
+                {user.role === 'ROLE_ADMIN'
+                  ? <ShieldCheck className="w-3.5 h-3.5 text-[var(--color-brand)]" />
+                  : <User className="w-3.5 h-3.5 text-[var(--color-text-muted)]" />}
+              </div>
+              <div className={cn('flex-1 min-w-0', collapsed && 'md:hidden')}>
+                <p className="text-xs font-semibold text-[var(--color-text-primary)] truncate">{user.inGameName}</p>
+                <p className="text-[10px] text-[var(--color-text-muted)]">
+                  {user.role === 'ROLE_ADMIN' ? t('auth.role_admin') : t('auth.role_user')}
+                </p>
+              </div>
             </div>
-          </div>
-          {/* 비밀번호 변경 */}
-          <button
-            onClick={() => { navigate('/change-password'); onCloseMobile() }}
-            title={t('auth.change_password')}
-            className={cn(
-              'w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-[var(--color-text-muted)] hover:bg-[var(--color-bg-elevated)] hover:text-[var(--color-text-primary)] transition-colors mt-0.5',
-              collapsed && 'md:w-9 md:h-9 md:justify-center md:px-0',
-            )}
-          >
-            <KeyRound className="w-3.5 h-3.5 flex-shrink-0" />
-            <span className={cn(collapsed && 'md:hidden')}>{t('auth.change_password')}</span>
-          </button>
-          {/* 로그아웃 */}
-          <button
-            onClick={handleSignOut}
-            title={t('auth.sign_out')}
-            className={cn(
-              'w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-[var(--color-text-muted)] hover:bg-[var(--color-bg-elevated)] hover:text-[var(--color-danger)] transition-colors mt-0.5',
-              collapsed && 'md:w-9 md:h-9 md:justify-center md:px-0',
-            )}
-          >
-            <LogOut className="w-3.5 h-3.5 flex-shrink-0" />
-            <span className={cn(collapsed && 'md:hidden')}>{t('auth.sign_out')}</span>
-          </button>
-        </div>
-      )}
+            <button
+              onClick={() => { navigate('/change-password'); onCloseMobile() }}
+              title={t('auth.change_password')}
+              className={cn(
+                'w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-[var(--color-text-muted)] hover:bg-[var(--color-bg-elevated)] hover:text-[var(--color-text-primary)] transition-colors mt-0.5',
+                collapsed && 'md:w-9 md:h-9 md:justify-center md:px-0',
+              )}
+            >
+              <KeyRound className="w-3.5 h-3.5 flex-shrink-0" />
+              <span className={cn(collapsed && 'md:hidden')}>{t('auth.change_password')}</span>
+            </button>
+            <button
+              onClick={handleSignOut}
+              title={t('auth.sign_out')}
+              className={cn(
+                'w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-[var(--color-text-muted)] hover:bg-[var(--color-bg-elevated)] hover:text-[var(--color-danger)] transition-colors mt-0.5',
+                collapsed && 'md:w-9 md:h-9 md:justify-center md:px-0',
+              )}
+            >
+              <LogOut className="w-3.5 h-3.5 flex-shrink-0" />
+              <span className={cn(collapsed && 'md:hidden')}>{t('auth.sign_out')}</span>
+            </button>
+          </>
+        )}
+      </div>
 
       {/* 버전 + 데스크톱 토글 버튼 */}
       <div className={cn('px-5 py-2.5 border-t border-[var(--color-border-subtle)] flex items-center', collapsed ? 'md:justify-center md:px-0' : 'justify-between')}>

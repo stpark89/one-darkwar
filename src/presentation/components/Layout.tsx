@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Outlet, Navigate, useNavigate } from 'react-router-dom'
-import { Menu, Swords, Loader2, User, ShieldCheck, KeyRound, LogOut } from 'lucide-react'
+import { Menu, Swords, Loader2, User, ShieldCheck, KeyRound, LogOut, UserX } from 'lucide-react'
 import { Sidebar } from './Sidebar'
 import { ChatWidget } from './ChatWidget'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 
 export const Layout = () => {
-  const { user, loading, signOut } = useAuthStore()
+  const { user, loading, signOut, isGuest } = useAuthStore()
   const { t } = useTranslation()
   const navigate = useNavigate()
   const [collapsed, setCollapsed] = useState(false)
@@ -31,13 +31,18 @@ export const Layout = () => {
     navigate('/sign-in', { replace: true })
   }
 
+  const handleGuestExit = () => {
+    signOut()
+    navigate('/sign-in', { replace: true })
+  }
+
   if (loading) return (
     <div className="min-h-screen bg-[var(--color-bg-base)] flex items-center justify-center">
       <Loader2 className="w-6 h-6 animate-spin text-[var(--color-brand)]" />
     </div>
   )
 
-  if (!user) return <Navigate to="/sign-in" replace />
+  if (!user && !isGuest) return <Navigate to="/sign-in" replace />
 
   return (
     <div className="flex min-h-screen w-full" style={{ maxWidth: '100vw', overflowX: 'hidden' }}>
@@ -77,7 +82,15 @@ export const Layout = () => {
             <span className="text-sm font-bold text-[var(--color-text-primary)]">ONE DARK WAR</span>
           </div>
           {/* 모바일 유저 메뉴 */}
-          {user && (
+          {isGuest ? (
+            <button
+              onClick={handleGuestExit}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--color-border-subtle)] text-xs text-[var(--color-text-muted)] hover:bg-[var(--color-bg-elevated)] transition-colors"
+            >
+              <UserX className="w-3.5 h-3.5" />
+              로그인
+            </button>
+          ) : user && (
             <div className="relative" ref={userMenuRef}>
               <button
                 onClick={() => setUserMenuOpen(v => !v)}

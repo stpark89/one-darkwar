@@ -40,7 +40,7 @@ interface OnlineUser {
 const LOAD_LIMIT = 50
 
 export const ChatWidget = () => {
-  const { user } = useAuthStore()
+  const { user, isGuest } = useAuthStore()
   const [open, setOpen] = useState(false)
   const [tab, setTab] = useState<'chat' | 'online'>('chat')
   const [messages, setMessages] = useState<Message[]>([])
@@ -170,7 +170,7 @@ export const ChatWidget = () => {
     if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); sendMessage() }
   }
 
-  if (!user) return null
+  if (!user || isGuest) return null
 
   return (
     <div className="fixed bottom-4 right-3 sm:bottom-5 sm:right-5 z-50 flex flex-col items-end gap-2">

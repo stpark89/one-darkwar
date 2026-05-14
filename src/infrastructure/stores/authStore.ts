@@ -12,10 +12,12 @@ export interface AuthUser {
 interface AuthStore {
   user: AuthUser | null
   loading: boolean
+  isGuest: boolean
   loadSession: () => Promise<void>
   signIn: (inGameName: string, password: string) => Promise<string | null>
   signUp: (inGameName: string, password: string) => Promise<string | null>
   signOut: () => Promise<void>
+  guestLogin: () => void
   updateLastSeen: () => Promise<void>
 }
 
@@ -36,6 +38,7 @@ async function fetchProfile(userId: string): Promise<AuthUser | null> {
 export const useAuthStore = create<AuthStore>((set) => ({
   user: null,
   loading: true,
+  isGuest: false,
 
   loadSession: async () => {
     set({ loading: true })
@@ -97,7 +100,11 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
   signOut: async () => {
     await supabase.auth.signOut()
-    set({ user: null })
+    set({ user: null, isGuest: false })
+  },
+
+  guestLogin: () => {
+    set({ isGuest: true, user: null, loading: false })
   },
 
   updateLastSeen: async () => {

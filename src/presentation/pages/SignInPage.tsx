@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { Swords, Eye, EyeOff, Loader2 } from 'lucide-react'
+import { Swords, Eye, EyeOff, Loader2, UserX } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { Input } from '@/presentation/components/ui/input'
@@ -9,8 +9,13 @@ import { LangSelector } from '@/presentation/components/ui/lang-selector'
 
 export const SignInPage = () => {
   const { t } = useTranslation()
-  const { signIn } = useAuthStore()
+  const { signIn, guestLogin } = useAuthStore()
   const navigate = useNavigate()
+
+  const handleGuestLogin = () => {
+    guestLogin()
+    navigate('/members', { replace: true })
+  }
 
   const [name, setName] = useState('')
   const [password, setPassword] = useState('')
@@ -89,6 +94,21 @@ export const SignInPage = () => {
           {t('auth.no_account')}{' '}
           <Link to="/sign-up" className="text-[var(--color-brand)] hover:underline font-medium">{t('auth.sign_up_link')}</Link>
         </p>
+
+        <div className="relative my-4 flex items-center gap-3">
+          <div className="flex-1 h-px bg-[var(--color-border-subtle)]" />
+          <span className="text-xs text-[var(--color-text-muted)]">또는</span>
+          <div className="flex-1 h-px bg-[var(--color-border-subtle)]" />
+        </div>
+
+        <button
+          onClick={handleGuestLogin}
+          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-[var(--color-border-subtle)] text-sm text-[var(--color-text-muted)] hover:bg-[var(--color-bg-surface)] hover:text-[var(--color-text-primary)] transition-colors"
+        >
+          <UserX className="w-4 h-4" />
+          게스트로 입장하기
+        </button>
+        <p className="text-center text-[11px] text-[var(--color-text-muted)] mt-2">조회만 가능 · 채팅 불가</p>
       </div>
     </div>
   )
