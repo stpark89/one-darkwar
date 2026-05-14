@@ -61,11 +61,11 @@ export const EventsPage = () => {
   )
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="p-3 sm:p-6">
+      <div className="flex items-center justify-between mb-3 sm:mb-6 flex-wrap gap-2">
         <div>
-          <h1 className="text-xl font-bold text-[var(--color-text-primary)]">{t('events.title')}</h1>
-          <p className="text-sm text-[var(--color-text-muted)] mt-0.5">
+          <h1 className="text-lg sm:text-xl font-bold text-[var(--color-text-primary)]">{t('events.title')}</h1>
+          <p className="text-xs sm:text-sm text-[var(--color-text-muted)] mt-0.5">
             {t('events.subtitle', { events: events.length, members: attendance.length })}
           </p>
         </div>
@@ -73,26 +73,26 @@ export const EventsPage = () => {
           <div className="flex gap-1 p-1 bg-[var(--color-bg-surface)] rounded-lg border border-[var(--color-border-subtle)]">
             <button
               onClick={() => setActiveTab('grid')}
-              className={cn('px-3 py-1.5 rounded text-xs font-medium transition-colors', activeTab === 'grid' ? 'bg-[var(--color-brand)] text-white' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]')}
+              className={cn('px-2.5 sm:px-3 py-1.5 rounded text-xs font-medium transition-colors', activeTab === 'grid' ? 'bg-[var(--color-brand)] text-white' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]')}
             >
               {t('events.tab_grid')}
             </button>
             <button
               onClick={() => setActiveTab('summary')}
-              className={cn('px-3 py-1.5 rounded text-xs font-medium transition-colors', activeTab === 'summary' ? 'bg-[var(--color-brand)] text-white' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]')}
+              className={cn('px-2.5 sm:px-3 py-1.5 rounded text-xs font-medium transition-colors', activeTab === 'summary' ? 'bg-[var(--color-brand)] text-white' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]')}
             >
               {t('events.tab_ranking')}
             </button>
           </div>
           {canEdit && (
             <Button size="sm" onClick={() => setShowAddEvent(true)}>
-              <Plus className="w-4 h-4" /> {t('events.add_event_btn')}
+              <Plus className="w-4 h-4" /> <span className="hidden sm:inline">{t('events.add_event_btn')}</span>
             </Button>
           )}
         </div>
       </div>
 
-      <div className="relative mb-4">
+      <div className="relative mb-3 sm:mb-4">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" />
         <Input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder={t('events.search_placeholder')} className="pl-9" />
       </div>

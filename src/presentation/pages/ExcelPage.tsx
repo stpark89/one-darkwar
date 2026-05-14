@@ -38,8 +38,8 @@ export const ExcelPage = () => {
   }
 
   return (
-    <div className="p-6 max-w-2xl">
-      <div className="mb-6">
+    <div className="p-3 sm:p-6 max-w-2xl">
+      <div className="mb-4 sm:mb-6">
         <h1 className="text-xl font-bold text-[var(--color-text-primary)]">{t('excel.title')}</h1>
         <p className="text-sm text-[var(--color-text-muted)] mt-0.5">{t('excel.subtitle')}</p>
       </div>
@@ -49,7 +49,7 @@ export const ExcelPage = () => {
         <h2 className="text-sm font-bold text-[var(--color-text-primary)] mb-4 flex items-center gap-2">
           <Download className="w-4 h-4 text-[var(--color-brand)]" /> {t('excel.export_title')}
         </h2>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {[
             { label: t('excel.export_members'), desc: `${members.length}${t('common.count_people')}`, onClick: () => exportMembersToExcel(members), color: 'text-[var(--color-success)]' },
             { label: t('excel.export_war'), desc: `${rounds.length}회차`, onClick: () => exportWarToExcel(getMemberRows(), rounds), color: 'text-[var(--color-warning)]' },

@@ -209,10 +209,10 @@ export const ContributionPage = () => {
   )
 
   return (
-    <div className="p-6">
-      <div className="mb-5">
-        <h1 className="text-xl font-bold text-[var(--color-text-primary)]">{t('contribution.title')}</h1>
-        <p className="text-sm text-[var(--color-text-muted)] mt-0.5">{t('contribution.subtitle', { count: filtered.length })}</p>
+    <div className="p-3 sm:p-6">
+      <div className="mb-3 sm:mb-5">
+        <h1 className="text-lg sm:text-xl font-bold text-[var(--color-text-primary)]">{t('contribution.title')}</h1>
+        <p className="text-xs sm:text-sm text-[var(--color-text-muted)] mt-0.5">{t('contribution.subtitle', { count: filtered.length })}</p>
       </div>
 
       <div className="relative mb-4">
@@ -267,30 +267,29 @@ export const ContributionPage = () => {
 
       {/* 멤버 상세 모달 */}
       {detail && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-[var(--color-bg-surface)] rounded-xl border border-[var(--color-border)] w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/70 flex items-end sm:items-center justify-center z-50 sm:p-4">
+          <div className="bg-[var(--color-bg-surface)] rounded-t-2xl sm:rounded-xl border border-[var(--color-border)] w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto">
             {/* 헤더 */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border-subtle)]">
-              <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-[var(--color-border-subtle)]">
+              <div className="flex items-center gap-3 flex-wrap">
                 <div>
                   <h2 className="text-base font-bold text-[var(--color-text-primary)]">{detail.row.inGameName}</h2>
                   <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
                     {t('contribution.total_label', { total: detail.row.total })} · {t('contribution.war_label', { n: detail.row.warTotal })} · {t('contribution.event_label', { n: detail.row.eventTotal })}
                   </p>
-                  <p className="text-[10px] text-[var(--color-text-muted)] mt-0.5">{t('contribution.score_note')}</p>
                 </div>
-                <div className="ml-2">
+                <div>
                   {detail.row.trend === 'up' && <span className="flex items-center gap-1 text-[var(--color-success)] text-sm font-bold"><TrendingUp className="w-4 h-4" />{t('contribution.trend_up')}</span>}
                   {detail.row.trend === 'down' && <span className="flex items-center gap-1 text-[var(--color-danger)] text-sm font-bold"><TrendingDown className="w-4 h-4" />{t('contribution.trend_down')}</span>}
                   {detail.row.trend === 'stable' && <span className="flex items-center gap-1 text-[var(--color-text-muted)] text-sm"><Minus className="w-4 h-4" />{t('contribution.trend_stable')}</span>}
                 </div>
               </div>
-              <button onClick={() => setDetail(null)} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]">
+              <button onClick={() => setDetail(null)} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] flex-shrink-0">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="px-6 py-5 space-y-6">
+            <div className="px-4 sm:px-6 py-4 sm:py-5 space-y-5 sm:space-y-6">
               {/* 추세 비교 카드 */}
               <div className="grid grid-cols-2 gap-3">
                 <TrendCard

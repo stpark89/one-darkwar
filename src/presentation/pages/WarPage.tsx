@@ -97,28 +97,27 @@ export const WarPage = () => {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-3 sm:p-6">
       {/* 헤더 */}
-      <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+      <div className="flex items-center justify-between mb-3 sm:mb-4 flex-wrap gap-2 sm:gap-3">
         <div>
-          <h1 className="text-xl font-bold text-[var(--color-text-primary)]">{t('war.title')}</h1>
-          <p className="text-sm text-[var(--color-text-muted)] mt-0.5">
-            {activeSeason?.name} · {rounds.length}{t('war.round', { n: '' }).replace('', '')}
-            {rounds.length}회차
+          <h1 className="text-lg sm:text-xl font-bold text-[var(--color-text-primary)]">{t('war.title')}</h1>
+          <p className="text-xs sm:text-sm text-[var(--color-text-muted)] mt-0.5">
+            {activeSeason?.name} · {rounds.length}회차
           </p>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex gap-1 p-1 bg-[var(--color-bg-surface)] rounded-lg border border-[var(--color-border-subtle)]">
             <button
               onClick={() => setActiveTab('grid')}
-              className={cn('px-3 py-1.5 rounded text-xs font-medium transition-colors',
+              className={cn('px-2.5 sm:px-3 py-1.5 rounded text-xs font-medium transition-colors',
                 activeTab === 'grid' ? 'bg-[var(--color-brand)] text-white' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]')}
             >
               {t('war.tab_grid')}
             </button>
             <button
               onClick={() => setActiveTab('summary')}
-              className={cn('px-3 py-1.5 rounded text-xs font-medium transition-colors',
+              className={cn('px-2.5 sm:px-3 py-1.5 rounded text-xs font-medium transition-colors',
                 activeTab === 'summary' ? 'bg-[var(--color-brand)] text-white' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]')}
             >
               {t('war.tab_ranking')}
@@ -126,19 +125,19 @@ export const WarPage = () => {
           </div>
           {canEdit && (
             <Button size="sm" onClick={() => setShowAddRound(true)}>
-              <Plus className="w-4 h-4" /> {t('war.add_round_btn')}
+              <Plus className="w-4 h-4" /> <span className="hidden sm:inline">{t('war.add_round_btn')}</span>
             </Button>
           )}
         </div>
       </div>
 
       {/* 검색 + 팀 필터 */}
-      <div className="flex items-center gap-3 mb-4 flex-wrap">
-        <div className="relative flex-1 min-w-[200px]">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+        <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" />
           <Input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder={t('war.search_placeholder')} className="pl-9" />
         </div>
-        <div className="flex gap-2 items-center">
+        <div className="flex gap-2 items-center flex-wrap">
           <span className="text-xs text-[var(--color-text-muted)]">{t('war.filter_team')}</span>
           {(['', 'A', 'B'] as const).map(team => (
             <button
@@ -152,8 +151,8 @@ export const WarPage = () => {
               {team === '' ? t('war.team_all') : `Team ${team}`}
             </button>
           ))}
+          <span className="text-xs text-[var(--color-text-muted)] ml-auto sm:ml-0">{memberRows.length}{t('common.count_people')}</span>
         </div>
-        <span className="text-xs text-[var(--color-text-muted)] ml-auto">{memberRows.length}{t('common.count_people')}</span>
       </div>
 
       {activeTab === 'grid' ? (

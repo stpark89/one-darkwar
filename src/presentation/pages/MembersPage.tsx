@@ -81,22 +81,22 @@ export const MembersPage = () => {
   )
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="p-3 sm:p-6">
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
         <div>
-          <h1 className="text-xl font-bold text-[var(--color-text-primary)]">{t('members.title')}</h1>
-          <p className="text-sm text-[var(--color-text-muted)] mt-0.5">
+          <h1 className="text-lg sm:text-xl font-bold text-[var(--color-text-primary)]">{t('members.title')}</h1>
+          <p className="text-xs sm:text-sm text-[var(--color-text-muted)] mt-0.5">
             {t('members.subtitle_count', { count: members.length })}
           </p>
         </div>
         {canEdit && (
           <Button onClick={openAdd} size="sm">
-            <Plus className="w-4 h-4" /> {t('members.add_btn')}
+            <Plus className="w-4 h-4" /> <span className="hidden sm:inline">{t('members.add_btn')}</span>
           </Button>
         )}
       </div>
 
-      <div className="relative mb-4">
+      <div className="relative mb-3 sm:mb-4">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" />
         <Input
           value={searchQuery}
@@ -106,23 +106,23 @@ export const MembersPage = () => {
         />
       </div>
 
-      <div className="rounded-lg border border-[var(--color-border-subtle)] overflow-hidden">
+      <div className="rounded-lg border border-[var(--color-border-subtle)] overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[var(--color-border-subtle)] bg-[var(--color-bg-surface)]">
-              <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--color-text-muted)] whitespace-nowrap w-10">
+              <th className="px-3 sm:px-4 py-3 text-left text-xs font-semibold text-[var(--color-text-muted)] whitespace-nowrap w-8 sm:w-10">
                 {t('members.col_no')}
               </th>
               {th('inGameName', t('members.in_game_name'))}
-              <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--color-text-muted)] whitespace-nowrap">
+              <th className="hidden sm:table-cell px-4 py-3 text-left text-xs font-semibold text-[var(--color-text-muted)] whitespace-nowrap">
                 {t('members.zalo_name')}
               </th>
               {th('cp', t('members.cp'))}
               {th('houseLevel', t('members.house_level'))}
-              <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--color-text-muted)] whitespace-nowrap">
+              <th className="hidden md:table-cell px-4 py-3 text-left text-xs font-semibold text-[var(--color-text-muted)] whitespace-nowrap">
                 {t('members.note')}
               </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--color-text-muted)] whitespace-nowrap">
+              <th className="px-3 sm:px-4 py-3 text-left text-xs font-semibold text-[var(--color-text-muted)] whitespace-nowrap">
                 {t('members.col_actions')}
               </th>
             </tr>
@@ -130,21 +130,21 @@ export const MembersPage = () => {
           <tbody className="divide-y divide-[var(--color-border-subtle)]">
             {members.map((m, i) => (
               <tr key={m.id} className="hover:bg-[var(--color-bg-surface)] transition-colors group">
-                <td className="px-4 py-3 text-[var(--color-text-muted)] text-xs">{i + 1}</td>
-                <td className="px-4 py-3 font-medium text-[var(--color-text-primary)]">{m.inGameName}</td>
-                <td className="px-4 py-3 text-[var(--color-text-secondary)]">{m.zaloName || '-'}</td>
-                <td className="px-4 py-3">
+                <td className="px-3 sm:px-4 py-2.5 sm:py-3 text-[var(--color-text-muted)] text-xs">{i + 1}</td>
+                <td className="px-3 sm:px-4 py-2.5 sm:py-3 font-medium text-[var(--color-text-primary)] whitespace-nowrap">{m.inGameName}</td>
+                <td className="hidden sm:table-cell px-4 py-3 text-[var(--color-text-secondary)]">{m.zaloName || '-'}</td>
+                <td className="px-3 sm:px-4 py-2.5 sm:py-3">
                   {m.cp ? <Badge variant="success">{m.cp}</Badge> : <span className="text-[var(--color-text-muted)]">-</span>}
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-3 sm:px-4 py-2.5 sm:py-3">
                   {m.houseLevel ? <Badge variant="default">{m.houseLevel}</Badge> : <span className="text-[var(--color-text-muted)]">-</span>}
                 </td>
-                <td className="px-4 py-3 text-[var(--color-text-muted)] text-xs max-w-[150px] truncate">
+                <td className="hidden md:table-cell px-4 py-3 text-[var(--color-text-muted)] text-xs max-w-[150px] truncate">
                   {m.note || '-'}
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-3 sm:px-4 py-2.5 sm:py-3">
                   {canEditRow(m) && (
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                       <button onClick={() => openEdit(m)} className="p-1.5 rounded hover:bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:text-[var(--color-brand)]">
                         <Pencil className="w-3.5 h-3.5" />
                       </button>
