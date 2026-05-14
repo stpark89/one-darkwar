@@ -139,7 +139,7 @@ export const EventsPage = () => {
                             'p-1.5 rounded transition-all',
                             e.hidden
                               ? 'text-[var(--color-brand)] bg-[var(--color-brand)]/10 hover:bg-[var(--color-brand)]/20 opacity-100'
-                              : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-elevated)] opacity-30 hover:opacity-100',
+                              : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-elevated)] opacity-60 hover:opacity-100',
                           )}
                           title={e.hidden ? '숨김 해제' : '숨기기'}
                         >
@@ -147,7 +147,7 @@ export const EventsPage = () => {
                         </button>
                         <button
                           onClick={() => setDeleteConfirmId(e.id)}
-                          className="p-1.5 rounded text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 opacity-30 hover:opacity-100 transition-all"
+                          className="p-1.5 rounded text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 opacity-60 hover:opacity-100 transition-all"
                           title="삭제"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
