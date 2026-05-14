@@ -176,6 +176,11 @@ export default {
     purge_title: 'Xóa vĩnh viễn',
     purge_desc: 'Hồ sơ sẽ bị xóa vĩnh viễn. Hành động này không thể hoàn tác.',
     purge_confirm: 'Xóa',
+    tab_roles: 'Phân quyền',
+    no_approved: 'Không có thành viên được duyệt.',
+    promote: 'Thăng quản trị',
+    demote: 'Hạ xuống thành viên',
+    cannot_change_self: 'Không thể thay đổi quyền của chính mình.',
   },
   excel: {
     title: 'Quản lý Excel',

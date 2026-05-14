@@ -176,6 +176,11 @@ export default {
     purge_title: '완전 삭제',
     purge_desc: '해당 계정의 프로필을 완전히 삭제합니다. 이 작업은 되돌릴 수 없습니다.',
     purge_confirm: '삭제',
+    tab_roles: '권한 관리',
+    no_approved: '승인된 회원이 없습니다.',
+    promote: '관리자로 승격',
+    demote: '권한 해제',
+    cannot_change_self: '본인의 권한은 변경할 수 없습니다.',
   },
   excel: {
     title: '엑셀 관리',

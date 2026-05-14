@@ -176,6 +176,11 @@ export default {
     purge_title: '永久刪除',
     purge_desc: '將永久刪除該帳號的個人資料，此操作無法還原。',
     purge_confirm: '刪除',
+    tab_roles: '權限管理',
+    no_approved: '沒有已審核的成員。',
+    promote: '升為管理員',
+    demote: '移除管理員',
+    cannot_change_self: '無法更改自己的權限。',
   },
   excel: {
     title: 'Excel 管理',

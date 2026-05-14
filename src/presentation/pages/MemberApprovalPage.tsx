@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
-import { Loader2, Check, X, Clock, UserCheck, UserX, RotateCcw, Trash2 } from 'lucide-react'
+import { Loader2, Check, X, Clock, UserCheck, UserX, RotateCcw, Trash2, ShieldCheck, ShieldOff, Shield } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { useApprovalStore } from '@/infrastructure/stores/approvalStore'
 
-type Tab = 'pending' | 'rejected'
+type Tab = 'pending' | 'rejected' | 'roles'
 
 export const MemberApprovalPage = () => {
   const { t } = useTranslation()
@@ -13,15 +13,18 @@ export const MemberApprovalPage = () => {
   const {
     pendingUsers, loading, loadPending, approveUser, rejectUser,
     rejectedUsers, rejectedLoading, loadRejected, restoreUser, purgeUser,
+    approvedUsers, approvedLoading, loadApproved, changeRole,
   } = useApprovalStore()
 
   const [tab, setTab] = useState<Tab>('pending')
   const [processingId, setProcessingId] = useState<string | null>(null)
   const [confirmId, setConfirmId] = useState<string | null>(null)
   const [confirmType, setConfirmType] = useState<'reject' | 'purge' | null>(null)
+  const [roleChangingId, setRoleChangingId] = useState<string | null>(null)
 
   useEffect(() => { loadPending() }, [loadPending])
   useEffect(() => { loadRejected() }, [loadRejected])
+  useEffect(() => { loadApproved() }, [loadApproved])
 
   if (user?.role !== 'ROLE_ADMIN') return <Navigate to="/members" replace />
 
@@ -61,6 +64,14 @@ export const MemberApprovalPage = () => {
   const closeConfirm = () => {
     setConfirmId(null)
     setConfirmType(null)
+  }
+
+  const handleRoleChange = async (userId: string, currentRole: 'ROLE_ADMIN' | 'ROLE_USER') => {
+    if (userId === user?.id) return
+    const next = currentRole === 'ROLE_ADMIN' ? 'ROLE_USER' : 'ROLE_ADMIN'
+    setRoleChangingId(userId)
+    await changeRole(userId, next)
+    setRoleChangingId(null)
   }
 
   const confirmTarget =
@@ -110,6 +121,17 @@ export const MemberApprovalPage = () => {
               {rejectedUsers.length}
             </span>
           )}
+        </button>
+        <button
+          onClick={() => setTab('roles')}
+          className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+            tab === 'roles'
+              ? 'bg-[var(--color-bg-surface)] text-[var(--color-text-primary)] shadow-sm'
+              : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'
+          }`}
+        >
+          <Shield className="w-3.5 h-3.5" />
+          {t('approval.tab_roles')}
         </button>
       </div>
 
@@ -211,6 +233,72 @@ export const MemberApprovalPage = () => {
                 </div>
               </div>
             ))}
+          </div>
+        )
+      )}
+
+      {/* 권한 관리 탭 */}
+      {tab === 'roles' && (
+        approvedLoading ? (
+          <div className="flex items-center justify-center h-48 text-[var(--color-text-muted)]">
+            <Loader2 className="w-5 h-5 animate-spin mr-2" /> {t('common.loading')}
+          </div>
+        ) : approvedUsers.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-48 gap-3 text-[var(--color-text-muted)]">
+            <UserCheck className="w-10 h-10 opacity-30" />
+            <p className="text-sm">{t('approval.no_approved')}</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {approvedUsers.map((u) => {
+              const isSelf = u.id === user?.id
+              const isAdmin = u.role === 'ROLE_ADMIN'
+              return (
+                <div
+                  key={u.id}
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[var(--color-bg-surface)] border border-[var(--color-border-subtle)]"
+                >
+                  <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${isAdmin ? 'bg-[var(--color-brand)]/15' : 'bg-[var(--color-bg-elevated)]'}`}>
+                    <Shield className={`w-4 h-4 ${isAdmin ? 'text-[var(--color-brand)]' : 'text-[var(--color-text-muted)]'}`} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-semibold text-[var(--color-text-primary)] truncate">{u.inGameName}</p>
+                      {isSelf && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)]">
+                          {t('chat.me')}
+                        </span>
+                      )}
+                    </div>
+                    <p className={`text-[11px] font-medium ${isAdmin ? 'text-[var(--color-brand)]' : 'text-[var(--color-text-muted)]'}`}>
+                      {isAdmin ? t('auth.role_admin') : t('auth.role_user')}
+                    </p>
+                  </div>
+                  {!isSelf && (
+                    <button
+                      onClick={() => handleRoleChange(u.id, u.role)}
+                      disabled={roleChangingId === u.id}
+                      title={isAdmin ? t('approval.demote') : t('approval.promote')}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 ${
+                        isAdmin
+                          ? 'bg-[var(--color-danger)]/10 text-[var(--color-danger)] hover:bg-[var(--color-danger)]/20'
+                          : 'bg-[var(--color-brand)]/10 text-[var(--color-brand)] hover:bg-[var(--color-brand)]/20'
+                      }`}
+                    >
+                      {roleChangingId === u.id
+                        ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        : isAdmin
+                          ? <ShieldOff className="w-3.5 h-3.5" />
+                          : <ShieldCheck className="w-3.5 h-3.5" />
+                      }
+                      <span className="hidden sm:inline">
+                        {isAdmin ? t('approval.demote') : t('approval.promote')}
+                      </span>
+                    </button>
+                  )}
+                </div>
+              )
+            })}
           </div>
         )
       )}

@@ -176,6 +176,11 @@ export default {
     purge_title: 'Permanent Delete',
     purge_desc: 'This will permanently delete the profile. This action cannot be undone.',
     purge_confirm: 'Delete',
+    tab_roles: 'Roles',
+    no_approved: 'No approved members.',
+    promote: 'Make Admin',
+    demote: 'Remove Admin',
+    cannot_change_self: 'You cannot change your own role.',
   },
   excel: {
     title: 'Excel',

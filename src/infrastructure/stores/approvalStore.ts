@@ -7,18 +7,29 @@ export interface PendingUser {
   createdAt: string
 }
 
+export interface ApprovedUser {
+  id: string
+  inGameName: string
+  role: 'ROLE_ADMIN' | 'ROLE_USER'
+  createdAt: string
+}
+
 interface ApprovalStore {
   pendingUsers: PendingUser[]
   pendingCount: number
   loading: boolean
   rejectedUsers: PendingUser[]
   rejectedLoading: boolean
+  approvedUsers: ApprovedUser[]
+  approvedLoading: boolean
   loadPending: () => Promise<void>
   loadRejected: () => Promise<void>
+  loadApproved: () => Promise<void>
   approveUser: (userId: string) => Promise<void>
   rejectUser: (userId: string) => Promise<void>
   restoreUser: (userId: string) => Promise<void>
   purgeUser: (userId: string) => Promise<void>
+  changeRole: (userId: string, role: 'ROLE_ADMIN' | 'ROLE_USER') => Promise<void>
 }
 
 export const useApprovalStore = create<ApprovalStore>((set, get) => ({
@@ -27,6 +38,8 @@ export const useApprovalStore = create<ApprovalStore>((set, get) => ({
   loading: false,
   rejectedUsers: [],
   rejectedLoading: false,
+  approvedUsers: [],
+  approvedLoading: false,
 
   loadPending: async () => {
     set({ loading: true })
@@ -112,5 +125,31 @@ export const useApprovalStore = create<ApprovalStore>((set, get) => ({
     await supabase.from('profiles').delete().eq('id', userId)
     const users = get().rejectedUsers.filter((u) => u.id !== userId)
     set({ rejectedUsers: users })
+  },
+
+  loadApproved: async () => {
+    set({ approvedLoading: true })
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, in_game_name, role, created_at')
+      .eq('status', 'APPROVED')
+      .order('role', { ascending: false })
+    if (error) console.error('[approvalStore] loadApproved error:', error)
+    const users: ApprovedUser[] = (data ?? []).map((r) => ({
+      id: r.id,
+      inGameName: r.in_game_name,
+      role: r.role as 'ROLE_ADMIN' | 'ROLE_USER',
+      createdAt: r.created_at,
+    }))
+    set({ approvedUsers: users, approvedLoading: false })
+  },
+
+  changeRole: async (userId, role) => {
+    await supabase.from('profiles').update({ role }).eq('id', userId)
+    set((s) => ({
+      approvedUsers: s.approvedUsers.map((u) =>
+        u.id === userId ? { ...u, role } : u,
+      ),
+    }))
   },
 }))
