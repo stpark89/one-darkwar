@@ -27,6 +27,7 @@ export const MembersPage = () => {
   const { getFiltered, searchQuery, setSearchQuery, addMember, updateMember, deleteMember, loadMembers, loading } = useMemberStore()
   const { user } = useAuthStore()
   const canEdit = user?.role === 'ROLE_ADMIN'
+  const canEditRow = (m: Member) => canEdit || m.inGameName === user?.inGameName
   const base = getFiltered()
 
   const [form, setForm] = useState<Partial<Member> | null>(null)
@@ -142,14 +143,16 @@ export const MembersPage = () => {
                   {m.note || '-'}
                 </td>
                 <td className="px-4 py-3">
-                  {canEdit && (
+                  {canEditRow(m) && (
                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button onClick={() => openEdit(m)} className="p-1.5 rounded hover:bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:text-[var(--color-brand)]">
                         <Pencil className="w-3.5 h-3.5" />
                       </button>
-                      <button onClick={() => deleteMember(m.id)} className="p-1.5 rounded hover:bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:text-[var(--color-danger)]">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                      {canEdit && (
+                        <button onClick={() => deleteMember(m.id)} className="p-1.5 rounded hover:bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:text-[var(--color-danger)]">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </div>
                   )}
                 </td>
@@ -177,16 +180,22 @@ export const MembersPage = () => {
                 { key: 'cp', label: t('members.cp'), placeholder: t('members.cp_placeholder') },
                 { key: 'houseLevel', label: t('members.house_level'), placeholder: t('members.level_placeholder') },
                 { key: 'note', label: t('members.note'), placeholder: t('members.note_placeholder') },
-              ].map(({ key, label, placeholder }) => (
-                <div key={key}>
-                  <label className="text-xs text-[var(--color-text-muted)] mb-1 block">{label}</label>
-                  <Input
-                    value={(form as Record<string, string>)[key] ?? ''}
-                    onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
-                    placeholder={placeholder}
-                  />
-                </div>
-              ))}
+              ].map(({ key, label, placeholder }) => {
+                const isNameField = key === 'inGameName'
+                const disabled = isNameField && !canEdit
+                return (
+                  <div key={key}>
+                    <label className="text-xs text-[var(--color-text-muted)] mb-1 block">{label}</label>
+                    <Input
+                      value={(form as Record<string, string>)[key] ?? ''}
+                      onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
+                      placeholder={placeholder}
+                      disabled={disabled}
+                      className={disabled ? 'opacity-50 cursor-not-allowed' : ''}
+                    />
+                  </div>
+                )
+              })}
             </div>
             <div className="flex gap-2 mt-5">
               <Button variant="outline" size="full" onClick={closeForm}>{t('common.cancel')}</Button>
