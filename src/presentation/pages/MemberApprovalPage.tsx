@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom'
 import { Loader2, Check, X, Clock, UserCheck } from 'lucide-react'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { useApprovalStore } from '@/infrastructure/stores/approvalStore'
-import { cn } from '@/lib/utils'
+
 
 export const MemberApprovalPage = () => {
   const { user } = useAuthStore()
