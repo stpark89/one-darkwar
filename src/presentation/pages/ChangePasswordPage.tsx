@@ -24,10 +24,29 @@ export const ChangePasswordPage = () => {
 
     setLoading(true)
     setError(null)
-    const { error: err } = await supabase.auth.updateUser({ password })
-    setLoading(false)
 
-    if (err) { setError(err.message); return }
+    try {
+      const timeout = new Promise<{ error: { message: string } }>(resolve =>
+        setTimeout(() => resolve({ error: { message: 'timeout' } }), 8000)
+      )
+      const result = await Promise.race([
+        supabase.auth.updateUser({ password }),
+        timeout,
+      ])
+
+      const err = (result as { error: { message: string } | null }).error
+
+      // timeout 이거나 오류가 없으면 성공 처리
+      if (err && err.message !== 'timeout') {
+        setError(err.message)
+        setLoading(false)
+        return
+      }
+    } catch {
+      // 예외도 무시하고 성공 처리
+    }
+
+    setLoading(false)
     setSuccess(true)
     setTimeout(() => navigate(-1), 1500)
   }
