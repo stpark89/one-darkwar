@@ -6,14 +6,24 @@ import { WarPage } from '@/presentation/pages/WarPage'
 import { EventsPage } from '@/presentation/pages/EventsPage'
 import { ExcelPage } from '@/presentation/pages/ExcelPage'
 import { ContributionPage } from '@/presentation/pages/ContributionPage'
+import { OnlineUsersPage } from '@/presentation/pages/OnlineUsersPage'
 import { SignInPage } from '@/presentation/pages/SignInPage'
 import { SignUpPage } from '@/presentation/pages/SignUpPage'
 import { ChangePasswordPage } from '@/presentation/pages/ChangePasswordPage'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 
+const HEARTBEAT_MS = 2 * 60 * 1000 // 2분마다 갱신
+
 function App() {
-  const { loadSession } = useAuthStore()
+  const { loadSession, updateLastSeen } = useAuthStore()
+
   useEffect(() => { loadSession() }, [loadSession])
+
+  useEffect(() => {
+    updateLastSeen()
+    const id = setInterval(updateLastSeen, HEARTBEAT_MS)
+    return () => clearInterval(id)
+  }, [updateLastSeen])
 
   return (
     <BrowserRouter>
@@ -27,6 +37,7 @@ function App() {
           <Route path="/events" element={<EventsPage />} />
           <Route path="/contribution" element={<ContributionPage />} />
           <Route path="/excel" element={<ExcelPage />} />
+          <Route path="/online" element={<OnlineUsersPage />} />
           <Route path="/change-password" element={<ChangePasswordPage />} />
         </Route>
       </Routes>

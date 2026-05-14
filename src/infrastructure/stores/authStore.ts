@@ -16,6 +16,7 @@ interface AuthStore {
   signIn: (inGameName: string, password: string) => Promise<string | null>
   signUp: (inGameName: string, password: string) => Promise<string | null>
   signOut: () => Promise<void>
+  updateLastSeen: () => Promise<void>
 }
 
 // 인게임명 → Supabase email 변환 (내부용)
@@ -97,5 +98,14 @@ export const useAuthStore = create<AuthStore>((set) => ({
   signOut: async () => {
     await supabase.auth.signOut()
     set({ user: null })
+  },
+
+  updateLastSeen: async () => {
+    const { user } = useAuthStore.getState()
+    if (!user) return
+    await supabase
+      .from('profiles')
+      .update({ last_seen_at: new Date().toISOString() })
+      .eq('id', user.id)
   },
 }))
