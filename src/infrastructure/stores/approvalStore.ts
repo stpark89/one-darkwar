@@ -81,9 +81,11 @@ export const useApprovalStore = create<ApprovalStore>((set, get) => ({
   },
 
   rejectUser: async (userId) => {
+    const target = get().pendingUsers.find((u) => u.id === userId)
     await supabase.from('profiles').update({ status: 'REJECTED' }).eq('id', userId)
-    const users = get().pendingUsers.filter((u) => u.id !== userId)
-    set({ pendingUsers: users, pendingCount: users.length })
+    const pending = get().pendingUsers.filter((u) => u.id !== userId)
+    const rejected = target ? [target, ...get().rejectedUsers] : get().rejectedUsers
+    set({ pendingUsers: pending, pendingCount: pending.length, rejectedUsers: rejected })
   },
 
   restoreUser: async (userId) => {
