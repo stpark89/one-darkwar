@@ -40,7 +40,7 @@ export const Layout = () => {
   if (!user) return <Navigate to="/sign-in" replace />
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen overflow-x-hidden">
       {mobileOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-30 md:hidden"
