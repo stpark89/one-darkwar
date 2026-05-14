@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { Swords, Eye, EyeOff, Loader2, UserX } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { useAuthStore } from '@/infrastructure/stores/authStore'
+import { useAuthStore, PENDING_APPROVAL_ERROR } from '@/infrastructure/stores/authStore'
 import { Input } from '@/presentation/components/ui/input'
 import { Button } from '@/presentation/components/ui/button'
 import { LangSelector } from '@/presentation/components/ui/lang-selector'
@@ -30,7 +30,10 @@ export const SignInPage = () => {
     setError(null)
     const err = await signIn(name, password)
     setLoading(false)
-    if (err) { setError(t('auth.sign_in_error')); return }
+    if (err) {
+      setError(err === PENDING_APPROVAL_ERROR ? t('auth.pending_login_error') : t('auth.sign_in_error'))
+      return
+    }
     navigate('/members', { replace: true })
   }
 

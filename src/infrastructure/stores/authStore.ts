@@ -25,13 +25,17 @@ interface AuthStore {
 const toEmail = (name: string) =>
   `${encodeURIComponent(name.trim().toLowerCase())}@onedarkwar.app`
 
+// 승인 대기 사용자임을 알리는 특수 에러 코드
+export const PENDING_APPROVAL_ERROR = 'PENDING_APPROVAL'
+
 async function fetchProfile(userId: string): Promise<AuthUser | null> {
   const { data } = await supabase
     .from('profiles')
-    .select('id, in_game_name, role')
+    .select('id, in_game_name, role, status')
     .eq('id', userId)
     .single()
   if (!data) return null
+  if (data.status === 'PENDING') return null  // 미승인 → 로그인 불가
   return { id: data.id, inGameName: data.in_game_name, role: data.role as UserRole }
 }
 
@@ -68,8 +72,17 @@ export const useAuthStore = create<AuthStore>((set) => ({
     })
     if (error) return error.message
     if (data.user) {
-      const profile = await fetchProfile(data.user.id)
-      set({ user: profile })
+      // status 직접 조회하여 PENDING 판별
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id, in_game_name, role, status')
+        .eq('id', data.user.id)
+        .single()
+      if (profile?.status === 'PENDING') {
+        await supabase.auth.signOut()
+        return PENDING_APPROVAL_ERROR
+      }
+      set({ user: profile ? { id: profile.id, inGameName: profile.in_game_name, role: profile.role as UserRole } : null })
     }
     return null
   },
@@ -85,16 +98,17 @@ export const useAuthStore = create<AuthStore>((set) => ({
     if (error) return error.message
     if (!data.user) return '회원가입에 실패했습니다.'
 
-    // 프로필 생성
+    // 프로필 생성 (status: PENDING — 관리자 승인 필요)
     const { error: profileError } = await supabase.from('profiles').insert({
       id: data.user.id,
       in_game_name: trimmed,
       role: 'ROLE_USER',
+      status: 'PENDING',
     })
     if (profileError) return profileError.message
 
-    const profile: AuthUser = { id: data.user.id, inGameName: trimmed, role: 'ROLE_USER' }
-    set({ user: profile })
+    // 가입 후 즉시 로그아웃 (승인 전 접근 차단)
+    await supabase.auth.signOut()
     return null
   },
 

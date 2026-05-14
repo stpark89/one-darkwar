@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { Users, Swords, CalendarDays, FileSpreadsheet, BarChart3, ChevronUp, ChevronLeft, ChevronRight, X, LogOut, ShieldCheck, User, KeyRound, UserX } from 'lucide-react'
+import { Users, Swords, CalendarDays, FileSpreadsheet, BarChart3, ChevronUp, ChevronLeft, ChevronRight, X, LogOut, ShieldCheck, User, KeyRound, UserX, UserCheck } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { LANGUAGES, type LangCode } from '@/i18n'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
+import { useApprovalStore } from '@/infrastructure/stores/approvalStore'
 import { cn } from '@/lib/utils'
 
 interface SidebarProps {
@@ -16,8 +17,13 @@ interface SidebarProps {
 export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile }: SidebarProps) => {
   const { t, i18n } = useTranslation()
   const { user, signOut, isGuest } = useAuthStore()
+  const { pendingCount, loadPending } = useApprovalStore()
   const navigate = useNavigate()
   const [langOpen, setLangOpen] = useState(false)
+
+  useEffect(() => {
+    if (user?.role === 'ROLE_ADMIN') loadPending()
+  }, [user, loadPending])
 
   const handleSignOut = async () => {
     await signOut()
@@ -26,12 +32,16 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
 
   const currentLang = LANGUAGES.find((l) => l.code === i18n.language) ?? LANGUAGES[0]
 
-  const NAV = [
+  const NAV_GENERAL = [
     { to: '/members', icon: Users, label: t('nav.members') },
     { to: '/war', icon: Swords, label: t('nav.war') },
     { to: '/events', icon: CalendarDays, label: t('nav.events') },
-    ...(user?.role === 'ROLE_ADMIN' ? [{ to: '/contribution', icon: BarChart3, label: t('nav.contribution') }] : []),
     { to: '/excel', icon: FileSpreadsheet, label: t('nav.excel') },
+  ]
+
+  const NAV_ADMIN = [
+    { to: '/contribution', icon: BarChart3, label: t('nav.contribution'), badge: 0 },
+    { to: '/approval', icon: UserCheck, label: '회원 승인', badge: pendingCount },
   ]
 
   return (
@@ -63,7 +73,8 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
 
       {/* 네비게이션 */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        {NAV.map(({ to, icon: Icon, label }) => (
+        {/* 일반 메뉴 */}
+        {NAV_GENERAL.map(({ to, icon: Icon, label }) => (
           <NavLink
             key={to}
             to={to}
@@ -83,6 +94,48 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
             <span className={cn(collapsed && 'md:hidden')}>{label}</span>
           </NavLink>
         ))}
+
+        {/* 관리자 전용 섹션 */}
+        {user?.role === 'ROLE_ADMIN' && (
+          <>
+            <div className={cn('pt-3 pb-1', collapsed && 'md:hidden')}>
+              <p className="px-3 text-[10px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">관리자</p>
+            </div>
+            {!collapsed && <div className="mx-3 border-t border-[var(--color-border-subtle)] md:block hidden" />}
+            {NAV_ADMIN.map(({ to, icon: Icon, label, badge }) => (
+              <NavLink
+                key={to}
+                to={to}
+                title={collapsed ? label : undefined}
+                onClick={onCloseMobile}
+                className={({ isActive }) =>
+                  cn(
+                    'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all',
+                    collapsed && 'md:justify-center md:px-0',
+                    isActive
+                      ? 'bg-[var(--color-brand)]/15 text-[var(--color-brand)] font-semibold'
+                      : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-elevated)] hover:text-[var(--color-text-primary)]',
+                  )
+                }
+              >
+                <div className="relative flex-shrink-0">
+                  <Icon className="w-4 h-4" />
+                  {badge > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-[var(--color-danger)] text-white text-[9px] font-bold flex items-center justify-center">
+                      {badge > 9 ? '9+' : badge}
+                    </span>
+                  )}
+                </div>
+                <span className={cn('flex-1', collapsed && 'md:hidden')}>{label}</span>
+                {badge > 0 && !collapsed && (
+                  <span className="md:flex hidden items-center justify-center px-1.5 py-0.5 rounded-full bg-[var(--color-danger)] text-white text-[10px] font-bold min-w-[18px]">
+                    {badge > 9 ? '9+' : badge}
+                  </span>
+                )}
+              </NavLink>
+            ))}
+          </>
+        )}
       </nav>
 
       {/* 언어 선택 */}

@@ -109,6 +109,9 @@ export default {
     change_password_btn: '儲存密碼',
     change_password_success: '密碼已成功變更。',
     guest_login: '以訪客身份進入',
+    pending_title: '申請已提交',
+    pending_desc: '管理員審核通過後即可登入，請稍候。',
+    pending_login_error: '帳號待審核中，請聯繫管理員。',
   },
   contribution: {
     title: '貢獻度',

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { Swords, Eye, EyeOff, Loader2 } from 'lucide-react'
+import { Swords, Eye, EyeOff, Loader2, Clock } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { Input } from '@/presentation/components/ui/input'
@@ -18,6 +18,7 @@ export const SignUpPage = () => {
   const [showPw, setShowPw] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [pending, setPending] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -29,7 +30,7 @@ export const SignUpPage = () => {
     const err = await signUp(name, password)
     setLoading(false)
     if (err) { setError(err); return }
-    navigate('/members', { replace: true })
+    setPending(true)
   }
 
   return (
@@ -38,8 +39,25 @@ export const SignUpPage = () => {
         <LangSelector />
       </div>
       <div className="w-full max-w-sm">
-        {/* 로고 */}
-        <div className="flex flex-col items-center mb-8">
+        {/* 승인 대기 화면 */}
+        {pending && (
+          <div className="bg-[var(--color-bg-surface)] rounded-2xl border border-[var(--color-border-subtle)] p-8 text-center">
+            <div className="w-14 h-14 rounded-full bg-[var(--color-brand)]/15 flex items-center justify-center mx-auto mb-4">
+              <Clock className="w-7 h-7 text-[var(--color-brand)]" />
+            </div>
+            <h2 className="text-lg font-bold text-[var(--color-text-primary)] mb-2">{t('auth.pending_title')}</h2>
+            <p className="text-sm text-[var(--color-text-muted)] leading-relaxed mb-6">{t('auth.pending_desc')}</p>
+            <Link
+              to="/sign-in"
+              className="inline-block px-6 py-2.5 rounded-xl bg-[var(--color-brand)] text-white text-sm font-semibold hover:opacity-90 transition-opacity"
+            >
+              {t('auth.sign_in_link')}
+            </Link>
+          </div>
+        )}
+
+        {/* 로고 + 폼 */}
+        {!pending && <div className="flex flex-col items-center mb-8">
           <div className="w-14 h-14 rounded-2xl bg-[var(--color-brand)] flex items-center justify-center mb-3 shadow-lg shadow-[var(--color-brand)]/30">
             <Swords className="w-7 h-7 text-white" />
           </div>
@@ -103,6 +121,7 @@ export const SignUpPage = () => {
           {t('auth.have_account')}{' '}
           <Link to="/sign-in" className="text-[var(--color-brand)] hover:underline font-medium">{t('auth.sign_in_link')}</Link>
         </p>
+        </div>}
       </div>
     </div>
   )

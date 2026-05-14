@@ -109,6 +109,9 @@ export default {
     change_password_btn: 'Save Password',
     change_password_success: 'Password changed successfully.',
     guest_login: 'Enter as Guest',
+    pending_title: 'Application Submitted',
+    pending_desc: 'You can log in once an admin approves your account. Please wait a moment.',
+    pending_login_error: 'Your account is pending approval. Please contact an admin.',
   },
   contribution: {
     title: 'Contribution',

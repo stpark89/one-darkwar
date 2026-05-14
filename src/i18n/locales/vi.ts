@@ -109,6 +109,9 @@ export default {
     change_password_btn: 'Lưu mật khẩu',
     change_password_success: 'Đổi mật khẩu thành công.',
     guest_login: 'Vào với tư cách Khách',
+    pending_title: 'Đã gửi đơn đăng ký',
+    pending_desc: 'Bạn có thể đăng nhập sau khi quản trị viên phê duyệt tài khoản.',
+    pending_login_error: 'Tài khoản đang chờ phê duyệt. Vui lòng liên hệ quản trị viên.',
   },
   contribution: {
     title: 'Đóng góp',

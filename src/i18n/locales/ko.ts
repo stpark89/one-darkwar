@@ -109,6 +109,9 @@ export default {
     change_password_btn: '변경 저장',
     change_password_success: '비밀번호가 성공적으로 변경되었습니다.',
     guest_login: '게스트로 입장하기',
+    pending_title: '가입 신청 완료',
+    pending_desc: '관리자가 승인하면 로그인할 수 있습니다. 승인까지 잠시 기다려 주세요.',
+    pending_login_error: '승인 대기 중입니다. 관리자에게 문의하세요.',
   },
   contribution: {
     title: '기여도 현황',
