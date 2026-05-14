@@ -11,4 +11,5 @@ export interface EventSession {
   eventKey: string   // 고유 키 (날짜+이름)
   date: string
   name: string       // 예: "OASIS 3"
+  hidden: boolean
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Search, Plus, X, Loader2, Trash2 } from 'lucide-react'
+import { Search, Plus, X, Loader2, Trash2, EyeOff, Eye } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useEventStore } from '@/infrastructure/stores/eventStore'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils'
 
 export const EventsPage = () => {
   const { t } = useTranslation()
-  const { events, addEvent, deleteEvent, updateStatus, getFiltered, searchQuery, setSearchQuery, getSummary, loadData, loading } = useEventStore()
+  const { events, addEvent, deleteEvent, toggleHidden, toggleShowHidden, showHidden, updateStatus, getFiltered, searchQuery, setSearchQuery, getSummary, loadData, loading } = useEventStore()
   const { user } = useAuthStore()
   const canEdit = user?.role === 'ROLE_ADMIN'
   const baseAttendance = getFiltered()
@@ -34,8 +34,13 @@ export const EventsPage = () => {
     const cmp = sortKey === 'inGameName' ? a.inGameName.localeCompare(b.inGameName) : totalA - totalB
     return sortDir === 'asc' ? cmp : -cmp
   })
+  const hiddenCount = events.filter(e => e.hidden).length
+  // 최신순(역순) + 숨김 필터
+  const visibleEvents = [...events].reverse().filter(e => showHidden || !e.hidden)
+
   const [showAddEvent, setShowAddEvent] = useState(false)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
+  const [hideConfirmId, setHideConfirmId] = useState<string | null>(null)
   const [newEventName, setNewEventName] = useState('')
   const [newEventDate, setNewEventDate] = useState(() => new Date().toISOString().slice(0, 10))
 
@@ -66,7 +71,7 @@ export const EventsPage = () => {
         <div>
           <h1 className="text-lg sm:text-xl font-bold text-[var(--color-text-primary)]">{t('events.title')}</h1>
           <p className="text-xs sm:text-sm text-[var(--color-text-muted)] mt-0.5">
-            {t('events.subtitle', { events: events.length, members: attendance.length })}
+            {t('events.subtitle', { events: visibleEvents.length, members: attendance.length })}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -84,6 +89,12 @@ export const EventsPage = () => {
               {t('events.tab_ranking')}
             </button>
           </div>
+          {canEdit && hiddenCount > 0 && (
+            <Button size="sm" variant="outline" onClick={toggleShowHidden}>
+              {showHidden ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+              <span className="hidden sm:inline">{showHidden ? '숨김 해제' : `숨긴 이벤트 ${hiddenCount}개`}</span>
+            </Button>
+          )}
           {canEdit && (
             <Button size="sm" onClick={() => setShowAddEvent(true)}>
               <Plus className="w-4 h-4" /> <span className="hidden sm:inline">{t('events.add_event_btn')}</span>
@@ -114,18 +125,28 @@ export const EventsPage = () => {
                 >
                   {t('events.col_attended')}<SortIcon dir={sortKey === 'total' ? sortDir : null} />
                 </th>
-                {events.map((e) => (
-                  <th key={e.eventKey} className="px-2 py-3 text-center text-[var(--color-text-muted)] whitespace-nowrap min-w-[64px] group">
+                {visibleEvents.map((e) => (
+                  <th key={e.eventKey} className={cn('px-2 py-3 text-center text-[var(--color-text-muted)] whitespace-nowrap min-w-[64px] group', e.hidden && 'opacity-40')}>
                     <div className="text-[10px] font-normal">{e.date?.slice(5) ?? ''}</div>
                     <div className="font-semibold flex items-center justify-center gap-1">
                       {e.name.length > 8 ? e.name.slice(0, 8) + '…' : e.name}
                       {canEdit && (
-                        <button
-                          onClick={() => setDeleteConfirmId(e.id)}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity text-[var(--color-danger)] hover:text-red-400"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5">
+                          <button
+                            onClick={() => setHideConfirmId(e.id)}
+                            className={cn('transition-colors', e.hidden ? 'text-[var(--color-brand)]' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]')}
+                            title={e.hidden ? '숨김 해제' : '숨기기'}
+                          >
+                            {e.hidden ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                          </button>
+                          <button
+                            onClick={() => setDeleteConfirmId(e.id)}
+                            className="text-[var(--color-danger)] hover:text-red-400 transition-colors"
+                            title="삭제"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
                       )}
                     </div>
                   </th>
@@ -143,7 +164,7 @@ export const EventsPage = () => {
                     <td className="px-3 py-2.5 text-center">
                       <span className="text-[var(--color-success)] font-bold">{total}</span>
                     </td>
-                    {events.map((e) => {
+                    {visibleEvents.map((e) => {
                       const status = a.records[e.eventKey] ?? ''
                       return (
                         <td
@@ -211,6 +232,43 @@ export const EventsPage = () => {
                   className="flex-1 px-4 py-2 rounded-lg bg-[var(--color-danger)] text-white text-sm font-medium hover:bg-red-700 transition-colors"
                 >
                   {t('common.delete')}
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
+
+      {hideConfirmId && (() => {
+        const event = events.find(e => e.id === hideConfirmId)
+        const isHidden = event?.hidden ?? false
+        return (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+            <div className="bg-[var(--color-bg-surface)] rounded-xl border border-[var(--color-border)] w-full max-w-sm p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-[var(--color-brand)]/15 flex items-center justify-center flex-shrink-0">
+                  {isHidden ? <Eye className="w-5 h-5 text-[var(--color-brand)]" /> : <EyeOff className="w-5 h-5 text-[var(--color-brand)]" />}
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-[var(--color-text-primary)]">{isHidden ? '이벤트 숨김 해제' : '이벤트 숨기기'}</h2>
+                  <p className="text-sm text-[var(--color-text-muted)] mt-0.5">{event?.name}{event?.date ? ` · ${event.date}` : ''}</p>
+                </div>
+              </div>
+              <p className="text-sm text-[var(--color-text-secondary)] mb-5">
+                {isHidden ? '이 이벤트를 다시 그리드에 표시합니다.' : '이 이벤트를 그리드에서 숨깁니다. 데이터는 보존되며 언제든 복원할 수 있습니다.'}
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setHideConfirmId(null)}
+                  className="flex-1 px-4 py-2 rounded-lg border border-[var(--color-border)] text-sm font-medium text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-elevated)] transition-colors"
+                >
+                  {t('common.cancel')}
+                </button>
+                <button
+                  onClick={async () => { await toggleHidden(hideConfirmId); setHideConfirmId(null) }}
+                  className="flex-1 px-4 py-2 rounded-lg bg-[var(--color-brand)] text-white text-sm font-medium hover:opacity-90 transition-opacity"
+                >
+                  {isHidden ? '숨김 해제' : '숨기기'}
                 </button>
               </div>
             </div>

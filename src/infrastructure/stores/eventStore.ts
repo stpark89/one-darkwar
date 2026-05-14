@@ -7,10 +7,13 @@ interface EventStore {
   attendance: EventAttendance[]
   loading: boolean
   searchQuery: string
+  showHidden: boolean
 
   loadData: () => Promise<void>
   addEvent: (name: string, date: string) => Promise<void>
   deleteEvent: (eventId: string) => Promise<void>
+  toggleHidden: (eventId: string) => Promise<void>
+  toggleShowHidden: () => void
   updateStatus: (memberId: string, eventKey: string, status: AttendanceStatus) => Promise<void>
   syncMemberName: (memberId: string, newName: string) => void
   setSearchQuery: (q: string) => void
@@ -23,6 +26,7 @@ export const useEventStore = create<EventStore>((set, get) => ({
   attendance: [],
   loading: false,
   searchQuery: '',
+  showHidden: false,
 
   loadData: async () => {
     set({ loading: true })
@@ -38,6 +42,7 @@ export const useEventStore = create<EventStore>((set, get) => ({
       eventKey: r.id,
       name: r.name,
       date: r.event_date ?? '',
+      hidden: r.hidden ?? false,
     }))
 
     const attendance: EventAttendance[] = (memberRows ?? []).map((m) => ({
@@ -62,7 +67,7 @@ export const useEventStore = create<EventStore>((set, get) => ({
       .single()
     if (!data) return
 
-    const newEvent: EventSession = { id: data.id, eventKey: data.id, name, date: date ?? '' }
+    const newEvent: EventSession = { id: data.id, eventKey: data.id, name, date: date ?? '', hidden: false }
     set((s) => ({
       events: [...s.events, newEvent],
       attendance: s.attendance.map((a) => ({
@@ -84,6 +89,16 @@ export const useEventStore = create<EventStore>((set, get) => ({
       }),
     }))
   },
+
+  toggleHidden: async (eventId) => {
+    const event = get().events.find(e => e.id === eventId)
+    if (!event) return
+    const hidden = !event.hidden
+    await supabase.from('events').update({ hidden }).eq('id', eventId)
+    set(s => ({ events: s.events.map(e => e.id === eventId ? { ...e, hidden } : e) }))
+  },
+
+  toggleShowHidden: () => set(s => ({ showHidden: !s.showHidden })),
 
   updateStatus: async (memberId, eventKey, status) => {
     // 낙관적 업데이트 (즉시 UI 반영)
