@@ -130,25 +130,30 @@ export const EventsPage = () => {
                     <div className="font-semibold flex items-center justify-center gap-0.5 sm:gap-1">
                       <span className="sm:hidden">{e.name.length > 4 ? e.name.slice(0, 4) + '…' : e.name}</span>
                       <span className="hidden sm:inline">{e.name.length > 8 ? e.name.slice(0, 8) + '…' : e.name}</span>
-                      {canEdit && (
-                        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5">
-                          <button
-                            onClick={() => toggleHidden(e.id)}
-                            className={cn('transition-colors', e.hidden ? 'text-[var(--color-brand)]' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]')}
-                            title={e.hidden ? '숨김 해제' : '숨기기'}
-                          >
-                            {e.hidden ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
-                          </button>
-                          <button
-                            onClick={() => setDeleteConfirmId(e.id)}
-                            className="text-[var(--color-danger)] hover:text-red-400 transition-colors"
-                            title="삭제"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
-                        </div>
-                      )}
                     </div>
+                    {canEdit && (
+                      <div className="flex items-center justify-center gap-0.5 mt-1">
+                        <button
+                          onClick={() => toggleHidden(e.id)}
+                          className={cn(
+                            'p-1.5 rounded transition-all',
+                            e.hidden
+                              ? 'text-[var(--color-brand)] bg-[var(--color-brand)]/10 hover:bg-[var(--color-brand)]/20 opacity-100'
+                              : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-elevated)] opacity-30 hover:opacity-100',
+                          )}
+                          title={e.hidden ? '숨김 해제' : '숨기기'}
+                        >
+                          {e.hidden ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                        </button>
+                        <button
+                          onClick={() => setDeleteConfirmId(e.id)}
+                          className="p-1.5 rounded text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 opacity-30 hover:opacity-100 transition-all"
+                          title="삭제"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
                   </th>
                 ))}
               </tr>
