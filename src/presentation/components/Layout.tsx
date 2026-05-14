@@ -57,7 +57,7 @@ export const Layout = () => {
 
       <main
         className={cn(
-          'flex-1 min-h-screen bg-[var(--color-bg-base)] transition-all duration-200',
+          'flex-1 min-h-screen bg-[var(--color-bg-base)] transition-all duration-200 min-w-0 overflow-x-auto',
           'ml-0',
           collapsed ? 'md:ml-14' : 'md:ml-56',
         )}
