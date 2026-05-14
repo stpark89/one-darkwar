@@ -40,7 +40,6 @@ export const EventsPage = () => {
 
   const [showAddEvent, setShowAddEvent] = useState(false)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
-  const [hideConfirmId, setHideConfirmId] = useState<string | null>(null)
   const [newEventName, setNewEventName] = useState('')
   const [newEventDate, setNewEventDate] = useState(() => new Date().toISOString().slice(0, 10))
 
@@ -133,7 +132,7 @@ export const EventsPage = () => {
                       {canEdit && (
                         <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5">
                           <button
-                            onClick={() => setHideConfirmId(e.id)}
+                            onClick={() => toggleHidden(e.id)}
                             className={cn('transition-colors', e.hidden ? 'text-[var(--color-brand)]' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]')}
                             title={e.hidden ? '숨김 해제' : '숨기기'}
                           >
@@ -239,44 +238,7 @@ export const EventsPage = () => {
         )
       })()}
 
-      {hideConfirmId && (() => {
-        const event = events.find(e => e.id === hideConfirmId)
-        const isHidden = event?.hidden ?? false
-        return (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-            <div className="bg-[var(--color-bg-surface)] rounded-xl border border-[var(--color-border)] w-full max-w-sm p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-[var(--color-brand)]/15 flex items-center justify-center flex-shrink-0">
-                  {isHidden ? <Eye className="w-5 h-5 text-[var(--color-brand)]" /> : <EyeOff className="w-5 h-5 text-[var(--color-brand)]" />}
-                </div>
-                <div>
-                  <h2 className="text-base font-bold text-[var(--color-text-primary)]">{isHidden ? '이벤트 숨김 해제' : '이벤트 숨기기'}</h2>
-                  <p className="text-sm text-[var(--color-text-muted)] mt-0.5">{event?.name}{event?.date ? ` · ${event.date}` : ''}</p>
-                </div>
-              </div>
-              <p className="text-sm text-[var(--color-text-secondary)] mb-5">
-                {isHidden ? '이 이벤트를 다시 그리드에 표시합니다.' : '이 이벤트를 그리드에서 숨깁니다. 데이터는 보존되며 언제든 복원할 수 있습니다.'}
-              </p>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setHideConfirmId(null)}
-                  className="flex-1 px-4 py-2 rounded-lg border border-[var(--color-border)] text-sm font-medium text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-elevated)] transition-colors"
-                >
-                  {t('common.cancel')}
-                </button>
-                <button
-                  onClick={async () => { await toggleHidden(hideConfirmId); setHideConfirmId(null) }}
-                  className="flex-1 px-4 py-2 rounded-lg bg-[var(--color-brand)] text-white text-sm font-medium hover:opacity-90 transition-opacity"
-                >
-                  {isHidden ? '숨김 해제' : '숨기기'}
-                </button>
-              </div>
-            </div>
-          </div>
-        )
-      })()}
-
-      {showAddEvent && (
+{showAddEvent && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
           <div className="bg-[var(--color-bg-surface)] rounded-xl border border-[var(--color-border)] w-full max-w-sm p-6">
             <div className="flex items-center justify-between mb-5">
