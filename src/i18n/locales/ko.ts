@@ -101,6 +101,12 @@ export default {
     sign_out: '로그아웃',
     role_admin: '관리자',
     role_user: '일반 멤버',
+    change_password: '비밀번호 변경',
+    change_password_title: '비밀번호 변경',
+    change_password_subtitle: '새로운 비밀번호를 설정하세요',
+    new_password_label: '새 비밀번호',
+    change_password_btn: '변경 저장',
+    change_password_success: '비밀번호가 성공적으로 변경되었습니다.',
   },
   contribution: {
     title: '기여도 현황',

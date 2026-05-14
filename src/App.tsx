@@ -8,6 +8,7 @@ import { ExcelPage } from '@/presentation/pages/ExcelPage'
 import { ContributionPage } from '@/presentation/pages/ContributionPage'
 import { SignInPage } from '@/presentation/pages/SignInPage'
 import { SignUpPage } from '@/presentation/pages/SignUpPage'
+import { ChangePasswordPage } from '@/presentation/pages/ChangePasswordPage'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
           <Route path="/events" element={<EventsPage />} />
           <Route path="/contribution" element={<ContributionPage />} />
           <Route path="/excel" element={<ExcelPage />} />
+          <Route path="/change-password" element={<ChangePasswordPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

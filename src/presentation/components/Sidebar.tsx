@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { Users, Swords, CalendarDays, FileSpreadsheet, BarChart3, ChevronUp, ChevronLeft, ChevronRight, X, LogOut, ShieldCheck, User } from 'lucide-react'
+import { Users, Swords, CalendarDays, FileSpreadsheet, BarChart3, ChevronUp, ChevronLeft, ChevronRight, X, LogOut, ShieldCheck, User, KeyRound } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { LANGUAGES, type LangCode } from '@/i18n'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
@@ -30,7 +30,7 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
     { to: '/members', icon: Users, label: t('nav.members') },
     { to: '/war', icon: Swords, label: t('nav.war') },
     { to: '/events', icon: CalendarDays, label: t('nav.events') },
-    { to: '/contribution', icon: BarChart3, label: t('nav.contribution') },
+    ...(user?.role === 'ROLE_ADMIN' ? [{ to: '/contribution', icon: BarChart3, label: t('nav.contribution') }] : []),
     { to: '/excel', icon: FileSpreadsheet, label: t('nav.excel') },
   ]
 
@@ -133,9 +133,10 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
         )}
       </div>
 
-      {/* 유저 정보 + 로그아웃 */}
+      {/* 유저 정보 + 비밀번호 변경 + 로그아웃 */}
       {user && (
-        <div className={cn('px-3 py-3 border-t border-[var(--color-border-subtle)]', collapsed && 'md:flex md:justify-center md:px-0')}>
+        <div className={cn('px-3 py-3 border-t border-[var(--color-border-subtle)]', collapsed && 'md:flex md:flex-col md:items-center md:px-0')}>
+          {/* 유저 정보 */}
           <div className={cn('flex items-center gap-2 px-2 py-2 rounded-lg', collapsed && 'md:justify-center md:px-0')}>
             <div className="w-7 h-7 rounded-full bg-[var(--color-brand)]/20 flex items-center justify-center flex-shrink-0">
               {user.role === 'ROLE_ADMIN'
@@ -148,23 +149,31 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
                 {user.role === 'ROLE_ADMIN' ? t('auth.role_admin') : t('auth.role_user')}
               </p>
             </div>
-            <button
-              onClick={handleSignOut}
-              title={t('auth.sign_out')}
-              className={cn('p-1.5 rounded hover:bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:text-[var(--color-danger)] transition-colors flex-shrink-0', collapsed && 'md:hidden')}
-            >
-              <LogOut className="w-3.5 h-3.5" />
-            </button>
           </div>
-          {collapsed && (
-            <button
-              onClick={handleSignOut}
-              title={t('auth.sign_out')}
-              className="hidden md:flex items-center justify-center w-9 h-9 rounded hover:bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:text-[var(--color-danger)] transition-colors mx-auto mt-1"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-            </button>
-          )}
+          {/* 비밀번호 변경 */}
+          <button
+            onClick={() => { navigate('/change-password'); onCloseMobile() }}
+            title={t('auth.change_password')}
+            className={cn(
+              'w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-[var(--color-text-muted)] hover:bg-[var(--color-bg-elevated)] hover:text-[var(--color-text-primary)] transition-colors mt-0.5',
+              collapsed && 'md:w-9 md:h-9 md:justify-center md:px-0',
+            )}
+          >
+            <KeyRound className="w-3.5 h-3.5 flex-shrink-0" />
+            <span className={cn(collapsed && 'md:hidden')}>{t('auth.change_password')}</span>
+          </button>
+          {/* 로그아웃 */}
+          <button
+            onClick={handleSignOut}
+            title={t('auth.sign_out')}
+            className={cn(
+              'w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-[var(--color-text-muted)] hover:bg-[var(--color-bg-elevated)] hover:text-[var(--color-danger)] transition-colors mt-0.5',
+              collapsed && 'md:w-9 md:h-9 md:justify-center md:px-0',
+            )}
+          >
+            <LogOut className="w-3.5 h-3.5 flex-shrink-0" />
+            <span className={cn(collapsed && 'md:hidden')}>{t('auth.sign_out')}</span>
+          </button>
         </div>
       )}
 

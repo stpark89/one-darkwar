@@ -101,6 +101,12 @@ export default {
     sign_out: 'Đăng xuất',
     role_admin: 'Quản trị viên',
     role_user: 'Thành viên',
+    change_password: 'Đổi mật khẩu',
+    change_password_title: 'Đổi mật khẩu',
+    change_password_subtitle: 'Đặt mật khẩu mới',
+    new_password_label: 'Mật khẩu mới',
+    change_password_btn: 'Lưu mật khẩu',
+    change_password_success: 'Đổi mật khẩu thành công.',
   },
   contribution: {
     title: 'Đóng góp',

@@ -101,6 +101,12 @@ export default {
     sign_out: 'Sign Out',
     role_admin: 'Admin',
     role_user: 'Member',
+    change_password: 'Change Password',
+    change_password_title: 'Change Password',
+    change_password_subtitle: 'Set a new password',
+    new_password_label: 'New Password',
+    change_password_btn: 'Save Password',
+    change_password_success: 'Password changed successfully.',
   },
   contribution: {
     title: 'Contribution',

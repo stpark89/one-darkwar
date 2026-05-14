@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
+import { Navigate } from 'react-router-dom'
 import { Search, TrendingUp, TrendingDown, Minus, X, Loader2, Swords, CalendarDays } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useWarStore } from '@/infrastructure/stores/warStore'
 import { useEventStore } from '@/infrastructure/stores/eventStore'
 import { useMemberStore } from '@/infrastructure/stores/memberStore'
+import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { Input } from '@/presentation/components/ui/input'
 import { SortIcon, nextSortDir } from '@/presentation/components/ui/sort-icon'
 import type { SortDir } from '@/presentation/components/ui/sort-icon'
@@ -57,6 +59,9 @@ function calcTrend(firstRate: number, secondRate: number, hasData: boolean): Tre
 }
 
 export const ContributionPage = () => {
+  const { user } = useAuthStore()
+  if (user?.role !== 'ROLE_ADMIN') return <Navigate to="/members" replace />
+
   const { t } = useTranslation()
   const { rounds, entries, members: warMembers, loadData: loadWar, loading: warLoading } = useWarStore()
   const { events, attendance, loadData: loadEvent, loading: eventLoading } = useEventStore()

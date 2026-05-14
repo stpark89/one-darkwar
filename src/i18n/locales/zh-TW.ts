@@ -101,6 +101,12 @@ export default {
     sign_out: '登出',
     role_admin: '管理員',
     role_user: '一般成員',
+    change_password: '變更密碼',
+    change_password_title: '變更密碼',
+    change_password_subtitle: '設定新密碼',
+    new_password_label: '新密碼',
+    change_password_btn: '儲存密碼',
+    change_password_success: '密碼已成功變更。',
   },
   contribution: {
     title: '貢獻度',
