@@ -49,8 +49,13 @@ export const ChatWidget = () => {
   const [unread, setUnread] = useState(0)
   const [translatingIds, setTranslatingIds] = useState<Set<number>>(new Set())
   const [translations, setTranslations] = useState<Map<number, string>>(new Map())
+  const [connected, setConnected] = useState(false)
+  const [reconnectKey, setReconnectKey] = useState(0)
   const bottomRef = useRef<HTMLDivElement>(null)
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
+  // stale closure 방지: open 최신값을 ref로 유지
+  const openRef = useRef(open)
+  useEffect(() => { openRef.current = open }, [open])
 
   const handleTranslate = async (msg: Message) => {
     // 이미 번역된 경우 토글 (숨기기)
@@ -73,7 +78,7 @@ export const ChatWidget = () => {
   useEffect(() => {
     if (!user) return
 
-    // 최근 메시지 로드
+    // 최근 메시지 로드 (재연결 시에도 새로 불러옴)
     supabase
       .from('messages')
       .select('*')
@@ -83,10 +88,14 @@ export const ChatWidget = () => {
         setMessages((data ?? []).reverse())
       })
 
+    setConnected(false)
+
     // Realtime 채널 (Presence + 새 메시지)
-    const channel = supabase.channel('guild-chat', {
+    const channel = supabase.channel(`guild-chat-${Date.now()}`, {
       config: { presence: { key: user.id } },
     })
+
+    let retryTimer: ReturnType<typeof setTimeout> | null = null
 
     channel
       .on('presence', { event: 'sync' }, () => {
@@ -103,18 +112,29 @@ export const ChatWidget = () => {
         (payload) => {
           const msg = payload.new as Message
           setMessages((prev) => [...prev, msg])
-          setUnread((n) => (open ? 0 : n + 1))
+          // openRef로 최신 open 값 참조 (stale closure 방지)
+          setUnread((n) => (openRef.current ? 0 : n + 1))
         },
       )
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
+          setConnected(true)
           await channel.track({ in_game_name: user.inGameName })
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          // 연결 오류 시 3초 후 자동 재연결
+          setConnected(false)
+          retryTimer = setTimeout(() => setReconnectKey((k) => k + 1), 3000)
+        } else if (status === 'CLOSED') {
+          setConnected(false)
         }
       })
 
     channelRef.current = channel
-    return () => { supabase.removeChannel(channel) }
-  }, [user])
+    return () => {
+      if (retryTimer) clearTimeout(retryTimer)
+      supabase.removeChannel(channel)
+    }
+  }, [user, reconnectKey])
 
   // 채팅창 열 때 unread 초기화 + 스크롤 하단
   useEffect(() => {
@@ -135,15 +155,19 @@ export const ChatWidget = () => {
     const text = input.trim()
     if (!text || !user) return
     setInput('')
-    await supabase.from('messages').insert({
+    const { error } = await supabase.from('messages').insert({
       user_id: user.id,
       in_game_name: user.inGameName,
       content: text,
     })
+    if (error) {
+      // 전송 실패 시 입력 복원
+      setInput(text)
+    }
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage() }
+    if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); sendMessage() }
   }
 
   if (!user) return null
@@ -170,9 +194,18 @@ export const ChatWidget = () => {
                 {onlineUsers.length}명 접속중
               </button>
             </div>
-            <button onClick={() => setOpen(false)} className="p-1 rounded hover:bg-[var(--color-border)] text-[var(--color-text-muted)]">
-              <X className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-2">
+              {/* 연결 상태 표시 */}
+              {!connected && (
+                <span className="flex items-center gap-1 text-[10px] text-[var(--color-text-muted)]">
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  연결 중…
+                </span>
+              )}
+              <button onClick={() => setOpen(false)} className="p-1 rounded hover:bg-[var(--color-border)] text-[var(--color-text-muted)]">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
           {/* 채팅 탭 */}
@@ -246,7 +279,7 @@ export const ChatWidget = () => {
                 />
                 <button
                   onClick={sendMessage}
-                  disabled={!input.trim()}
+                  disabled={!input.trim() || !connected}
                   className="w-9 h-9 rounded-xl bg-[var(--color-brand)] flex items-center justify-center text-white disabled:opacity-40 hover:opacity-90 transition-opacity flex-shrink-0"
                 >
                   <Send className="w-4 h-4" />
