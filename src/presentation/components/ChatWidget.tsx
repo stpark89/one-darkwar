@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { MessageCircle, X, Send, Users, Languages, Loader2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
+import { useMemberStore } from '@/infrastructure/stores/memberStore'
 import { cn } from '@/lib/utils'
 import i18n from '@/i18n'
 
@@ -39,8 +40,33 @@ interface OnlineUser {
 
 const LOAD_LIMIT = 50
 
+// @멘션 파싱 → 하이라이트 렌더링
+function renderContent(content: string, myName: string) {
+  const parts = content.split(/(@\S+)/g)
+  return parts.map((part, i) => {
+    if (part.startsWith('@')) {
+      const isMe = part.slice(1) === myName
+      return (
+        <span
+          key={i}
+          className={cn(
+            'font-semibold rounded px-0.5',
+            isMe
+              ? 'bg-yellow-400/30 text-yellow-300'
+              : 'text-[var(--color-brand)] opacity-90',
+          )}
+        >
+          {part}
+        </span>
+      )
+    }
+    return <span key={i}>{part}</span>
+  })
+}
+
 export const ChatWidget = () => {
   const { user, isGuest } = useAuthStore()
+  const { members, loadMembers } = useMemberStore()
   const [open, setOpen] = useState(false)
   const [tab, setTab] = useState<'chat' | 'online'>('chat')
   const [messages, setMessages] = useState<Message[]>([])
@@ -51,22 +77,36 @@ export const ChatWidget = () => {
   const [translations, setTranslations] = useState<Map<number, string>>(new Map())
   const [connected, setConnected] = useState(false)
   const [reconnectKey, setReconnectKey] = useState(0)
+
+  // 멘션
+  const [mentionSearch, setMentionSearch] = useState<string | null>(null)
+  const [mentionIndex, setMentionIndex] = useState(0)
+  const inputRef = useRef<HTMLInputElement>(null)
+
   const bottomRef = useRef<HTMLDivElement>(null)
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
-  // stale closure 방지: open 최신값을 ref로 유지
   const openRef = useRef(open)
   useEffect(() => { openRef.current = open }, [open])
 
+  // 전체 멤버 목록 로드
+  useEffect(() => { if (user) loadMembers() }, [user, loadMembers])
+
+  // 멘션 후보 — 전체 멤버 중 검색어 매칭
+  const mentionCandidates =
+    mentionSearch !== null
+      ? members.filter((m) =>
+          m.inGameName.toLowerCase().startsWith(mentionSearch.toLowerCase()),
+        )
+      : []
+
   const handleTranslate = async (msg: Message) => {
-    // 이미 번역된 경우 토글 (숨기기)
     if (translations.has(msg.id)) {
       setTranslations((prev) => { const next = new Map(prev); next.delete(msg.id); return next })
       return
     }
     setTranslatingIds((prev) => new Set(prev).add(msg.id))
     try {
-      const targetLang = i18n.language
-      const result = await translateText(msg.content, targetLang)
+      const result = await translateText(msg.content, i18n.language)
       setTranslations((prev) => new Map(prev).set(msg.id, result))
     } catch {
       setTranslations((prev) => new Map(prev).set(msg.id, '번역 실패'))
@@ -78,19 +118,15 @@ export const ChatWidget = () => {
   useEffect(() => {
     if (!user) return
 
-    // 최근 메시지 로드 (재연결 시에도 새로 불러옴)
     supabase
       .from('messages')
       .select('*')
       .order('created_at', { ascending: false })
       .limit(LOAD_LIMIT)
-      .then(({ data }) => {
-        setMessages((data ?? []).reverse())
-      })
+      .then(({ data }) => { setMessages((data ?? []).reverse()) })
 
     setConnected(false)
 
-    // Realtime 채널 (Presence + 새 메시지)
     const channel = supabase.channel(`guild-chat-${Date.now()}`, {
       config: { presence: { key: user.id } },
     })
@@ -106,22 +142,16 @@ export const ChatWidget = () => {
         }))
         setOnlineUsers(users)
       })
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'messages' },
-        (payload) => {
-          const msg = payload.new as Message
-          setMessages((prev) => [...prev, msg])
-          // openRef로 최신 open 값 참조 (stale closure 방지)
-          setUnread((n) => (openRef.current ? 0 : n + 1))
-        },
-      )
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
+        const msg = payload.new as Message
+        setMessages((prev) => [...prev, msg])
+        setUnread((n) => (openRef.current ? 0 : n + 1))
+      })
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
           setConnected(true)
           await channel.track({ in_game_name: user.inGameName })
         } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          // 연결 오류 시 3초 후 자동 재연결
           setConnected(false)
           retryTimer = setTimeout(() => setReconnectKey((k) => k + 1), 3000)
         } else if (status === 'CLOSED') {
@@ -136,7 +166,6 @@ export const ChatWidget = () => {
     }
   }, [user, reconnectKey])
 
-  // 채팅창 열 때 unread 초기화 + 스크롤 하단
   useEffect(() => {
     if (open) {
       setUnread(0)
@@ -144,7 +173,6 @@ export const ChatWidget = () => {
     }
   }, [open])
 
-  // 새 메시지 오면 채팅창 열려있으면 스크롤
   useEffect(() => {
     if (open && tab === 'chat') {
       bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -155,26 +183,81 @@ export const ChatWidget = () => {
     const text = input.trim()
     if (!text || !user) return
     setInput('')
+    setMentionSearch(null)
     const { error } = await supabase.from('messages').insert({
       user_id: user.id,
       in_game_name: user.inGameName,
       content: text,
     })
-    if (error) {
-      // 전송 실패 시 입력 복원
-      setInput(text)
+    if (error) setInput(text)
+  }
+
+  const insertMention = (name: string) => {
+    const el = inputRef.current
+    const cursor = el?.selectionStart ?? input.length
+    const before = input.slice(0, cursor)
+    const after = input.slice(cursor)
+    const match = before.match(/@[\w가-힣]*$/)
+    if (!match) return
+    const start = cursor - match[0].length
+    const newText = input.slice(0, start) + `@${name} ` + after
+    setInput(newText)
+    setMentionSearch(null)
+    setTimeout(() => {
+      if (el) {
+        el.focus()
+        const pos = start + name.length + 2
+        el.setSelectionRange(pos, pos)
+      }
+    }, 0)
+  }
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value
+    setInput(val)
+    const cursor = e.target.selectionStart ?? val.length
+    const before = val.slice(0, cursor)
+    const match = before.match(/@([\w가-힣]*)$/)
+    if (match) {
+      setMentionSearch(match[1])
+      setMentionIndex(0)
+    } else {
+      setMentionSearch(null)
     }
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); sendMessage() }
+    if (mentionSearch !== null && mentionCandidates.length > 0) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault()
+        setMentionIndex((i) => Math.min(i + 1, mentionCandidates.length - 1))
+        return
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault()
+        setMentionIndex((i) => Math.max(i - 1, 0))
+        return
+      }
+      if (e.key === 'Tab' || (e.key === 'Enter' && !e.nativeEvent.isComposing)) {
+        e.preventDefault()
+        insertMention(mentionCandidates[mentionIndex].in_game_name)
+        return
+      }
+      if (e.key === 'Escape') {
+        setMentionSearch(null)
+        return
+      }
+    }
+    if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+      e.preventDefault()
+      sendMessage()
+    }
   }
 
   if (!user || isGuest) return null
 
   return (
     <div className="fixed bottom-4 right-3 sm:bottom-5 sm:right-5 z-50 flex flex-col items-end gap-2">
-      {/* 채팅 패널 */}
       {open && (
         <div className="w-[calc(100vw-24px)] sm:w-80 h-[70vh] sm:h-[480px] rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] shadow-2xl flex flex-col overflow-hidden">
           {/* 헤더 */}
@@ -195,7 +278,6 @@ export const ChatWidget = () => {
               </button>
             </div>
             <div className="flex items-center gap-2">
-              {/* 연결 상태 표시 */}
               {!connected && (
                 <span className="flex items-center gap-1 text-[10px] text-[var(--color-text-muted)]">
                   <Loader2 className="w-3 h-3 animate-spin" />
@@ -219,6 +301,7 @@ export const ChatWidget = () => {
                   const isMine = msg.user_id === user.id
                   const isTranslating = translatingIds.has(msg.id)
                   const translated = translations.get(msg.id)
+                  const isMentioned = msg.content.includes(`@${user.inGameName}`)
                   return (
                     <div key={msg.id} className={cn('flex flex-col gap-0.5 group', isMine && 'items-end')}>
                       {!isMine && (
@@ -231,8 +314,10 @@ export const ChatWidget = () => {
                             isMine
                               ? 'bg-[var(--color-brand)] text-white rounded-br-sm'
                               : 'bg-[var(--color-bg-elevated)] text-[var(--color-text-primary)] rounded-bl-sm',
+                            // 내가 멘션된 메시지: 테두리 강조
+                            !isMine && isMentioned && 'ring-1 ring-yellow-400/50',
                           )}>
-                            {msg.content}
+                            {renderContent(msg.content, user.inGameName)}
                           </div>
                           {translated && (
                             <div className={cn(
@@ -246,24 +331,19 @@ export const ChatWidget = () => {
                             </div>
                           )}
                         </div>
-                        {/* 번역 버튼 */}
                         <button
                           onClick={() => handleTranslate(msg)}
                           disabled={isTranslating}
                           className={cn(
                             'flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-all',
-                            'opacity-0 group-hover:opacity-100 sm:opacity-0 sm:group-hover:opacity-100',
-                            // 모바일: 항상 표시
-                            'opacity-60 sm:opacity-0',
+                            'opacity-60 sm:opacity-0 sm:group-hover:opacity-100',
                             translated
                               ? 'bg-[var(--color-brand)]/20 text-[var(--color-brand)]'
                               : 'bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]',
                           )}
                           title="번역"
                         >
-                          {isTranslating
-                            ? <Loader2 className="w-3 h-3 animate-spin" />
-                            : <Languages className="w-3 h-3" />}
+                          {isTranslating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Languages className="w-3 h-3" />}
                         </button>
                       </div>
                       <span className="text-[10px] text-[var(--color-text-muted)] px-1">
@@ -274,21 +354,51 @@ export const ChatWidget = () => {
                 })}
                 <div ref={bottomRef} />
               </div>
-              <div className="px-3 py-3 border-t border-[var(--color-border-subtle)] flex gap-2">
-                <input
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="메시지 입력..."
-                  className="flex-1 text-sm bg-[var(--color-bg-elevated)] border border-[var(--color-border-subtle)] rounded-xl px-3 py-2 outline-none focus:border-[var(--color-brand)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)]"
-                />
-                <button
-                  onClick={sendMessage}
-                  disabled={!input.trim() || !connected}
-                  className="w-9 h-9 rounded-xl bg-[var(--color-brand)] flex items-center justify-center text-white disabled:opacity-40 hover:opacity-90 transition-opacity flex-shrink-0"
-                >
-                  <Send className="w-4 h-4" />
-                </button>
+
+              {/* 입력 영역 */}
+              <div className="relative px-3 py-3 border-t border-[var(--color-border-subtle)]">
+                {/* 멘션 드롭다운 */}
+                {mentionSearch !== null && mentionCandidates.length > 0 && (
+                  <div className="absolute bottom-full left-3 right-3 mb-1 bg-[var(--color-bg-elevated)] border border-[var(--color-border)] rounded-xl shadow-lg overflow-hidden z-10">
+                    {mentionCandidates.map((m, i) => {
+                      const isOnline = onlineUsers.some((o) => o.in_game_name === m.inGameName)
+                      return (
+                        <button
+                          key={m.id}
+                          onMouseDown={(e) => { e.preventDefault(); insertMention(m.inGameName) }}
+                          className={cn(
+                            'w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left transition-colors',
+                            i === mentionIndex
+                              ? 'bg-[var(--color-brand)]/15 text-[var(--color-brand)]'
+                              : 'text-[var(--color-text-primary)] hover:bg-[var(--color-bg-surface)]',
+                          )}
+                        >
+                          <span className={cn('w-1.5 h-1.5 rounded-full flex-shrink-0', isOnline ? 'bg-green-500' : 'bg-[var(--color-border)]')} />
+                          <span className="font-medium">{m.inGameName}</span>
+                          {isOnline && <span className="ml-auto text-[10px] text-green-500 opacity-70">접속중</span>}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+
+                <div className="flex gap-2">
+                  <input
+                    ref={inputRef}
+                    value={input}
+                    onChange={handleChange}
+                    onKeyDown={handleKeyDown}
+                    placeholder="메시지 입력... (@멘션)"
+                    className="flex-1 text-sm bg-[var(--color-bg-elevated)] border border-[var(--color-border-subtle)] rounded-xl px-3 py-2 outline-none focus:border-[var(--color-brand)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)]"
+                  />
+                  <button
+                    onClick={sendMessage}
+                    disabled={!input.trim() || !connected}
+                    className="w-9 h-9 rounded-xl bg-[var(--color-brand)] flex items-center justify-center text-white disabled:opacity-40 hover:opacity-90 transition-opacity flex-shrink-0"
+                  >
+                    <Send className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             </>
           )}
