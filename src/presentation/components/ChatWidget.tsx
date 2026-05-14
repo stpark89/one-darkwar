@@ -240,7 +240,7 @@ export const ChatWidget = () => {
       }
       if (e.key === 'Tab' || (e.key === 'Enter' && !e.nativeEvent.isComposing)) {
         e.preventDefault()
-        insertMention(mentionCandidates[mentionIndex].in_game_name)
+        insertMention(mentionCandidates[mentionIndex].inGameName)
         return
       }
       if (e.key === 'Escape') {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
-import { Loader2, Check, Trash2, UserX, RotateCcw } from 'lucide-react'
+import { Loader2, Trash2, UserX, RotateCcw } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { useApprovalStore } from '@/infrastructure/stores/approvalStore'
