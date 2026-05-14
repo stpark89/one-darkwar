@@ -381,7 +381,7 @@ export const ChatWidget = () => {
           {tab === 'chat' && (
             <>
               <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3">
-                {messages.length === 0 && !showCommandHint && (
+                {messages.length === 0 && (
                   <p className="text-center text-xs text-[var(--color-text-muted)] mt-8">첫 메시지를 보내보세요!</p>
                 )}
                 {messages.map((msg) => {
