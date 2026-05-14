@@ -23,11 +23,12 @@ export const useApprovalStore = create<ApprovalStore>((set, get) => ({
 
   loadPending: async () => {
     set({ loading: true })
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('profiles')
-      .select('id, in_game_name, created_at')
+      .select('id, in_game_name, created_at, status')
       .eq('status', 'PENDING')
       .order('created_at', { ascending: true })
+    if (error) console.error('[approvalStore] loadPending error:', error)
     const users: PendingUser[] = (data ?? []).map((r) => ({
       id: r.id,
       inGameName: r.in_game_name,
@@ -37,7 +38,21 @@ export const useApprovalStore = create<ApprovalStore>((set, get) => ({
   },
 
   approveUser: async (userId) => {
+    const target = get().pendingUsers.find((u) => u.id === userId)
     await supabase.from('profiles').update({ status: 'APPROVED' }).eq('id', userId)
+    if (target) {
+      const { data: existing } = await supabase.from('members').select('id').eq('id', userId).single()
+      if (!existing) {
+        await supabase.from('members').insert({
+          id: userId,
+          in_game_name: target.inGameName,
+          zalo_name: '',
+          cp: '',
+          house_level: '',
+          note: '',
+        })
+      }
+    }
     const users = get().pendingUsers.filter((u) => u.id !== userId)
     set({ pendingUsers: users, pendingCount: users.length })
   },

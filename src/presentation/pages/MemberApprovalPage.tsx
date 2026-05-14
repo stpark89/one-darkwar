@@ -11,9 +11,10 @@ export const MemberApprovalPage = () => {
   const [processingId, setProcessingId] = useState<string | null>(null)
   const [rejectConfirmId, setRejectConfirmId] = useState<string | null>(null)
 
-  if (user?.role !== 'ROLE_ADMIN') return <Navigate to="/members" replace />
-
+  // hooks는 조건부 return 전에 위치해야 함 (Rules of Hooks)
   useEffect(() => { loadPending() }, [loadPending])
+
+  if (user?.role !== 'ROLE_ADMIN') return <Navigate to="/members" replace />
 
   const handleApprove = async (userId: string) => {
     setProcessingId(userId)

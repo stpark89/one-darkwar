@@ -41,7 +41,7 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
 
   const NAV_ADMIN = [
     { to: '/contribution', icon: BarChart3, label: t('nav.contribution'), badge: 0 },
-    { to: '/approval', icon: UserCheck, label: '회원 승인', badge: pendingCount },
+    { to: '/approval', icon: UserCheck, label: t('nav.approval'), badge: pendingCount },
   ]
 
   return (
@@ -99,7 +99,7 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
         {user?.role === 'ROLE_ADMIN' && (
           <>
             <div className={cn('pt-3 pb-1', collapsed && 'md:hidden')}>
-              <p className="px-3 text-[10px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">관리자</p>
+              <p className="px-3 text-[10px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">{t('nav.admin_section')}</p>
             </div>
             {!collapsed && <div className="mx-3 border-t border-[var(--color-border-subtle)] md:block hidden" />}
             {NAV_ADMIN.map(({ to, icon: Icon, label, badge }) => (

@@ -5,6 +5,8 @@ export default {
     events: 'Điểm danh sự kiện',
     contribution: 'Đóng góp',
     excel: 'Quản lý Excel',
+    approval: 'Duyệt thành viên',
+    admin_section: 'Quản trị',
     language: 'Ngôn ngữ',
     online: 'Trực tuyến',
   },

@@ -5,6 +5,8 @@ export default {
     events: 'Event Attendance',
     contribution: 'Contribution',
     excel: 'Excel',
+    approval: 'Member Approval',
+    admin_section: 'Admin',
     language: 'Language',
     online: 'Online Users',
   },

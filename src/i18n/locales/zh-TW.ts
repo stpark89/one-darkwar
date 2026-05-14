@@ -5,6 +5,8 @@ export default {
     events: '活動出席',
     contribution: '貢獻度',
     excel: 'Excel 管理',
+    approval: '會員審核',
+    admin_section: '管理員',
     language: '語言',
     online: '上線狀況',
   },

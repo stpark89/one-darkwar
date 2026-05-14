@@ -5,6 +5,8 @@ export default {
     events: '이벤트 출석',
     contribution: '기여도 현황',
     excel: '엑셀 관리',
+    approval: '회원 승인',
+    admin_section: '관리자',
     language: '언어',
     online: '접속 현황',
   },
