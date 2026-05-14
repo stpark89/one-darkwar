@@ -196,6 +196,10 @@ export default {
   bot: {
     name: 'GuildBot',
     hint_label: 'Lệnh GuildBot',
+    cmd_ranking: '/xephang',
+    cmd_member: '/thanh-vien',
+    cmd_count: '/tong',
+    cmd_help: '/help',
     cmd_ranking_desc: 'Xếp hạng CP + tham dự sự kiện',
     cmd_member_desc: 'Tra cứu thông tin thành viên',
     cmd_count_desc: 'Tổng số thành viên',
@@ -214,5 +218,16 @@ export default {
     member_note: 'Ghi chú',
     count_result: '👥 Tổng thành viên: {{count}}',
     unknown_cmd: '❓ Lệnh không hợp lệ. Thử /help',
+  },
+  chat: {
+    tab_chat: 'Chat',
+    online_count: '{{n}} đang online',
+    connecting: 'Đang kết nối…',
+    empty: 'Hãy gửi tin nhắn đầu tiên!',
+    translate_btn: 'Dịch',
+    online_badge: 'Online',
+    placeholder: 'Nhập tin nhắn... (@đề cập)',
+    no_online: 'Không có người dùng nào đang online.',
+    me: '(tôi)',
   },
 } as const

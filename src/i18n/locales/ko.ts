@@ -196,6 +196,10 @@ export default {
   bot: {
     name: '길드봇',
     hint_label: '길드봇 명령어',
+    cmd_ranking: '/랭킹',
+    cmd_member: '/멤버',
+    cmd_count: '/인원',
+    cmd_help: '/도움말',
     cmd_ranking_desc: '전투력 + 이벤트 참여 순위',
     cmd_member_desc: '멤버 상세 정보 조회',
     cmd_count_desc: '전체 멤버 수 확인',
@@ -214,5 +218,16 @@ export default {
     member_note: '메모',
     count_result: '👥 전체 멤버: {{count}}명',
     unknown_cmd: '❓ 알 수 없는 명령어입니다. /도움말 을 입력해보세요.',
+  },
+  chat: {
+    tab_chat: '채팅',
+    online_count: '{{n}}명 접속중',
+    connecting: '연결 중…',
+    empty: '첫 메시지를 보내보세요!',
+    translate_btn: '번역',
+    online_badge: '접속중',
+    placeholder: '메시지 입력... (@멘션)',
+    no_online: '접속 중인 유저가 없습니다.',
+    me: '(나)',
   },
 } as const

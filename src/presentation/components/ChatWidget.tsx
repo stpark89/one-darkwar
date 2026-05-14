@@ -54,23 +54,46 @@ const getAttendCount = (memberId: string, attendance: EventAttendance[]) => {
 }
 
 const COMMAND_KEYS = [
-  { cmd: '/랭킹', descKey: 'bot.cmd_ranking_desc' },
-  { cmd: '/멤버', descKey: 'bot.cmd_member_desc' },
-  { cmd: '/인원', descKey: 'bot.cmd_count_desc' },
-  { cmd: '/도움말', descKey: 'bot.cmd_help_desc' },
+  { cmdKey: 'bot.cmd_ranking', descKey: 'bot.cmd_ranking_desc' },
+  { cmdKey: 'bot.cmd_member', descKey: 'bot.cmd_member_desc' },
+  { cmdKey: 'bot.cmd_count', descKey: 'bot.cmd_count_desc' },
+  { cmdKey: 'bot.cmd_help', descKey: 'bot.cmd_help_desc' },
 ] as const
+
+// 언어별 명령어 → 동일 기능의 영어 canonical 명령어로 매핑
+const CMD_ALIASES: Record<string, string> = {
+  '/랭킹': '/ranking', '/멤버': '/member', '/인원': '/count', '/도움말': '/help',
+  '/xephang': '/ranking', '/thanh-vien': '/member', '/tong': '/count',
+  '/排名': '/ranking', '/成員': '/member', '/人數': '/count', '/說明': '/help',
+}
+
+function normalizeCmd(cmd: string): string {
+  const lower = cmd.toLowerCase()
+  return CMD_ALIASES[lower] ?? CMD_ALIASES[cmd] ?? lower
+}
 
 function handleBotCommand(text: string, members: Member[], attendance: EventAttendance[]): string | null {
   const t = i18n.t.bind(i18n)
   const [cmd, ...args] = text.trim().split(/\s+/)
-  const command = cmd.toLowerCase()
+  // 현재 언어의 명령어도 aliases에 추가해 인식
+  const localRanking = t('bot.cmd_ranking').toLowerCase()
+  const localMember = t('bot.cmd_member').toLowerCase()
+  const localCount = t('bot.cmd_count').toLowerCase()
+  const localHelp = t('bot.cmd_help').toLowerCase()
+  const normalized = normalizeCmd(cmd) === cmd.toLowerCase()
+    ? ([localRanking, '/ranking'].includes(cmd.toLowerCase()) ? '/ranking'
+      : [localMember, '/member'].includes(cmd.toLowerCase()) ? '/member'
+      : [localCount, '/count'].includes(cmd.toLowerCase()) ? '/count'
+      : [localHelp, '/help'].includes(cmd.toLowerCase()) ? '/help'
+      : normalizeCmd(cmd))
+    : normalizeCmd(cmd)
 
-  if (command === '/도움말' || command === '/help') {
-    const rows = COMMAND_KEYS.map((c) => `${c.cmd.padEnd(8)} — ${t(c.descKey)}`)
+  if (normalized === '/help') {
+    const rows = COMMAND_KEYS.map((c) => `${t(c.cmdKey).padEnd(10)} — ${t(c.descKey)}`)
     return [t('bot.help_title'), '', ...rows].join('\n')
   }
 
-  if (command === '/랭킹') {
+  if (normalized === '/ranking') {
     const n = Math.min(Math.max(parseInt(args[0] ?? '5') || 5, 1), 20)
     const sorted = [...members].sort((a, b) => parseCp(b.cp) - parseCp(a.cp)).slice(0, n)
     if (sorted.length === 0) return t('bot.ranking_empty')
@@ -84,7 +107,7 @@ function handleBotCommand(text: string, members: Member[], attendance: EventAtte
     return [t('bot.ranking_title', { n }), '', ...rows].join('\n')
   }
 
-  if (command === '/멤버' || command === '/member') {
+  if (normalized === '/member') {
     const query = args.join(' ').toLowerCase()
     if (!query) return t('bot.member_usage')
     const found = members.filter((m) => m.inGameName.toLowerCase().includes(query))
@@ -102,7 +125,7 @@ function handleBotCommand(text: string, members: Member[], attendance: EventAtte
     }).join('\n\n')
   }
 
-  if (command === '/인원' || command === '/count') {
+  if (normalized === '/count') {
     return t('bot.count_result', { count: members.length })
   }
 
@@ -354,21 +377,21 @@ export const ChatWidget = () => {
                 onClick={() => setTab('chat')}
                 className={cn('px-3 py-1 rounded-lg text-xs font-semibold transition-colors', tab === 'chat' ? 'bg-[var(--color-brand)] text-white' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]')}
               >
-                채팅
+                {t('chat.tab_chat')}
               </button>
               <button
                 onClick={() => setTab('online')}
                 className={cn('flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-semibold transition-colors', tab === 'online' ? 'bg-[var(--color-brand)] text-white' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]')}
               >
                 <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                {onlineUsers.length}명 접속중
+                {t('chat.online_count', { n: onlineUsers.length })}
               </button>
             </div>
             <div className="flex items-center gap-2">
               {!connected && (
                 <span className="flex items-center gap-1 text-[10px] text-[var(--color-text-muted)]">
                   <Loader2 className="w-3 h-3 animate-spin" />
-                  연결 중…
+                  {t('chat.connecting')}
                 </span>
               )}
               <button onClick={() => setOpen(false)} className="p-1 rounded hover:bg-[var(--color-border)] text-[var(--color-text-muted)]">
@@ -382,7 +405,7 @@ export const ChatWidget = () => {
             <>
               <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3">
                 {messages.length === 0 && (
-                  <p className="text-center text-xs text-[var(--color-text-muted)] mt-8">첫 메시지를 보내보세요!</p>
+                  <p className="text-center text-xs text-[var(--color-text-muted)] mt-8">{t('chat.empty')}</p>
                 )}
                 {messages.map((msg) => {
                   const isBot = msg.user_id === BOT_ID
@@ -442,7 +465,7 @@ export const ChatWidget = () => {
                             'opacity-60 sm:opacity-0 sm:group-hover:opacity-100',
                             translated ? 'bg-[var(--color-brand)]/20 text-[var(--color-brand)]' : 'bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]',
                           )}
-                          title="번역"
+                          title={t('chat.translate_btn')}
                         >
                           {isTranslating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Languages className="w-3 h-3" />}
                         </button>
@@ -469,11 +492,11 @@ export const ChatWidget = () => {
                     <div className="grid grid-cols-2 gap-px bg-[var(--color-border-subtle)]">
                       {COMMAND_KEYS.map((c) => (
                         <button
-                          key={c.cmd}
-                          onClick={() => insertCommand(c.cmd)}
+                          key={c.cmdKey}
+                          onClick={() => insertCommand(t(c.cmdKey))}
                           className="flex flex-col items-start px-3 py-2.5 bg-[var(--color-bg-elevated)] hover:bg-[var(--color-brand)]/10 transition-colors text-left"
                         >
-                          <span className="text-[11px] font-semibold text-[var(--color-text-primary)]">{c.cmd}</span>
+                          <span className="text-[11px] font-semibold text-[var(--color-text-primary)]">{t(c.cmdKey)}</span>
                           <span className="text-[10px] text-[var(--color-text-muted)] leading-tight mt-0.5">{t(c.descKey)}</span>
                         </button>
                       ))}
@@ -497,7 +520,7 @@ export const ChatWidget = () => {
                         >
                           <span className={cn('w-1.5 h-1.5 rounded-full flex-shrink-0', isOnline ? 'bg-green-500' : 'bg-[var(--color-border)]')} />
                           <span className="font-medium">{m.inGameName}</span>
-                          {isOnline && <span className="ml-auto text-[10px] text-green-500 opacity-70">접속중</span>}
+                          {isOnline && <span className="ml-auto text-[10px] text-green-500 opacity-70">{t('chat.online_badge')}</span>}
                         </button>
                       )
                     })}
@@ -523,7 +546,7 @@ export const ChatWidget = () => {
                     value={input}
                     onChange={handleChange}
                     onKeyDown={handleKeyDown}
-                    placeholder="메시지 입력... (@멘션)"
+                    placeholder={t('chat.placeholder')}
                     className="flex-1 text-sm bg-[var(--color-bg-elevated)] border border-[var(--color-border-subtle)] rounded-xl px-3 py-2 outline-none focus:border-[var(--color-brand)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)]"
                   />
                   <button
@@ -542,14 +565,14 @@ export const ChatWidget = () => {
           {tab === 'online' && (
             <div className="flex-1 overflow-y-auto px-3 py-3 space-y-1">
               {onlineUsers.length === 0 && (
-                <p className="text-center text-xs text-[var(--color-text-muted)] mt-8">접속 중인 유저가 없습니다.</p>
+                <p className="text-center text-xs text-[var(--color-text-muted)] mt-8">{t('chat.no_online')}</p>
               )}
               {onlineUsers.map((u) => (
                 <div key={u.user_id} className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-[var(--color-bg-elevated)] transition-colors">
                   <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse flex-shrink-0" />
                   <span className={cn('text-sm font-medium', u.user_id === user.id ? 'text-[var(--color-brand)]' : 'text-[var(--color-text-primary)]')}>
                     {u.in_game_name}
-                    {u.user_id === user.id && <span className="text-[10px] ml-1 opacity-60">(나)</span>}
+                    {u.user_id === user.id && <span className="text-[10px] ml-1 opacity-60">{t('chat.me')}</span>}
                   </span>
                 </div>
               ))}

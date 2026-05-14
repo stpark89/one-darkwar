@@ -196,6 +196,10 @@ export default {
   bot: {
     name: 'GuildBot',
     hint_label: 'GuildBot Commands',
+    cmd_ranking: '/ranking',
+    cmd_member: '/member',
+    cmd_count: '/count',
+    cmd_help: '/help',
     cmd_ranking_desc: 'CP + event attendance ranking',
     cmd_member_desc: 'Member detail lookup',
     cmd_count_desc: 'Total member count',
@@ -214,5 +218,16 @@ export default {
     member_note: 'Note',
     count_result: '👥 Total members: {{count}}',
     unknown_cmd: '❓ Unknown command. Try /help',
+  },
+  chat: {
+    tab_chat: 'Chat',
+    online_count: '{{n}} online',
+    connecting: 'Connecting…',
+    empty: 'Send your first message!',
+    translate_btn: 'Translate',
+    online_badge: 'Online',
+    placeholder: 'Type a message... (@mention)',
+    no_online: 'No users online.',
+    me: '(me)',
   },
 } as const
