@@ -7,7 +7,6 @@ import { EventsPage } from '@/presentation/pages/EventsPage'
 import { ExcelPage } from '@/presentation/pages/ExcelPage'
 import { ContributionPage } from '@/presentation/pages/ContributionPage'
 import { MemberApprovalPage } from '@/presentation/pages/MemberApprovalPage'
-import { RejectedMembersPage } from '@/presentation/pages/RejectedMembersPage'
 import { SignInPage } from '@/presentation/pages/SignInPage'
 import { SignUpPage } from '@/presentation/pages/SignUpPage'
 import { ChangePasswordPage } from '@/presentation/pages/ChangePasswordPage'
@@ -40,7 +39,6 @@ function App() {
           <Route path="/excel" element={<ExcelPage />} />
           <Route path="/change-password" element={<ChangePasswordPage />} />
           <Route path="/approval" element={<MemberApprovalPage />} />
-          <Route path="/rejected" element={<RejectedMembersPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
