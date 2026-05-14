@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Loader2, RefreshCw } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import type { TFunction } from 'i18next'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
 
@@ -24,7 +25,7 @@ function getStatus(lastSeen: string | null): OnlineStatus {
   return 'offline'
 }
 
-function formatLastSeen(lastSeen: string | null, t: (k: string, o?: object) => string): string {
+function formatLastSeen(lastSeen: string | null, t: TFunction): string {
   if (!lastSeen) return t('online.never')
   const diff = Math.floor((Date.now() - new Date(lastSeen).getTime()) / 1000)
   if (diff < 60) return t('online.just_now')
