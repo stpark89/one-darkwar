@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Search, Plus, X, Loader2 } from 'lucide-react'
+import { Search, Plus, X, Loader2, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useEventStore } from '@/infrastructure/stores/eventStore'
 import { Input } from '@/presentation/components/ui/input'
@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils'
 
 export const EventsPage = () => {
   const { t } = useTranslation()
-  const { events, addEvent, updateStatus, getFiltered, searchQuery, setSearchQuery, getSummary, loadData, loading } = useEventStore()
+  const { events, addEvent, deleteEvent, updateStatus, getFiltered, searchQuery, setSearchQuery, getSummary, loadData, loading } = useEventStore()
   const baseAttendance = getFiltered()
   const summary = getSummary()
   const [activeTab, setActiveTab] = useState<'grid' | 'summary'>('grid')
@@ -32,6 +32,7 @@ export const EventsPage = () => {
     return sortDir === 'asc' ? cmp : -cmp
   })
   const [showAddEvent, setShowAddEvent] = useState(false)
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
   const [newEventName, setNewEventName] = useState('')
   const [newEventDate, setNewEventDate] = useState(() => new Date().toISOString().slice(0, 10))
 
@@ -109,9 +110,17 @@ export const EventsPage = () => {
                   {t('events.col_attended')}<SortIcon dir={sortKey === 'total' ? sortDir : null} />
                 </th>
                 {events.map((e) => (
-                  <th key={e.eventKey} className="px-2 py-3 text-center text-[var(--color-text-muted)] whitespace-nowrap min-w-[64px]">
+                  <th key={e.eventKey} className="px-2 py-3 text-center text-[var(--color-text-muted)] whitespace-nowrap min-w-[64px] group">
                     <div className="text-[10px] font-normal">{e.date?.slice(5) ?? ''}</div>
-                    <div className="font-semibold">{e.name.length > 8 ? e.name.slice(0, 8) + '…' : e.name}</div>
+                    <div className="font-semibold flex items-center justify-center gap-1">
+                      {e.name.length > 8 ? e.name.slice(0, 8) + '…' : e.name}
+                      <button
+                        onClick={() => setDeleteConfirmId(e.id)}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity text-[var(--color-danger)] hover:text-red-400"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
                   </th>
                 ))}
               </tr>
@@ -167,6 +176,40 @@ export const EventsPage = () => {
           ))}
         </div>
       )}
+
+      {deleteConfirmId && (() => {
+        const event = events.find(e => e.id === deleteConfirmId)
+        return (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+            <div className="bg-[var(--color-bg-surface)] rounded-xl border border-[var(--color-border)] w-full max-w-sm p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-[var(--color-danger)]/15 flex items-center justify-center flex-shrink-0">
+                  <Trash2 className="w-5 h-5 text-[var(--color-danger)]" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-[var(--color-text-primary)]">{t('events.delete_event_title')}</h2>
+                  <p className="text-sm text-[var(--color-text-muted)] mt-0.5">{event?.name}{event?.date ? ` · ${event.date}` : ''}</p>
+                </div>
+              </div>
+              <p className="text-sm text-[var(--color-text-secondary)] mb-5">{t('events.delete_event_confirm')}</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setDeleteConfirmId(null)}
+                  className="flex-1 px-4 py-2 rounded-lg border border-[var(--color-border)] text-sm font-medium text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-elevated)] transition-colors"
+                >
+                  {t('common.cancel')}
+                </button>
+                <button
+                  onClick={async () => { await deleteEvent(deleteConfirmId); setDeleteConfirmId(null) }}
+                  className="flex-1 px-4 py-2 rounded-lg bg-[var(--color-danger)] text-white text-sm font-medium hover:bg-red-700 transition-colors"
+                >
+                  {t('common.delete')}
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
 
       {showAddEvent && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">

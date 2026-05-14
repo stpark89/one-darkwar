@@ -71,6 +71,8 @@ export default {
     ranking_attended: '參加 {{count}} 次',
     add_event_btn: '新增活動',
     add_event_title: '新增活動',
+    delete_event_title: '刪除活動',
+    delete_event_confirm: '此活動的所有出席記錄將一併刪除。確定繼續？',
     event_name_label: '活動名稱',
     event_name_placeholder: '例: 黑金 5/7',
     event_date_label: '日期',

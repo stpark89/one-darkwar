@@ -71,6 +71,8 @@ export default {
     ranking_attended: '{{count}}회 참여',
     add_event_btn: '이벤트 추가',
     add_event_title: '이벤트 추가',
+    delete_event_title: '이벤트 삭제',
+    delete_event_confirm: '이 이벤트의 모든 출석 기록이 함께 삭제됩니다. 계속하시겠습니까?',
     event_name_label: '이벤트 이름',
     event_name_placeholder: '예: 블랙 골드 5/7',
     event_date_label: '날짜',

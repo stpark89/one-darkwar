@@ -10,6 +10,7 @@ interface EventStore {
 
   loadData: () => Promise<void>
   addEvent: (name: string, date: string) => Promise<void>
+  deleteEvent: (eventId: string) => Promise<void>
   updateStatus: (memberId: string, eventKey: string, status: AttendanceStatus) => Promise<void>
   syncMemberName: (memberId: string, newName: string) => void
   setSearchQuery: (q: string) => void
@@ -68,6 +69,19 @@ export const useEventStore = create<EventStore>((set, get) => ({
         ...a,
         records: { ...a.records, [data.id]: '' },
       })),
+    }))
+  },
+
+  deleteEvent: async (eventId) => {
+    // attendance rows는 DB cascade로 자동 삭제
+    await supabase.from('events').delete().eq('id', eventId)
+    set(s => ({
+      events: s.events.filter(e => e.id !== eventId),
+      attendance: s.attendance.map(a => {
+        const records = { ...a.records }
+        delete records[eventId]
+        return { ...a, records }
+      }),
     }))
   },
 

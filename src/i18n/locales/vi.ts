@@ -71,6 +71,8 @@ export default {
     ranking_attended: '{{count}} lần tham dự',
     add_event_btn: 'Thêm sự kiện',
     add_event_title: 'Thêm sự kiện',
+    delete_event_title: 'Xóa sự kiện',
+    delete_event_confirm: 'Tất cả bản ghi điểm danh của sự kiện này sẽ bị xóa. Tiếp tục?',
     event_name_label: 'Tên sự kiện',
     event_name_placeholder: 'VD: Black Gold 5/7',
     event_date_label: 'Ngày',

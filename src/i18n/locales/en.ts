@@ -71,6 +71,8 @@ export default {
     ranking_attended: '{{count}} attended',
     add_event_btn: 'Add Event',
     add_event_title: 'Add Event',
+    delete_event_title: 'Delete Event',
+    delete_event_confirm: 'All attendance records for this event will be deleted. Continue?',
     event_name_label: 'Event Name',
     event_name_placeholder: 'e.g. Black Gold 5/7',
     event_date_label: 'Date',
