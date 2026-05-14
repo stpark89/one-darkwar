@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { Input } from '@/presentation/components/ui/input'
 import { Button } from '@/presentation/components/ui/button'
+import { LangSelector } from '@/presentation/components/ui/lang-selector'
 
 export const SignUpPage = () => {
   const { t } = useTranslation()
@@ -33,6 +34,9 @@ export const SignUpPage = () => {
 
   return (
     <div className="min-h-screen bg-[var(--color-bg-base)] flex items-center justify-center p-4">
+      <div className="absolute top-4 right-4">
+        <LangSelector />
+      </div>
       <div className="w-full max-w-sm">
         {/* 로고 */}
         <div className="flex flex-col items-center mb-8">

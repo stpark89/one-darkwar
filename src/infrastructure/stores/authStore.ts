@@ -20,7 +20,7 @@ interface AuthStore {
 
 // 인게임명 → Supabase email 변환 (내부용)
 const toEmail = (name: string) =>
-  `${encodeURIComponent(name.trim().toLowerCase())}@onedarkwar.local`
+  `${encodeURIComponent(name.trim().toLowerCase())}@onedarkwar.app`
 
 async function fetchProfile(userId: string): Promise<AuthUser | null> {
   const { data } = await supabase
