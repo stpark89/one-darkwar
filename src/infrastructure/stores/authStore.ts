@@ -47,13 +47,13 @@ export const useAuthStore = create<AuthStore>((set) => ({
       set({ user: null, loading: false })
     }
 
-    // 세션 변경 감지 (탭 간 동기화)
+    // 세션 변경 감지 (탭 간 동기화, 비밀번호 변경 후 USER_UPDATED 포함)
     supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
         const profile = await fetchProfile(session.user.id)
-        set({ user: profile })
+        set({ user: profile, loading: false })
       } else {
-        set({ user: null })
+        set({ user: null, loading: false })
       }
     })
   },
