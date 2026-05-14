@@ -145,11 +145,11 @@ export const MembersPage = () => {
                 <td className="px-3 sm:px-4 py-2.5 sm:py-3">
                   {canEditRow(m) && (
                     <div className="flex gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => openEdit(m)} className="p-1.5 rounded hover:bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:text-[var(--color-brand)]">
+                      <button onClick={() => openEdit(m)} className="p-1.5 rounded hover:bg-[var(--color-bg-elevated)] text-(--color-brand) hover:brightness-125">
                         <Pencil className="w-3.5 h-3.5" />
                       </button>
                       {canEdit && (
-                        <button onClick={() => deleteMember(m.id)} className="p-1.5 rounded hover:bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:text-[var(--color-danger)]">
+                        <button onClick={() => deleteMember(m.id)} className="p-1.5 rounded hover:bg-[var(--color-bg-elevated)] text-(--color-danger) hover:brightness-125">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       )}
