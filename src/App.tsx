@@ -4,6 +4,7 @@ import { MembersPage } from '@/presentation/pages/MembersPage'
 import { WarPage } from '@/presentation/pages/WarPage'
 import { EventsPage } from '@/presentation/pages/EventsPage'
 import { ExcelPage } from '@/presentation/pages/ExcelPage'
+import { ContributionPage } from '@/presentation/pages/ContributionPage'
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
           <Route path="/members" element={<MembersPage />} />
           <Route path="/war" element={<WarPage />} />
           <Route path="/events" element={<EventsPage />} />
+          <Route path="/contribution" element={<ContributionPage />} />
           <Route path="/excel" element={<ExcelPage />} />
         </Route>
       </Routes>

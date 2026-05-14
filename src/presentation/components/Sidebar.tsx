@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
-import { Users, Swords, CalendarDays, FileSpreadsheet, ChevronUp, ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { Users, Swords, CalendarDays, FileSpreadsheet, BarChart3, ChevronUp, ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { LANGUAGES, type LangCode } from '@/i18n'
 import { cn } from '@/lib/utils'
@@ -22,6 +22,7 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
     { to: '/members', icon: Users, label: t('nav.members') },
     { to: '/war', icon: Swords, label: t('nav.war') },
     { to: '/events', icon: CalendarDays, label: t('nav.events') },
+    { to: '/contribution', icon: BarChart3, label: t('nav.contribution') },
     { to: '/excel', icon: FileSpreadsheet, label: t('nav.excel') },
   ]
 
