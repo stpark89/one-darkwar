@@ -65,6 +65,43 @@ export function exportEventsToExcel(events: EventSession[], attendance: EventAtt
   XLSX.writeFile(wb, 'one-darkwar-events.xlsx')
 }
 
+// ─── Sample download functions ────────────────────────────────────────────
+
+export function downloadMemberSample(headers: MemberExcelHeaders, sampleLabel: string) {
+  const ws = XLSX.utils.json_to_sheet([
+    { [headers.no]: 1, [headers.name]: `${sampleLabel} Player1`, [headers.uid]: 'uid001', [headers.cp]: '3.54G', [headers.house]: 'I8', [headers.note]: '' },
+    { [headers.no]: 2, [headers.name]: `${sampleLabel} Player2`, [headers.uid]: 'uid002', [headers.cp]: '2.8G',  [headers.house]: 'I7', [headers.note]: '' },
+  ])
+  const wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, ws, 'MEMBERS')
+  XLSX.writeFile(wb, 'sample-members.xlsx')
+}
+
+export function downloadWarSample(rounds: WarRound[], headers: WarExcelHeaders, sampleLabel: string) {
+  const roundHeaders = rounds.map(r => headers.round(r.sortOrder, r.date))
+  const row1: Record<string, string | number> = { [headers.no]: 1, [headers.name]: `${sampleLabel} Player1`, [headers.total]: 1 }
+  const row2: Record<string, string | number> = { [headers.no]: 2, [headers.name]: `${sampleLabel} Player2`, [headers.total]: 0 }
+  roundHeaders.forEach((h, i) => {
+    row1[h] = i === 0 ? 'A·CT' : ''
+    row2[h] = ''
+  })
+  const ws = XLSX.utils.json_to_sheet([row1, row2])
+  const wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, ws, 'BLACK GOLD')
+  XLSX.writeFile(wb, 'sample-war.xlsx')
+}
+
+export function downloadEventSample(events: EventSession[], headers: EventExcelHeaders, sampleLabel: string) {
+  const visible = events.filter(e => !e.hidden)
+  const header = [headers.no, headers.name, ...visible.map(e => e.name)]
+  const row1 = [1, `${sampleLabel} Player1`, ...visible.map((_, i) => i === 0 ? 'CT' : '')]
+  const row2 = [2, `${sampleLabel} Player2`, ...visible.map((_, i) => i === 1 ? 'DB' : '')]
+  const ws = XLSX.utils.aoa_to_sheet([header, row1, row2])
+  const wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, ws, 'EVENTS')
+  XLSX.writeFile(wb, 'sample-events.xlsx')
+}
+
 // ─── Import preview types ──────────────────────────────────────────────────
 
 export interface MemberChange {

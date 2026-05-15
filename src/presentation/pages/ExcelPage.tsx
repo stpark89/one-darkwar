@@ -6,6 +6,7 @@ import { useWarStore } from '@/infrastructure/stores/warStore'
 import { useEventStore } from '@/infrastructure/stores/eventStore'
 import {
   exportMembersToExcel, exportWarToExcel, exportEventsToExcel,
+  downloadMemberSample, downloadWarSample, downloadEventSample,
   parseImportPreview,
   type ImportPreview, type MemberChange, type EntryChange,
 } from '@/application/services/excelService'
@@ -155,6 +156,50 @@ export const ExcelPage = () => {
           <Upload className="w-4 h-4 text-[var(--color-brand)]" /> {t('excel.import_title')}
         </h2>
 
+        {/* 샘플 양식 다운로드 */}
+        {importState.step === 'idle' && (
+          <div className="mb-4 p-3 rounded-lg bg-[var(--color-bg-elevated)] border border-[var(--color-border-subtle)]">
+            <p className="text-xs font-semibold text-[var(--color-text-muted)] mb-2">{t('excel.sample_title')}</p>
+            <div className="flex flex-wrap gap-2">
+              {[
+                {
+                  label: t('excel.preview_type_members'),
+                  onClick: () => downloadMemberSample(
+                    { no: t('excel.col_no'), name: t('excel.col_name'), uid: t('excel.col_uid'), cp: t('excel.col_cp'), house: t('excel.col_house'), note: t('excel.col_note') },
+                    t('excel.sample_label'),
+                  ),
+                },
+                {
+                  label: t('excel.preview_type_war'),
+                  onClick: () => downloadWarSample(
+                    rounds,
+                    { no: t('excel.col_no'), name: t('excel.col_name'), total: t('excel.col_total'), round: (n, date) => t('excel.col_round', { n, date }) },
+                    t('excel.sample_label'),
+                  ),
+                },
+                {
+                  label: t('excel.preview_type_events'),
+                  onClick: () => downloadEventSample(
+                    events,
+                    { no: t('excel.col_no'), name: t('excel.col_name') },
+                    t('excel.sample_label'),
+                  ),
+                },
+              ].map(({ label, onClick }) => (
+                <button
+                  key={label}
+                  onClick={onClick}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-brand)] hover:text-[var(--color-brand)] transition-colors"
+                >
+                  <Download className="w-3 h-3" />
+                  {label}
+                </button>
+              ))}
+            </div>
+            <p className="text-[11px] text-[var(--color-text-muted)] mt-2">{t('excel.sample_hint')}</p>
+          </div>
+        )}
+
         {/* 드래그 앤 드롭 영역 */}
         {importState.step !== 'preview' && importState.step !== 'applying' && importState.step !== 'done' && (
           <div
@@ -294,9 +339,13 @@ export const ExcelPage = () => {
 
         {/* 형식 안내 */}
         {importState.step === 'idle' && (
-          <div className="mt-4 p-3 rounded-lg bg-[var(--color-bg-elevated)] border border-[var(--color-border-subtle)]">
-            <p className="text-xs text-[var(--color-text-muted)] font-semibold mb-1">{t('excel.format_hint_title')}</p>
-            <p className="text-xs text-[var(--color-text-muted)]">{t('excel.format_hint_body')}</p>
+          <div className="mt-4 p-3 rounded-lg bg-[var(--color-bg-elevated)] border border-[var(--color-border-subtle)] space-y-2">
+            <p className="text-xs font-semibold text-[var(--color-text-muted)]">{t('excel.format_hint_title')}</p>
+            <div className="space-y-1 text-[11px] text-[var(--color-text-muted)]">
+              <p>• <span className="font-semibold text-[var(--color-text-secondary)]">{t('excel.preview_type_members')}</span>: {t('excel.col_name')}, {t('excel.col_uid')}, {t('excel.col_cp')}, {t('excel.col_house')}, {t('excel.col_note')}</p>
+              <p>• <span className="font-semibold text-[var(--color-text-secondary)]">{t('excel.preview_type_war')}</span>: {t('excel.col_name')}, {t('excel.col_round_label')} → <code className="bg-[var(--color-bg-surface)] px-1 rounded">A·CT</code> / <code className="bg-[var(--color-bg-surface)] px-1 rounded">B·DB</code></p>
+              <p>• <span className="font-semibold text-[var(--color-text-secondary)]">{t('excel.preview_type_events')}</span>: {t('excel.col_name')}, {t('excel.col_event_label')} → <code className="bg-[var(--color-bg-surface)] px-1 rounded">CT</code> / <code className="bg-[var(--color-bg-surface)] px-1 rounded">DB</code></p>
+            </div>
           </div>
         )}
       </div>

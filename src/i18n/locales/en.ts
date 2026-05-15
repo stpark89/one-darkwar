@@ -229,6 +229,9 @@ export default {
     parsing: 'Analyzing file...',
     upload_new: 'Upload new file',
     unknown_member_warning: '⚠️ Members marked ⚠️ are not registered and will be skipped.',
+    sample_title: '📋 Download Sample Template',
+    sample_hint: 'Download a sample file, fill in your data, then upload it.',
+    sample_label: '(sample)',
   },
   bot: {
     name: 'GuildBot',

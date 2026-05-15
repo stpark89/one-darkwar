@@ -229,6 +229,9 @@ export default {
     parsing: 'Đang phân tích file...',
     upload_new: 'Tải file mới',
     unknown_member_warning: '⚠️ Thành viên có dấu ⚠️ chưa đăng ký và sẽ bị bỏ qua.',
+    sample_title: '📋 Tải mẫu file',
+    sample_hint: 'Tải file mẫu, điền dữ liệu theo đúng định dạng, rồi tải lên.',
+    sample_label: '(mẫu)',
   },
   bot: {
     name: 'GuildBot',

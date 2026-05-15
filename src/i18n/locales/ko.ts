@@ -229,6 +229,9 @@ export default {
     parsing: '파일 분석 중...',
     upload_new: '새 파일 업로드',
     unknown_member_warning: '⚠️ 미등록 멤버(⚠️ 표시)는 적용 시 건너뜁니다.',
+    sample_title: '📋 샘플 양식 다운로드',
+    sample_hint: '샘플 파일을 받아 형식에 맞게 데이터를 채운 뒤 업로드하세요.',
+    sample_label: '(예시)',
   },
   bot: {
     name: '길드봇',

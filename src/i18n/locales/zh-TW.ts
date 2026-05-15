@@ -229,6 +229,9 @@ export default {
     parsing: '分析檔案中...',
     upload_new: '上傳新檔案',
     unknown_member_warning: '⚠️ 標有 ⚠️ 的成員未登錄，套用時將略過。',
+    sample_title: '📋 下載範例檔案',
+    sample_hint: '下載範例檔案，依格式填入資料後再上傳。',
+    sample_label: '(範例)',
   },
   bot: {
     name: '公會機器人',
