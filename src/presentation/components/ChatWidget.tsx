@@ -4,8 +4,10 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { useMemberStore } from '@/infrastructure/stores/memberStore'
 import { useEventStore } from '@/infrastructure/stores/eventStore'
+import { useWarStore } from '@/infrastructure/stores/warStore'
 import type { Member } from '@/domain/entities/Member'
-import type { EventAttendance } from '@/domain/entities/Event'
+import type { EventAttendance, EventSession } from '@/domain/entities/Event'
+import type { WarRound, WarEntry } from '@/domain/entities/War'
 import { cn } from '@/lib/utils'
 import i18n from '@/i18n'
 
@@ -53,18 +55,19 @@ const getAttendCount = (memberId: string, attendance: EventAttendance[]) => {
   return Object.values(rec.records).filter((s) => s === 'CT' || s === 'DB').length
 }
 
-const COMMAND_KEYS = [
-  { cmdKey: 'bot.cmd_ranking', descKey: 'bot.cmd_ranking_desc' },
-  { cmdKey: 'bot.cmd_member', descKey: 'bot.cmd_member_desc' },
-  { cmdKey: 'bot.cmd_count', descKey: 'bot.cmd_count_desc' },
-  { cmdKey: 'bot.cmd_help', descKey: 'bot.cmd_help_desc' },
-] as const
+const COMMAND_KEYS: Array<{ cmdKey: string; descKey: string; adminOnly: boolean }> = [
+  { cmdKey: 'bot.cmd_ranking', descKey: 'bot.cmd_ranking_desc', adminOnly: false },
+  { cmdKey: 'bot.cmd_member', descKey: 'bot.cmd_member_desc', adminOnly: false },
+  { cmdKey: 'bot.cmd_count', descKey: 'bot.cmd_count_desc', adminOnly: false },
+  { cmdKey: 'bot.cmd_help', descKey: 'bot.cmd_help_desc', adminOnly: false },
+  { cmdKey: 'bot.cmd_analysis', descKey: 'bot.cmd_analysis_desc', adminOnly: true },
+]
 
 // 언어별 명령어 → 동일 기능의 영어 canonical 명령어로 매핑
 const CMD_ALIASES: Record<string, string> = {
-  '/랭킹': '/ranking', '/멤버': '/member', '/인원': '/count', '/도움말': '/help',
-  '/xephang': '/ranking', '/thanh-vien': '/member', '/tong': '/count',
-  '/排名': '/ranking', '/成員': '/member', '/人數': '/count', '/說明': '/help',
+  '/랭킹': '/ranking', '/멤버': '/member', '/인원': '/count', '/도움말': '/help', '/분석': '/analyze',
+  '/xephang': '/ranking', '/thanh-vien': '/member', '/tong': '/count', '/phantich': '/analyze',
+  '/排名': '/ranking', '/成員': '/member', '/人數': '/count', '/說明': '/help', '/分析': '/analyze',
 }
 
 function normalizeCmd(cmd: string): string {
@@ -72,24 +75,105 @@ function normalizeCmd(cmd: string): string {
   return CMD_ALIASES[lower] ?? CMD_ALIASES[cmd] ?? lower
 }
 
-function handleBotCommand(text: string, members: Member[], attendance: EventAttendance[]): string | null {
+function buildAnalysisReport(
+  members: Member[],
+  attendance: EventAttendance[],
+  rounds: WarRound[],
+  entries: WarEntry[],
+  events: EventSession[],
+): string {
+  const t = i18n.t.bind(i18n)
+  const totalMembers = members.length
+  if (totalMembers === 0 || (rounds.length === 0 && events.length === 0)) {
+    return t('bot.analysis_no_data')
+  }
+
+  const lines: string[] = [t('bot.analysis_title'), '']
+  const visibleEvents = events.filter((e) => !e.hidden)
+
+  // 1. 최근 전쟁 참가율 추이 (최대 3회차)
+  if (rounds.length >= 2) {
+    const last3 = rounds.slice(-3)
+    const rates = last3.map((r) => {
+      const count = entries.filter((e) => e.roundId === r.id).length
+      return Math.round((count / totalMembers) * 100)
+    })
+    const trend = rates[rates.length - 1] - rates[0]
+    const currentRate = rates[rates.length - 1]
+    if (trend <= -10) {
+      lines.push(t('bot.analysis_war_declining', { rate: currentRate, rounds: last3.length }))
+    } else if (trend >= 10) {
+      lines.push(t('bot.analysis_war_rising', { rate: currentRate, rounds: last3.length }))
+    }
+  }
+
+  // 2. 전쟁만 참가하고 이벤트 미참여 멤버
+  if (rounds.length > 0 && visibleEvents.length > 0) {
+    const warOnlyCount = members.filter((m) => {
+      const warCount = entries.filter((e) => e.memberId === m.id).length
+      const rec = attendance.find((a) => a.memberId === m.id)?.records ?? {}
+      const eventCount = Object.entries(rec).filter(
+        ([k, v]) => visibleEvents.some((e) => e.eventKey === k) && (v === 'CT' || v === 'DB'),
+      ).length
+      return warCount > 0 && eventCount === 0
+    }).length
+    if (warOnlyCount > 0) {
+      const pct = Math.round((warOnlyCount / totalMembers) * 100)
+      lines.push(t('bot.analysis_war_only', { count: warOnlyCount, pct }))
+    }
+  }
+
+  // 3. 전쟁/이벤트 모두 미참여 멤버
+  const zeroCount = members.filter((m) => {
+    const warCount = entries.filter((e) => e.memberId === m.id).length
+    const eventCount = Object.values(
+      attendance.find((a) => a.memberId === m.id)?.records ?? {},
+    ).filter((v) => v === 'CT' || v === 'DB').length
+    return warCount === 0 && eventCount === 0
+  }).length
+  if (zeroCount > 0) {
+    lines.push(t('bot.analysis_zero', { count: zeroCount }))
+  }
+
+  if (lines.length === 2) {
+    lines.push(t('bot.analysis_all_good'))
+  }
+
+  return lines.join('\n')
+}
+
+function handleBotCommand(
+  text: string,
+  members: Member[],
+  attendance: EventAttendance[],
+  warData: { rounds: WarRound[]; entries: WarEntry[] },
+  events: EventSession[],
+  isAdmin: boolean,
+): string | null {
   const t = i18n.t.bind(i18n)
   const [cmd, ...args] = text.trim().split(/\s+/)
-  // 현재 언어의 명령어도 aliases에 추가해 인식
   const localRanking = t('bot.cmd_ranking').toLowerCase()
   const localMember = t('bot.cmd_member').toLowerCase()
   const localCount = t('bot.cmd_count').toLowerCase()
   const localHelp = t('bot.cmd_help').toLowerCase()
+  const localAnalysis = t('bot.cmd_analysis').toLowerCase()
   const normalized = normalizeCmd(cmd) === cmd.toLowerCase()
     ? ([localRanking, '/ranking'].includes(cmd.toLowerCase()) ? '/ranking'
       : [localMember, '/member'].includes(cmd.toLowerCase()) ? '/member'
       : [localCount, '/count'].includes(cmd.toLowerCase()) ? '/count'
       : [localHelp, '/help'].includes(cmd.toLowerCase()) ? '/help'
+      : [localAnalysis, '/analyze'].includes(cmd.toLowerCase()) ? '/analyze'
       : normalizeCmd(cmd))
     : normalizeCmd(cmd)
 
+  if (normalized === '/analyze') {
+    if (!isAdmin) return t('bot.analysis_admin_only')
+    return buildAnalysisReport(members, attendance, warData.rounds, warData.entries, events)
+  }
+
   if (normalized === '/help') {
-    const rows = COMMAND_KEYS.map((c) => `${t(c.cmdKey).padEnd(10)} — ${t(c.descKey)}`)
+    const visibleKeys = COMMAND_KEYS.filter((c) => !c.adminOnly || isAdmin)
+    const rows = visibleKeys.map((c) => `${t(c.cmdKey).padEnd(10)} — ${t(c.descKey)}`)
     return [t('bot.help_title'), '', ...rows].join('\n')
   }
 
@@ -174,7 +258,9 @@ function renderContent(content: string, myName: string, isMine: boolean) {
 export const ChatWidget = () => {
   const { user, isGuest } = useAuthStore()
   const { members, loadMembers } = useMemberStore()
-  const { attendance, loadData: loadEvents } = useEventStore()
+  const { attendance, events, loadData: loadEvents } = useEventStore()
+  const { rounds, entries } = useWarStore()
+  const isAdmin = user?.role === 'ROLE_ADMIN'
   const t = i18n.t.bind(i18n)
   const [open, setOpen] = useState(false)
   const [tab, setTab] = useState<'chat' | 'online'>('chat')
@@ -292,7 +378,7 @@ export const ChatWidget = () => {
     setInput('')
     setMentionSearch(null)
 
-    const botReply = handleBotCommand(text, members, attendance)
+    const botReply = handleBotCommand(text, members, attendance, { rounds, entries }, events, isAdmin)
     if (botReply !== null) {
       setMessages((prev) => [...prev, makeBotMessage(botReply)])
       return
@@ -490,7 +576,7 @@ export const ChatWidget = () => {
                       <span className="text-[10px] font-semibold text-[var(--color-brand)]">{t('bot.hint_label')}</span>
                     </div>
                     <div className="grid grid-cols-2 gap-px bg-[var(--color-border-subtle)]">
-                      {COMMAND_KEYS.map((c) => (
+                      {COMMAND_KEYS.filter((c) => !c.adminOnly).map((c) => (
                         <button
                           key={c.cmdKey}
                           onClick={() => insertCommand(t(c.cmdKey))}
@@ -501,6 +587,25 @@ export const ChatWidget = () => {
                         </button>
                       ))}
                     </div>
+                    {isAdmin && (
+                      <>
+                        <div className="px-3 py-1.5 border-t border-[var(--color-border-subtle)] bg-[var(--color-bg-base)]">
+                          <span className="text-[9px] font-semibold text-[var(--color-brand)] uppercase tracking-wider">Admin</span>
+                        </div>
+                        <div className="grid grid-cols-1 gap-px bg-[var(--color-border-subtle)]">
+                          {COMMAND_KEYS.filter((c) => c.adminOnly).map((c) => (
+                            <button
+                              key={c.cmdKey}
+                              onClick={() => insertCommand(t(c.cmdKey))}
+                              className="flex items-center gap-2 px-3 py-2.5 bg-[var(--color-brand)]/5 hover:bg-[var(--color-brand)]/15 transition-colors text-left"
+                            >
+                              <span className="text-[11px] font-semibold text-[var(--color-brand)]">{t(c.cmdKey)}</span>
+                              <span className="text-[10px] text-[var(--color-text-muted)] leading-tight">{t(c.descKey)}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    )}
                   </div>
                 )}
 
