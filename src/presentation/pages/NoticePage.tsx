@@ -7,7 +7,7 @@ import { Button } from '@/presentation/components/ui/button'
 import { Input } from '@/presentation/components/ui/input'
 import { cn } from '@/lib/utils'
 
-function timeAgo(dateStr: string, t: (k: string, o?: object) => string): string {
+function timeAgo(dateStr: string, t: (k: string, o?: Record<string, unknown>) => string): string {
   const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000)
   if (diff < 60) return t('notice.just_now')
   if (diff < 3600) return t('notice.minutes_ago', { n: Math.floor(diff / 60) })
