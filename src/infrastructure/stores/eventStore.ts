@@ -29,34 +29,38 @@ export const useEventStore = create<EventStore>((set, get) => ({
   showHidden: false,
 
   loadData: async () => {
+    if (get().loading) return
     set({ loading: true })
+    try {
+      const [{ data: eventRows }, { data: memberRows }, { data: attRows }] = await Promise.all([
+        supabase.from('events').select('*').order('created_at'),
+        supabase.from('members').select('id, in_game_name'),
+        supabase.from('attendance').select('*'),
+      ])
 
-    const [{ data: eventRows }, { data: memberRows }, { data: attRows }] = await Promise.all([
-      supabase.from('events').select('*').order('created_at'),
-      supabase.from('members').select('id, in_game_name'),
-      supabase.from('attendance').select('*'),
-    ])
+      const events: EventSession[] = (eventRows ?? []).map((r) => ({
+        id: r.id,
+        eventKey: r.id,
+        name: r.name,
+        date: r.event_date ?? '',
+        hidden: r.hidden ?? false,
+      }))
 
-    const events: EventSession[] = (eventRows ?? []).map((r) => ({
-      id: r.id,
-      eventKey: r.id,
-      name: r.name,
-      date: r.event_date ?? '',
-      hidden: r.hidden ?? false,
-    }))
+      const attendance: EventAttendance[] = (memberRows ?? []).map((m) => ({
+        memberId: m.id,
+        inGameName: m.in_game_name,
+        records: Object.fromEntries(
+          events.map((e) => {
+            const row = (attRows ?? []).find((a) => a.member_id === m.id && a.event_id === e.id)
+            return [e.eventKey, (row?.status ?? '') as AttendanceStatus]
+          }),
+        ),
+      }))
 
-    const attendance: EventAttendance[] = (memberRows ?? []).map((m) => ({
-      memberId: m.id,
-      inGameName: m.in_game_name,
-      records: Object.fromEntries(
-        events.map((e) => {
-          const row = (attRows ?? []).find((a) => a.member_id === m.id && a.event_id === e.id)
-          return [e.eventKey, (row?.status ?? '') as AttendanceStatus]
-        }),
-      ),
-    }))
-
-    set({ events, attendance, loading: false })
+      set({ events, attendance })
+    } finally {
+      set({ loading: false })
+    }
   },
 
   addEvent: async (name, date) => {

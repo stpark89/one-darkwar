@@ -52,43 +52,47 @@ export const useWarStore = create<WarStore>((set, get) => ({
   filterTeam: '',
 
   loadData: async () => {
+    if (get().loading) return
     set({ loading: true })
+    try {
+      const [{ data: seasonRows }, { data: memberRows }] = await Promise.all([
+        supabase.from('seasons').select('*').order('created_at'),
+        supabase.from('members').select('id, in_game_name').order('created_at'),
+      ])
 
-    const [{ data: seasonRows }, { data: memberRows }] = await Promise.all([
-      supabase.from('seasons').select('*').order('created_at'),
-      supabase.from('members').select('id, in_game_name').order('created_at'),
-    ])
+      const seasons: Season[] = (seasonRows ?? []).map(r => ({
+        id: r.id, name: r.name, isActive: r.is_active,
+      }))
+      const activeSeason = seasons.find(s => s.isActive) ?? seasons[seasons.length - 1] ?? null
+      const members = (memberRows ?? []).map(r => ({ id: r.id, inGameName: r.in_game_name }))
 
-    const seasons: Season[] = (seasonRows ?? []).map(r => ({
-      id: r.id, name: r.name, isActive: r.is_active,
-    }))
-    const activeSeason = seasons.find(s => s.isActive) ?? seasons[seasons.length - 1] ?? null
-    const members = (memberRows ?? []).map(r => ({ id: r.id, inGameName: r.in_game_name }))
+      if (!activeSeason) {
+        set({ seasons, activeSeason: null, rounds: [], entries: [], members })
+        return
+      }
 
-    if (!activeSeason) {
-      set({ seasons, activeSeason: null, rounds: [], entries: [], members, loading: false })
-      return
+      const { data: roundRows } = await supabase
+        .from('war_rounds').select('*')
+        .eq('season_id', activeSeason.id).order('sort_order')
+
+      const rounds: WarRound[] = (roundRows ?? []).map(r => ({
+        id: r.id, seasonId: r.season_id, sortOrder: r.sort_order, date: r.round_date ?? '',
+      }))
+
+      const roundIds = rounds.map(r => r.id)
+      const { data: entryRows } = roundIds.length > 0
+        ? await supabase.from('war_entries').select('*').in('round_id', roundIds)
+        : { data: [] }
+
+      const entries: WarEntry[] = (entryRows ?? []).map(r => ({
+        roundId: r.round_id, memberId: r.member_id,
+        team: r.team as WarTeam, role: r.role as WarRole,
+      }))
+
+      set({ seasons, activeSeason, rounds, entries, members })
+    } finally {
+      set({ loading: false })
     }
-
-    const { data: roundRows } = await supabase
-      .from('war_rounds').select('*')
-      .eq('season_id', activeSeason.id).order('sort_order')
-
-    const rounds: WarRound[] = (roundRows ?? []).map(r => ({
-      id: r.id, seasonId: r.season_id, sortOrder: r.sort_order, date: r.round_date ?? '',
-    }))
-
-    const roundIds = rounds.map(r => r.id)
-    const { data: entryRows } = roundIds.length > 0
-      ? await supabase.from('war_entries').select('*').in('round_id', roundIds)
-      : { data: [] }
-
-    const entries: WarEntry[] = (entryRows ?? []).map(r => ({
-      roundId: r.round_id, memberId: r.member_id,
-      team: r.team as WarTeam, role: r.role as WarRole,
-    }))
-
-    set({ seasons, activeSeason, rounds, entries, members, loading: false })
   },
 
   addRound: async (date) => {

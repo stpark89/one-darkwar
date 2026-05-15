@@ -43,9 +43,14 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
   searchQuery: '',
 
   loadMembers: async () => {
+    if (get().loading) return
     set({ loading: true })
-    const { data } = await supabase.from('members').select('*')
-    set({ members: (data ?? []).map(toMember).sort(sortBycp), loading: false })
+    try {
+      const { data } = await supabase.from('members').select('*')
+      set({ members: (data ?? []).map(toMember).sort(sortBycp) })
+    } finally {
+      set({ loading: false })
+    }
   },
 
   setMembers: (members) => set({ members: [...members].sort(sortBycp) }),

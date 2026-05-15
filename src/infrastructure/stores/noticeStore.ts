@@ -39,13 +39,17 @@ export const useNoticeStore = create<NoticeStore>((set, get) => ({
 
   loadNotices: async () => {
     set({ loading: true })
-    const { data, error } = await supabase
-      .from('notices')
-      .select('*')
-      .order('pinned', { ascending: false })
-      .order('created_at', { ascending: false })
-    if (error) console.error('[noticeStore] loadNotices error:', error)
-    set({ notices: (data ?? []).map(toNotice), loading: false })
+    try {
+      const { data, error } = await supabase
+        .from('notices')
+        .select('*')
+        .order('pinned', { ascending: false })
+        .order('created_at', { ascending: false })
+      if (error) console.error('[noticeStore] loadNotices error:', error)
+      set({ notices: (data ?? []).map(toNotice) })
+    } finally {
+      set({ loading: false })
+    }
   },
 
   addNotice: async (title, content, authorId, authorName) => {
