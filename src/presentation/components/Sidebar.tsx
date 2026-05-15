@@ -57,13 +57,19 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
     >
       {/* 로고 */}
       <div className={cn('flex items-center border-b border-[var(--color-border-subtle)]', collapsed ? 'md:justify-center px-5 md:px-0 py-5' : 'gap-3 px-5 py-5')}>
-        <div className="w-8 h-8 rounded-lg bg-[var(--color-brand)] flex items-center justify-center flex-shrink-0">
-          <Swords className="w-4 h-4 text-white" />
-        </div>
-        <div className={cn('transition-all', collapsed && 'md:hidden')}>
-          <p className="text-xs font-bold text-[var(--color-text-primary)] leading-tight">ONE</p>
-          <p className="text-[10px] text-[var(--color-text-muted)]">DARK WAR</p>
-        </div>
+        <NavLink
+          to="/"
+          onClick={onCloseMobile}
+          className={cn('flex items-center gap-3 flex-1 min-w-0', collapsed && 'md:justify-center')}
+        >
+          <div className="w-8 h-8 rounded-lg bg-[var(--color-brand)] flex items-center justify-center flex-shrink-0">
+            <Swords className="w-4 h-4 text-white" />
+          </div>
+          <div className={cn('transition-all', collapsed && 'md:hidden')}>
+            <p className="text-xs font-bold text-[var(--color-text-primary)] leading-tight">ONE</p>
+            <p className="text-[10px] text-[var(--color-text-muted)]">DARK WAR</p>
+          </div>
+        </NavLink>
         {/* 모바일 닫기 버튼 */}
         <button
           onClick={onCloseMobile}

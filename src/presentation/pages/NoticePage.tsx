@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
-import { Plus, Pin, PinOff, Pencil, Trash2, Loader2, X, ChevronDown, ChevronUp, Megaphone } from 'lucide-react'
+import { Plus, Pin, PinOff, Pencil, Trash2, Loader2, X, ChevronDown, ChevronUp, Megaphone, Languages } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useNoticeStore } from '@/infrastructure/stores/noticeStore'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { Button } from '@/presentation/components/ui/button'
 import { Input } from '@/presentation/components/ui/input'
 import { cn } from '@/lib/utils'
+import { translateText } from '@/lib/translate'
 
 function timeAgo(dateStr: string, t: (k: string, o?: Record<string, unknown>) => string): string {
   const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000)
@@ -16,12 +17,14 @@ function timeAgo(dateStr: string, t: (k: string, o?: Record<string, unknown>) =>
 }
 
 export const NoticePage = () => {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { user } = useAuthStore()
   const { notices, loading, loadNotices, addNotice, updateNotice, deleteNotice, togglePin } = useNoticeStore()
   const isAdmin = user?.role === 'ROLE_ADMIN'
 
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [translatingId, setTranslatingId] = useState<string | null>(null)
+  const [translations, setTranslations] = useState<Map<string, string>>(new Map())
   const [showModal, setShowModal] = useState(false)
   const [editTarget, setEditTarget] = useState<{ id: string; title: string; content: string } | null>(null)
   const [formTitle, setFormTitle] = useState('')
@@ -75,6 +78,22 @@ export const NoticePage = () => {
     setTogglingId(id)
     await togglePin(id)
     setTogglingId(null)
+  }
+
+  const handleTranslate = async (id: string, content: string) => {
+    if (translations.has(id)) {
+      setTranslations((prev) => { const m = new Map(prev); m.delete(id); return m })
+      return
+    }
+    setTranslatingId(id)
+    try {
+      const result = await translateText(content, i18n.language)
+      setTranslations((prev) => new Map(prev).set(id, result))
+    } catch {
+      // silent
+    } finally {
+      setTranslatingId(null)
+    }
   }
 
   return (
@@ -196,6 +215,28 @@ export const NoticePage = () => {
                     <p className="text-sm text-[var(--color-text-secondary)] whitespace-pre-wrap leading-relaxed pt-3">
                       {notice.content}
                     </p>
+                    {translations.has(notice.id) && (
+                      <div className="mt-3 pt-3 border-t border-[var(--color-border-subtle)]/60">
+                        <p className="text-[10px] text-[var(--color-text-muted)] mb-1.5 flex items-center gap-1">
+                          <Languages className="w-3 h-3" /> {t('chat.translate_btn')}
+                        </p>
+                        <p className="text-sm text-[var(--color-text-secondary)] whitespace-pre-wrap leading-relaxed">
+                          {translations.get(notice.id)}
+                        </p>
+                      </div>
+                    )}
+                    <div className="mt-3 flex justify-end">
+                      <button
+                        onClick={() => handleTranslate(notice.id, notice.content)}
+                        disabled={translatingId === notice.id}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-[var(--color-text-muted)] hover:bg-[var(--color-bg-elevated)] hover:text-[var(--color-text-primary)] transition-colors disabled:opacity-50"
+                      >
+                        {translatingId === notice.id
+                          ? <Loader2 className="w-3 h-3 animate-spin" />
+                          : <Languages className="w-3 h-3" />}
+                        {translations.has(notice.id) ? t('common.close') : t('chat.translate_btn')}
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
