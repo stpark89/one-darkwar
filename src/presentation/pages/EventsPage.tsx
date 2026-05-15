@@ -129,32 +129,32 @@ export const EventsPage = () => {
                   {t('events.col_attended')}<SortIcon dir={sortKey === 'total' ? sortDir : null} />
                 </th>
                 {visibleEvents.map((e) => (
-                  <th key={e.eventKey} className={cn('px-1 sm:px-2 py-2.5 sm:py-3 text-center text-[var(--color-text-muted)] whitespace-nowrap min-w-[42px] sm:min-w-[64px] group', e.hidden && 'opacity-40')}>
-                    <div className="hidden sm:block text-[10px] font-normal">{e.date?.slice(5) ?? ''}</div>
-                    <div className="font-semibold flex items-center justify-center gap-0.5 sm:gap-1">
+                  <th key={e.eventKey} className={cn('px-1 sm:px-2 py-2 sm:py-2.5 text-center text-[var(--color-text-muted)] whitespace-nowrap min-w-[42px] sm:min-w-[60px] group', e.hidden && 'opacity-40')}>
+                    <div className="hidden sm:block text-[10px] font-normal leading-none mb-0.5">{e.date?.slice(5) ?? ''}</div>
+                    <div className="font-semibold text-[10px] sm:text-[11px] flex items-center justify-center gap-0.5">
                       <span className="sm:hidden">{e.name.length > 4 ? e.name.slice(0, 4) + '…' : e.name}</span>
                       <span className="hidden sm:inline">{e.name.length > 8 ? e.name.slice(0, 8) + '…' : e.name}</span>
                     </div>
                     {canEdit && (
-                      <div className="hidden sm:flex items-center justify-center gap-0.5 mt-1">
+                      <div className="hidden sm:flex items-center justify-center gap-0.5 mt-1 h-5 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={() => toggleHidden(e.id)}
                           className={cn(
-                            'p-1.5 rounded transition-all',
+                            'p-1 rounded transition-colors',
                             e.hidden
-                              ? 'text-[var(--color-brand)] bg-[var(--color-brand)]/10 hover:bg-[var(--color-brand)]/20 opacity-100'
-                              : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-elevated)] opacity-60 hover:opacity-100',
+                              ? 'text-[var(--color-brand)] hover:bg-[var(--color-brand)]/20'
+                              : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-elevated)]',
                           )}
                           title={e.hidden ? '숨김 해제' : '숨기기'}
                         >
-                          {e.hidden ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                          {e.hidden ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
                         </button>
                         <button
                           onClick={() => setDeleteConfirmId(e.id)}
-                          className="p-1.5 rounded text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 opacity-60 hover:opacity-100 transition-all"
+                          className="p-1 rounded text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 transition-colors"
                           title="삭제"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Trash2 className="w-3 h-3" />
                         </button>
                       </div>
                     )}

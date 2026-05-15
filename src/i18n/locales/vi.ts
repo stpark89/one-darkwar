@@ -1,5 +1,6 @@
 export default {
   nav: {
+    home: 'Trang chủ',
     members: 'Quản lý thành viên',
     war: 'Tham chiến',
     events: 'Điểm danh sự kiện',
@@ -223,6 +224,24 @@ export default {
     member_note: 'Ghi chú',
     count_result: '👥 Tổng thành viên: {{count}}',
     unknown_cmd: '❓ Lệnh không hợp lệ. Thử /help',
+  },
+  home: {
+    title: 'Bảng điều khiển',
+    greeting: 'Chào mừng, {{name}}',
+    stat_members: 'Tổng thành viên',
+    stat_online: 'Đang online',
+    stat_war_rate: 'Tỷ lệ tham chiến',
+    stat_event_rate: 'Tỷ lệ điểm danh',
+    top5_title: 'Top 5 đóng góp',
+    top5_war: '{{n}} lần chiến',
+    top5_event: '{{n}} sự kiện',
+    recent_events_title: 'Sự kiện gần đây',
+    event_attendance_rate: '{{pct}}% tham dự',
+    event_no_data: 'Chưa có sự kiện',
+    top5_no_data: 'Chưa có dữ liệu',
+    pending_banner: '{{count}} đơn đăng ký đang chờ',
+    pending_go: 'Xem xét',
+    war_rounds: 'Tổng {{n}} đợt',
   },
   chat: {
     tab_chat: 'Chat',

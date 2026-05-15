@@ -1,5 +1,6 @@
 export default {
   nav: {
+    home: 'Home',
     members: 'Members',
     war: 'War Roster',
     events: 'Event Attendance',
@@ -223,6 +224,24 @@ export default {
     member_note: 'Note',
     count_result: '👥 Total members: {{count}}',
     unknown_cmd: '❓ Unknown command. Try /help',
+  },
+  home: {
+    title: 'Guild Dashboard',
+    greeting: 'Welcome, {{name}}',
+    stat_members: 'Total Members',
+    stat_online: 'Online Now',
+    stat_war_rate: 'War Participation',
+    stat_event_rate: 'Event Attendance',
+    top5_title: 'Top 5 Contributors',
+    top5_war: '{{n}} wars',
+    top5_event: '{{n}} events',
+    recent_events_title: 'Recent Events',
+    event_attendance_rate: '{{pct}}% attended',
+    event_no_data: 'No events yet',
+    top5_no_data: 'No war/event data yet',
+    pending_banner: '{{count}} pending join request(s)',
+    pending_go: 'Review',
+    war_rounds: '{{n}} rounds total',
   },
   chat: {
     tab_chat: 'Chat',

@@ -1,5 +1,6 @@
 export default {
   nav: {
+    home: '首頁',
     members: '成員管理',
     war: '戰爭出陣',
     events: '活動出席',
@@ -223,6 +224,24 @@ export default {
     member_note: '備註',
     count_result: '👥 全體成員：{{count}} 人',
     unknown_cmd: '❓ 未知指令，請輸入 /說明',
+  },
+  home: {
+    title: '公會儀表板',
+    greeting: '歡迎，{{name}}',
+    stat_members: '全體成員',
+    stat_online: '目前在線',
+    stat_war_rate: '戰爭參加率',
+    stat_event_rate: '活動出席率',
+    top5_title: '貢獻度 TOP 5',
+    top5_war: '戰爭 {{n}} 次',
+    top5_event: '活動 {{n}} 次',
+    recent_events_title: '最近活動',
+    event_attendance_rate: '出席率 {{pct}}%',
+    event_no_data: '尚無活動記錄',
+    top5_no_data: '尚無戰爭/活動資料',
+    pending_banner: '{{count}} 件加入申請待審核',
+    pending_go: '前往審核',
+    war_rounds: '共 {{n}} 回',
   },
   chat: {
     tab_chat: '聊天',

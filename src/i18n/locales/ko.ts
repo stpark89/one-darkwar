@@ -1,5 +1,6 @@
 export default {
   nav: {
+    home: '홈',
     members: '멤버 관리',
     war: '전쟁 참가',
     events: '이벤트 출석',
@@ -223,6 +224,24 @@ export default {
     member_note: '메모',
     count_result: '👥 전체 멤버: {{count}}명',
     unknown_cmd: '❓ 알 수 없는 명령어입니다. /도움말 을 입력해보세요.',
+  },
+  home: {
+    title: '길드 대시보드',
+    greeting: '{{name}} 님, 환영합니다',
+    stat_members: '전체 멤버',
+    stat_online: '현재 온라인',
+    stat_war_rate: '전쟁 참가율',
+    stat_event_rate: '이벤트 출석률',
+    top5_title: '기여도 TOP 5',
+    top5_war: '전쟁 {{n}}회',
+    top5_event: '이벤트 {{n}}회',
+    recent_events_title: '최근 이벤트',
+    event_attendance_rate: '참석률 {{pct}}%',
+    event_no_data: '이벤트 기록 없음',
+    top5_no_data: '전쟁/이벤트 데이터가 없습니다',
+    pending_banner: '{{count}}명의 가입 신청이 대기 중입니다',
+    pending_go: '검토하기',
+    war_rounds: '총 {{n}}회차 진행',
   },
   chat: {
     tab_chat: '채팅',

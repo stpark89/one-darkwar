@@ -1,29 +1,32 @@
-import { useEffect } from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { Layout } from '@/presentation/components/Layout'
-import { MembersPage } from '@/presentation/pages/MembersPage'
-import { WarPage } from '@/presentation/pages/WarPage'
-import { EventsPage } from '@/presentation/pages/EventsPage'
-import { ExcelPage } from '@/presentation/pages/ExcelPage'
-import { ContributionPage } from '@/presentation/pages/ContributionPage'
-import { MemberApprovalPage } from '@/presentation/pages/MemberApprovalPage'
-import { SignInPage } from '@/presentation/pages/SignInPage'
-import { SignUpPage } from '@/presentation/pages/SignUpPage'
-import { ChangePasswordPage } from '@/presentation/pages/ChangePasswordPage'
-import { useAuthStore } from '@/infrastructure/stores/authStore'
+import { useEffect } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Layout } from "@/presentation/components/Layout";
+import { HomePage } from "@/presentation/pages/HomePage";
+import { MembersPage } from "@/presentation/pages/MembersPage";
+import { WarPage } from "@/presentation/pages/WarPage";
+import { EventsPage } from "@/presentation/pages/EventsPage";
+import { ExcelPage } from "@/presentation/pages/ExcelPage";
+import { ContributionPage } from "@/presentation/pages/ContributionPage";
+import { MemberApprovalPage } from "@/presentation/pages/MemberApprovalPage";
+import { SignInPage } from "@/presentation/pages/SignInPage";
+import { SignUpPage } from "@/presentation/pages/SignUpPage";
+import { ChangePasswordPage } from "@/presentation/pages/ChangePasswordPage";
+import { useAuthStore } from "@/infrastructure/stores/authStore";
 
-const HEARTBEAT_MS = 2 * 60 * 1000 // 2분마다 갱신
+const HEARTBEAT_MS = 2 * 60 * 1000; // 2분마다 갱신
 
 function App() {
-  const { loadSession, updateLastSeen } = useAuthStore()
-
-  useEffect(() => { loadSession() }, [loadSession])
+  const { loadSession, updateLastSeen } = useAuthStore();
 
   useEffect(() => {
-    updateLastSeen()
-    const id = setInterval(updateLastSeen, HEARTBEAT_MS)
-    return () => clearInterval(id)
-  }, [updateLastSeen])
+    loadSession();
+  }, [loadSession]);
+
+  useEffect(() => {
+    updateLastSeen();
+    const id = setInterval(updateLastSeen, HEARTBEAT_MS);
+    return () => clearInterval(id);
+  }, [updateLastSeen]);
 
   return (
     <BrowserRouter>
@@ -31,7 +34,8 @@ function App() {
         <Route path="/sign-in" element={<SignInPage />} />
         <Route path="/sign-up" element={<SignUpPage />} />
         <Route element={<Layout />}>
-          <Route index element={<Navigate to="/members" replace />} />
+          <Route index element={<HomePage />} />
+          <Route path="/home" element={<HomePage />} />
           <Route path="/members" element={<MembersPage />} />
           <Route path="/war" element={<WarPage />} />
           <Route path="/events" element={<EventsPage />} />
@@ -42,7 +46,7 @@ function App() {
         </Route>
       </Routes>
     </BrowserRouter>
-  )
+  );
 }
 
-export default App
+export default App;

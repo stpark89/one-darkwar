@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { Users, Swords, CalendarDays, FileSpreadsheet, BarChart3, ChevronUp, ChevronLeft, ChevronRight, X, LogOut, ShieldCheck, User, KeyRound, UserX, UserCheck } from 'lucide-react'
+import { Home, Users, Swords, CalendarDays, FileSpreadsheet, BarChart3, ChevronUp, ChevronLeft, ChevronRight, X, LogOut, ShieldCheck, User, KeyRound, UserX, UserCheck } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { LANGUAGES, type LangCode } from '@/i18n'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
@@ -33,10 +33,11 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
   const currentLang = LANGUAGES.find((l) => l.code === i18n.language) ?? LANGUAGES[0]
 
   const NAV_GENERAL = [
-    { to: '/members', icon: Users, label: t('nav.members') },
-    { to: '/war', icon: Swords, label: t('nav.war') },
-    { to: '/events', icon: CalendarDays, label: t('nav.events') },
-    { to: '/excel', icon: FileSpreadsheet, label: t('nav.excel') },
+    { to: '/', icon: Home, label: t('nav.home'), end: true },
+    { to: '/members', icon: Users, label: t('nav.members'), end: false },
+    { to: '/war', icon: Swords, label: t('nav.war'), end: false },
+    { to: '/events', icon: CalendarDays, label: t('nav.events'), end: false },
+    { to: '/excel', icon: FileSpreadsheet, label: t('nav.excel'), end: false },
   ]
 
   const NAV_ADMIN = [
@@ -74,10 +75,11 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
       {/* 네비게이션 */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         {/* 일반 메뉴 */}
-        {NAV_GENERAL.map(({ to, icon: Icon, label }) => (
+        {NAV_GENERAL.map(({ to, icon: Icon, label, end }) => (
           <NavLink
             key={to}
             to={to}
+            end={end}
             title={collapsed ? label : undefined}
             onClick={onCloseMobile}
             className={({ isActive }) =>
