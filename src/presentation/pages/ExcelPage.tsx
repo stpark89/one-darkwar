@@ -51,9 +51,32 @@ export const ExcelPage = () => {
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {[
-            { label: t('excel.export_members'), desc: `${members.length}${t('common.count_people')}`, onClick: () => exportMembersToExcel(members), color: 'text-[var(--color-success)]' },
-            { label: t('excel.export_war'), desc: `${rounds.length}회차`, onClick: () => exportWarToExcel(getMemberRows(), rounds), color: 'text-[var(--color-warning)]' },
-            { label: t('excel.export_events'), desc: `${events.length}`, onClick: () => exportEventsToExcel(events, attendance), color: 'text-[var(--color-brand)]' },
+            {
+              label: t('excel.export_members'),
+              desc: `${members.length}${t('common.count_people')}`,
+              onClick: () => exportMembersToExcel(members, {
+                no: t('excel.col_no'), name: t('excel.col_name'), uid: t('excel.col_uid'),
+                cp: t('excel.col_cp'), house: t('excel.col_house'), note: t('excel.col_note'),
+              }),
+              color: 'text-[var(--color-success)]',
+            },
+            {
+              label: t('excel.export_war'),
+              desc: `${rounds.length}${t('excel.col_round_count')}`,
+              onClick: () => exportWarToExcel(getMemberRows(), rounds, {
+                no: t('excel.col_no'), name: t('excel.col_name'), total: t('excel.col_total'),
+                round: (n, date) => t('excel.col_round', { n, date }),
+              }),
+              color: 'text-[var(--color-warning)]',
+            },
+            {
+              label: t('excel.export_events'),
+              desc: `${events.length}${t('excel.col_event_count')}`,
+              onClick: () => exportEventsToExcel(events, attendance, {
+                no: t('excel.col_no'), name: t('excel.col_name'),
+              }),
+              color: 'text-[var(--color-brand)]',
+            },
           ].map(({ label, desc, onClick, color }) => (
             <button
               key={label}

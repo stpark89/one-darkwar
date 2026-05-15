@@ -38,11 +38,11 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
     { to: '/members', icon: Users, label: t('nav.members'), end: false },
     { to: '/war', icon: Swords, label: t('nav.war'), end: false },
     { to: '/events', icon: CalendarDays, label: t('nav.events'), end: false },
-    { to: '/excel', icon: FileSpreadsheet, label: t('nav.excel'), end: false },
   ]
 
   const NAV_ADMIN = [
     { to: '/contribution', icon: BarChart3, label: t('nav.contribution'), badge: 0 },
+    { to: '/excel', icon: FileSpreadsheet, label: t('nav.excel'), badge: 0 },
     { to: '/approval', icon: UserCheck, label: t('nav.join_management'), badge: pendingCount },
   ]
 
