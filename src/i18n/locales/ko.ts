@@ -230,10 +230,12 @@ export default {
     analysis_no_data: '분석할 데이터가 부족합니다.',
     analysis_war_declining: '⚠️ 최근 {{rounds}}회 전쟁 참가율 하락 중 (현재 {{rate}}%)\n   → 독려 공지를 올려보세요.',
     analysis_war_rising: '✅ 최근 {{rounds}}회 전쟁 참가율 상승 중 (현재 {{rate}}%)\n   → 좋은 흐름입니다!',
+    analysis_dropped: '🔴 이전엔 참가했지만 최근 3회 연속 불참 {{count}}명\n   → 직접 확인이 필요합니다.',
     analysis_war_only: '💡 전쟁만 참가, 이벤트 미참여 멤버 {{count}}명 ({{pct}}%)\n   → 이벤트 안내가 필요할 수 있습니다.',
     analysis_zero: '👥 전쟁/이벤트 모두 미참여 멤버 {{count}}명\n   → 활동 여부를 확인해보세요.',
     analysis_all_good: '✅ 특별한 이상 징후 없음. 길드 상태 양호!',
     analysis_admin_only: '🔒 관리자 전용 명령어입니다.',
+    analysis_more: '  (외 {{n}}명 더)',
   },
   home: {
     title: '길드 대시보드',

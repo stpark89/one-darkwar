@@ -230,10 +230,12 @@ export default {
     analysis_no_data: '資料不足，無法分析。',
     analysis_war_declining: '⚠️ 最近 {{rounds}} 回戰爭參加率下滑（目前 {{rate}}%）\n   → 請發布鼓勵公告。',
     analysis_war_rising: '✅ 最近 {{rounds}} 回戰爭參加率上升（目前 {{rate}}%）\n   → 趨勢良好！',
+    analysis_dropped: '🔴 {{count}} 名成員曾經參加但最近 3 回連續缺席\n   → 需要直接確認。',
     analysis_war_only: '💡 有 {{count}} 名成員（{{pct}}%）只參加戰爭，從未參加活動。\n   → 可能需要活動宣傳。',
     analysis_zero: '👥 有 {{count}} 名成員完全未參加戰爭與活動。\n   → 請確認其活動狀況。',
     analysis_all_good: '✅ 未發現異常，公會狀態良好！',
     analysis_admin_only: '🔒 此為管理員專用指令。',
+    analysis_more: '  （另外 {{n}} 人）',
   },
   home: {
     title: '公會儀表板',

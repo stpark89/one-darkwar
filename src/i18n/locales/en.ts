@@ -230,10 +230,12 @@ export default {
     analysis_no_data: 'Not enough data to analyze.',
     analysis_war_declining: '⚠️ War participation declining over last {{rounds}} rounds (now {{rate}}%)\n   → Consider posting a motivation notice.',
     analysis_war_rising: '✅ War participation rising over last {{rounds}} rounds (now {{rate}}%)\n   → Great momentum!',
+    analysis_dropped: '🔴 {{count}} member(s) used to participate but missed last 3 rounds\n   → Direct follow-up needed.',
     analysis_war_only: '💡 {{count}} member(s) ({{pct}}%) join wars but never attend events.\n   → Event promotion may be needed.',
     analysis_zero: '👥 {{count}} member(s) have zero participation in wars & events.\n   → Check on their activity.',
     analysis_all_good: '✅ No issues detected. Guild is in good shape!',
     analysis_admin_only: '🔒 This command is for admins only.',
+    analysis_more: '  (+ {{n}} more)',
   },
   home: {
     title: 'Guild Dashboard',

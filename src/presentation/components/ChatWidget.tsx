@@ -75,6 +75,15 @@ function normalizeCmd(cmd: string): string {
   return CMD_ALIASES[lower] ?? CMD_ALIASES[cmd] ?? lower
 }
 
+const MAX_NAMES = 10
+
+function formatNames(names: string[], t: (k: string, o?: Record<string, unknown>) => string): string {
+  const visible = names.slice(0, MAX_NAMES)
+  const extra = names.length - MAX_NAMES
+  const list = visible.map((n) => `  · ${n}`).join('\n')
+  return extra > 0 ? list + '\n' + t('bot.analysis_more', { n: extra }) : list
+}
+
 function buildAnalysisReport(
   members: Member[],
   attendance: EventAttendance[],
@@ -91,7 +100,7 @@ function buildAnalysisReport(
   const lines: string[] = [t('bot.analysis_title'), '']
   const visibleEvents = events.filter((e) => !e.hidden)
 
-  // 1. 최근 전쟁 참가율 추이 (최대 3회차)
+  // 1. 최근 전쟁 참가율 추이 (최소 2회차 이상)
   if (rounds.length >= 2) {
     const last3 = rounds.slice(-3)
     const rates = last3.map((r) => {
@@ -100,39 +109,63 @@ function buildAnalysisReport(
     })
     const trend = rates[rates.length - 1] - rates[0]
     const currentRate = rates[rates.length - 1]
-    if (trend <= -10) {
+    if (trend <= -5) {
       lines.push(t('bot.analysis_war_declining', { rate: currentRate, rounds: last3.length }))
-    } else if (trend >= 10) {
+    } else if (trend >= 5) {
       lines.push(t('bot.analysis_war_rising', { rate: currentRate, rounds: last3.length }))
     }
   }
 
-  // 2. 전쟁만 참가하고 이벤트 미참여 멤버
-  if (rounds.length > 0 && visibleEvents.length > 0) {
-    const warOnlyCount = members.filter((m) => {
+  // 2. 이전엔 참가했지만 최근 3회 연속 불참 (최소 4회차 이상일 때만 의미 있음)
+  if (rounds.length >= 4) {
+    const last3Ids = new Set(rounds.slice(-3).map((r) => r.id))
+    const droppedOff = members.filter((m) => {
+      const allEntries = entries.filter((e) => e.memberId === m.id)
+      const recentEntries = allEntries.filter((e) => last3Ids.has(e.roundId))
+      return allEntries.length > 0 && recentEntries.length === 0
+    })
+    if (droppedOff.length > 0) {
+      lines.push(
+        t('bot.analysis_dropped', { count: droppedOff.length }) + '\n' +
+        formatNames(droppedOff.map((m) => m.inGameName), t),
+      )
+    }
+  }
+
+  // 3. 전쟁만 참가, 이벤트 미참여 (이벤트가 3개 이상일 때만 의미 있음)
+  if (rounds.length > 0 && visibleEvents.length >= 3) {
+    const warOnly = members.filter((m) => {
       const warCount = entries.filter((e) => e.memberId === m.id).length
       const rec = attendance.find((a) => a.memberId === m.id)?.records ?? {}
       const eventCount = Object.entries(rec).filter(
         ([k, v]) => visibleEvents.some((e) => e.eventKey === k) && (v === 'CT' || v === 'DB'),
       ).length
       return warCount > 0 && eventCount === 0
-    }).length
-    if (warOnlyCount > 0) {
-      const pct = Math.round((warOnlyCount / totalMembers) * 100)
-      lines.push(t('bot.analysis_war_only', { count: warOnlyCount, pct }))
+    })
+    if (warOnly.length > 0) {
+      const pct = Math.round((warOnly.length / totalMembers) * 100)
+      lines.push(
+        t('bot.analysis_war_only', { count: warOnly.length, pct }) + '\n' +
+        formatNames(warOnly.map((m) => m.inGameName), t),
+      )
     }
   }
 
-  // 3. 전쟁/이벤트 모두 미참여 멤버
-  const zeroCount = members.filter((m) => {
-    const warCount = entries.filter((e) => e.memberId === m.id).length
-    const eventCount = Object.values(
-      attendance.find((a) => a.memberId === m.id)?.records ?? {},
-    ).filter((v) => v === 'CT' || v === 'DB').length
-    return warCount === 0 && eventCount === 0
-  }).length
-  if (zeroCount > 0) {
-    lines.push(t('bot.analysis_zero', { count: zeroCount }))
+  // 4. 전쟁/이벤트 모두 미참여 (5회차 이상일 때만 의미 있음)
+  if (rounds.length >= 5) {
+    const zeroMembers = members.filter((m) => {
+      const warCount = entries.filter((e) => e.memberId === m.id).length
+      const eventCount = Object.values(
+        attendance.find((a) => a.memberId === m.id)?.records ?? {},
+      ).filter((v) => v === 'CT' || v === 'DB').length
+      return warCount === 0 && eventCount === 0
+    })
+    if (zeroMembers.length > 0) {
+      lines.push(
+        t('bot.analysis_zero', { count: zeroMembers.length }) + '\n' +
+        formatNames(zeroMembers.map((m) => m.inGameName), t),
+      )
+    }
   }
 
   if (lines.length === 2) {

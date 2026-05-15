@@ -230,10 +230,12 @@ export default {
     analysis_no_data: 'Không đủ dữ liệu để phân tích.',
     analysis_war_declining: '⚠️ Tỷ lệ tham chiến giảm trong {{rounds}} đợt gần đây (hiện tại {{rate}}%)\n   → Hãy đăng thông báo khích lệ.',
     analysis_war_rising: '✅ Tỷ lệ tham chiến tăng trong {{rounds}} đợt gần đây (hiện tại {{rate}}%)\n   → Xu hướng tốt!',
+    analysis_dropped: '🔴 {{count}} thành viên từng tham gia nhưng vắng 3 đợt gần đây\n   → Cần liên hệ trực tiếp.',
     analysis_war_only: '💡 {{count}} thành viên ({{pct}}%) chỉ tham chiến, không tham dự sự kiện.\n   → Cần thông báo về sự kiện.',
     analysis_zero: '👥 {{count}} thành viên không tham gia cả chiến tranh lẫn sự kiện.\n   → Kiểm tra hoạt động của họ.',
     analysis_all_good: '✅ Không phát hiện vấn đề. Guild đang trong trạng thái tốt!',
     analysis_admin_only: '🔒 Lệnh này chỉ dành cho quản trị viên.',
+    analysis_more: '  (+ {{n}} người nữa)',
   },
   home: {
     title: 'Bảng điều khiển',
