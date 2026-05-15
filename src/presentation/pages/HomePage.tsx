@@ -36,18 +36,18 @@ export const HomePage = () => {
       if (eventStore.events.length === 0 && !eventStore.loading) promises.push(eventStore.loadData())
 
       // Fetch online count from supabase directly
-      const onlineFetch = supabase
-        .from('profiles')
-        .select('last_seen_at')
-        .eq('status', 'APPROVED')
-        .then(({ data }) => {
-          const count = (data ?? []).filter(
-            (r) => r.last_seen_at && Date.now() - new Date(r.last_seen_at).getTime() < ONLINE_MS,
-          ).length
-          setOnlineCount(count)
-        })
+      const onlineFetch = async () => {
+        const { data } = await supabase
+          .from('profiles')
+          .select('last_seen_at')
+          .eq('status', 'APPROVED')
+        const count = (data ?? []).filter(
+          (r) => r.last_seen_at && Date.now() - new Date(r.last_seen_at).getTime() < ONLINE_MS,
+        ).length
+        setOnlineCount(count)
+      }
 
-      promises.push(onlineFetch)
+      promises.push(onlineFetch())
 
       if (user?.role === 'ROLE_ADMIN') promises.push(loadPending())
 
