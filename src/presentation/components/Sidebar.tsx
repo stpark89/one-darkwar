@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { Home, Users, Swords, CalendarDays, FileSpreadsheet, BarChart3, Megaphone, ChevronUp, ChevronLeft, ChevronRight, X, LogOut, ShieldCheck, User, KeyRound, UserX, UserCheck } from 'lucide-react'
+import { Home, Users, Swords, CalendarDays, FileSpreadsheet, BarChart3, Megaphone, ChevronUp, ChevronLeft, ChevronRight, X, LogOut, ShieldCheck, User, KeyRound, UserX, UserCheck, MessageSquare } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { LANGUAGES, type LangCode } from '@/i18n'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
@@ -35,6 +35,7 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
   const NAV_GENERAL = [
     { to: '/', icon: Home, label: t('nav.home'), end: true },
     { to: '/notices', icon: Megaphone, label: t('notice.nav'), end: false },
+    { to: '/board', icon: MessageSquare, label: t('board.nav'), end: false },
     { to: '/members', icon: Users, label: t('nav.members'), end: false },
     { to: '/war', icon: Swords, label: t('nav.war'), end: false },
     { to: '/events', icon: CalendarDays, label: t('nav.events'), end: false },
