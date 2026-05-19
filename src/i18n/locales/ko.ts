@@ -288,6 +288,7 @@ export default {
     pending_banner: '{{count}}명의 가입 신청이 대기 중입니다',
     pending_go: '검토하기',
     war_rounds: '총 {{n}}회차 진행',
+    board_title: '게시판 최신 글',
   },
   notice: {
     nav: '공지사항',

@@ -288,6 +288,7 @@ export default {
     pending_banner: '{{count}} pending join request(s)',
     pending_go: 'Review',
     war_rounds: '{{n}} rounds total',
+    board_title: 'Latest Posts',
   },
   notice: {
     nav: 'Notice',

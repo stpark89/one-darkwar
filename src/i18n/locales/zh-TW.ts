@@ -288,6 +288,7 @@ export default {
     pending_banner: '{{count}} 件加入申請待審核',
     pending_go: '前往審核',
     war_rounds: '共 {{n}} 回',
+    board_title: '最新貼文',
   },
   notice: {
     nav: '公告',

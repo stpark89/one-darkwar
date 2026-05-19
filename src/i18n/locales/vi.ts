@@ -288,6 +288,7 @@ export default {
     pending_banner: '{{count}} đơn đăng ký đang chờ',
     pending_go: 'Xem xét',
     war_rounds: 'Tổng {{n}} đợt',
+    board_title: 'Bài viết mới nhất',
   },
   notice: {
     nav: 'Thông báo',

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Users, Wifi, Swords, CalendarDays, Loader2, AlertCircle, Megaphone, Pin, ChevronRight } from 'lucide-react'
+import { Users, Wifi, Swords, CalendarDays, Loader2, AlertCircle, Megaphone, Pin, ChevronRight, MessageSquare, MessageCircle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useMemberStore } from '@/infrastructure/stores/memberStore'
 import { useWarStore } from '@/infrastructure/stores/warStore'
@@ -8,6 +8,7 @@ import { useEventStore } from '@/infrastructure/stores/eventStore'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { useApprovalStore } from '@/infrastructure/stores/approvalStore'
 import { useNoticeStore } from '@/infrastructure/stores/noticeStore'
+import { useBoardStore } from '@/infrastructure/stores/boardStore'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
 
@@ -23,6 +24,7 @@ export const HomePage = () => {
   const eventStore = useEventStore()
   const { pendingCount, loadPending } = useApprovalStore()
   const { notices, loadNotices } = useNoticeStore()
+  const { posts, loadPosts } = useBoardStore()
 
   const [onlineCount, setOnlineCount] = useState<number>(0)
   const [loading, setLoading] = useState(true)
@@ -53,6 +55,7 @@ export const HomePage = () => {
 
       if (user?.role === 'ROLE_ADMIN') promises.push(loadPending())
       promises.push(loadNotices())
+      promises.push(loadPosts(true))
 
       await Promise.all(promises)
       setLoading(false)
@@ -320,6 +323,52 @@ export const HomePage = () => {
                 </span>
                 <span className="text-[11px] text-[var(--color-text-muted)] flex-shrink-0 hidden sm:block">
                   {new Date(notice.createdAt).toLocaleDateString([], { month: '2-digit', day: '2-digit' })}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {/* 게시판 최신 글 */}
+      <div className="bg-[var(--color-bg-surface)] border border-[var(--color-border-subtle)] rounded-xl p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
+            <MessageSquare className="w-4 h-4 text-[var(--color-brand)]" />
+            {t('home.board_title')}
+          </h2>
+          <button
+            onClick={() => navigate('/board')}
+            className="flex items-center gap-0.5 text-xs text-[var(--color-text-muted)] hover:text-[var(--color-brand)] transition-colors"
+          >
+            {t('notice.view_all')} <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+        {posts.length === 0 ? (
+          <p className="text-xs text-[var(--color-text-muted)] py-4 text-center">{t('board.no_posts')}</p>
+        ) : (
+          <ul className="divide-y divide-[var(--color-border-subtle)]">
+            {posts.slice(0, 5).map((post) => (
+              <li
+                key={post.id}
+                className="flex items-center gap-2.5 py-2.5 cursor-pointer hover:opacity-80 transition-opacity"
+                onClick={() => navigate('/board')}
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-border)] flex-shrink-0" />
+                <span className="flex-1 text-sm text-[var(--color-text-primary)] truncate font-medium">
+                  {post.title}
+                </span>
+                <span className="text-[11px] text-[var(--color-text-muted)] flex-shrink-0 hidden sm:block">
+                  {post.authorName}
+                </span>
+                {post.commentCount > 0 && (
+                  <span className="flex items-center gap-0.5 text-[11px] text-[var(--color-text-muted)] flex-shrink-0">
+                    <MessageCircle className="w-3 h-3" />
+                    {post.commentCount}
+                  </span>
+                )}
+                <span className="text-[11px] text-[var(--color-text-muted)] flex-shrink-0 hidden sm:block">
+                  {new Date(post.createdAt).toLocaleDateString([], { month: '2-digit', day: '2-digit' })}
                 </span>
               </li>
             ))}
