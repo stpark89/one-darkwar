@@ -197,6 +197,33 @@ export const EventsPage = () => {
                 )
               })}
             </tbody>
+            <tfoot className="sticky bottom-0 z-10">
+              <tr className="bg-[var(--color-bg-surface)] border-t-2 border-[var(--color-border)]">
+                <td className="px-2 sm:px-3 py-2 sm:py-2.5 font-semibold text-[var(--color-text-muted)] text-xs whitespace-nowrap sticky left-0 bg-[var(--color-bg-surface)]">
+                  {t('common.total')} / {t('common.count_people')}
+                </td>
+                <td className="px-1 sm:px-3 py-2 sm:py-2.5 text-center">
+                  <span className="text-xs font-bold text-[var(--color-text-primary)]">
+                    {attendance.filter(a =>
+                      visibleEvents.some(e => { const s = a.records[e.eventKey] ?? ''; return s === 'CT' || s === 'DB' })
+                    ).length}
+                  </span>
+                </td>
+                {visibleEvents.map((e) => {
+                  const count = attendance.filter(a => {
+                    const s = a.records[e.eventKey] ?? ''
+                    return s === 'CT' || s === 'DB'
+                  }).length
+                  return (
+                    <td key={e.eventKey} className="px-1 sm:px-2 py-2 sm:py-2.5 text-center">
+                      <span className={cn('text-xs font-bold', count > 0 ? 'text-[var(--color-brand)]' : 'text-[var(--color-text-muted)]')}>
+                        {count}
+                      </span>
+                    </td>
+                  )
+                })}
+              </tr>
+            </tfoot>
           </table>
         </div>
       ) : (

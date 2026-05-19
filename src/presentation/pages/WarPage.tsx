@@ -218,6 +218,35 @@ export const WarPage = () => {
                 </tr>
               ))}
             </tbody>
+            <tfoot className="sticky bottom-0 z-10">
+              <tr className="bg-[var(--color-bg-surface)] border-t-2 border-[var(--color-border)]">
+                <td className="px-3 py-2.5 font-semibold text-[var(--color-text-muted)] text-xs whitespace-nowrap sticky left-0 bg-[var(--color-bg-surface)]">
+                  {t('common.total')} / {t('common.count_people')}
+                </td>
+                <td className="px-3 py-2.5 text-center">
+                  <span className="text-xs font-bold text-[var(--color-text-primary)]">
+                    {memberRows.filter(row =>
+                      filterTeam
+                        ? Object.values(row.entryMap).some(e => e.team === filterTeam && e.role !== '')
+                        : row.total > 0
+                    ).length}
+                  </span>
+                </td>
+                {rounds.map(r => {
+                  const count = memberRows.filter(row => {
+                    const e = row.entryMap[r.id] ?? { team: '', role: '' }
+                    return filterTeam ? e.team === filterTeam && e.role !== '' : e.role !== ''
+                  }).length
+                  return (
+                    <td key={r.id} className="px-3 py-2.5 text-center">
+                      <span className={cn('text-xs font-bold', count > 0 ? 'text-[var(--color-brand)]' : 'text-[var(--color-text-muted)]')}>
+                        {count}
+                      </span>
+                    </td>
+                  )
+                })}
+              </tr>
+            </tfoot>
           </table>
         </div>
       ) : (
