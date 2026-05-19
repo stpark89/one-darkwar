@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import {
   Plus, MessageCircle, Pencil, Trash2, Loader2, X,
-  ChevronDown, ChevronUp, Send, MessageSquare,
+  ChevronDown, ChevronUp, Send, MessageSquare, Languages,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useBoardStore, type Post } from '@/infrastructure/stores/boardStore'
@@ -9,6 +9,7 @@ import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { Button } from '@/presentation/components/ui/button'
 import { Input } from '@/presentation/components/ui/input'
 import { cn } from '@/lib/utils'
+import { translateText } from '@/lib/translate'
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -43,7 +44,7 @@ function Avatar({ name, size = 'md' }: { name: string; size?: 'sm' | 'md' }) {
 // ─── BoardPage ───────────────────────────────────────────────────────────────
 
 export const BoardPage = () => {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { user, isGuest } = useAuthStore()
   const {
     posts, loading, hasMore, comments, commentsLoading,
@@ -62,6 +63,8 @@ export const BoardPage = () => {
   const [deleteCommentTarget, setDeleteCommentTarget] = useState<{ commentId: string; postId: string } | null>(null)
   const [commentInputs, setCommentInputs] = useState<Record<string, string>>({})
   const [submittingComment, setSubmittingComment] = useState<string | null>(null)
+  const [translatingId, setTranslatingId] = useState<string | null>(null)
+  const [translations, setTranslations] = useState<Map<string, string>>(new Map())
 
   const commentInputRef = useRef<Record<string, HTMLInputElement | null>>({})
 
@@ -120,6 +123,22 @@ export const BoardPage = () => {
     await addComment(postId, content, user.id, user.inGameName)
     setCommentInputs(prev => ({ ...prev, [postId]: '' }))
     setSubmittingComment(null)
+  }
+
+  const handleTranslate = async (postId: string, content: string) => {
+    if (translations.has(postId)) {
+      setTranslations(prev => { const m = new Map(prev); m.delete(postId); return m })
+      return
+    }
+    setTranslatingId(postId)
+    try {
+      const result = await translateText(content, i18n.language)
+      setTranslations(prev => new Map(prev).set(postId, result))
+    } catch {
+      // silent
+    } finally {
+      setTranslatingId(null)
+    }
   }
 
   const canEditPost = (post: Post) =>
@@ -210,22 +229,51 @@ export const BoardPage = () => {
                       <p className="text-sm text-[var(--color-text-secondary)] whitespace-pre-wrap leading-relaxed">
                         {post.content}
                       </p>
-                      {canEditPost(post) && (
-                        <div className="flex justify-end gap-1 mt-3">
-                          <button
-                            onClick={(e) => { e.stopPropagation(); openEdit(post) }}
-                            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-[var(--color-text-muted)] hover:bg-[var(--color-bg-elevated)] hover:text-[var(--color-text-primary)] transition-colors"
-                          >
-                            <Pencil className="w-3 h-3" /> {t('common.edit')}
-                          </button>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); setDeletePostId(post.id) }}
-                            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 transition-colors"
-                          >
-                            <Trash2 className="w-3 h-3" /> {t('common.delete')}
-                          </button>
+
+                      {/* 번역 결과 */}
+                      {translations.has(post.id) && (
+                        <div className="mt-3 pt-3 border-t border-[var(--color-border-subtle)]/60">
+                          <p className="text-[10px] text-[var(--color-text-muted)] mb-1.5 flex items-center gap-1">
+                            <Languages className="w-3 h-3" /> {t('chat.translate_btn')}
+                          </p>
+                          <p className="text-sm text-[var(--color-text-secondary)] whitespace-pre-wrap leading-relaxed">
+                            {translations.get(post.id)}
+                          </p>
                         </div>
                       )}
+
+                      {/* 하단 액션 버튼 행 */}
+                      <div className="flex items-center justify-between mt-3">
+                        {/* 번역 버튼 */}
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleTranslate(post.id, post.content) }}
+                          disabled={translatingId === post.id}
+                          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-[var(--color-text-muted)] hover:bg-[var(--color-bg-elevated)] hover:text-[var(--color-text-primary)] transition-colors disabled:opacity-50"
+                        >
+                          {translatingId === post.id
+                            ? <Loader2 className="w-3 h-3 animate-spin" />
+                            : <Languages className="w-3 h-3" />}
+                          {translations.has(post.id) ? t('common.close') : t('chat.translate_btn')}
+                        </button>
+
+                        {/* 수정 / 삭제 */}
+                        {canEditPost(post) && (
+                          <div className="flex gap-1">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); openEdit(post) }}
+                              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-[var(--color-text-muted)] hover:bg-[var(--color-bg-elevated)] hover:text-[var(--color-text-primary)] transition-colors"
+                            >
+                              <Pencil className="w-3 h-3" /> {t('common.edit')}
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setDeletePostId(post.id) }}
+                              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 transition-colors"
+                            >
+                              <Trash2 className="w-3 h-3" /> {t('common.delete')}
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     {/* 댓글 섹션 */}
