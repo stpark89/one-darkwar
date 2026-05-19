@@ -1,20 +1,41 @@
 import { useState, useRef, useEffect } from 'react'
-import { Outlet, Navigate, useNavigate } from 'react-router-dom'
-import { Menu, Swords, Loader2, User, ShieldCheck, KeyRound, LogOut, UserX } from 'lucide-react'
+import { Outlet, Navigate, useNavigate, useLocation } from 'react-router-dom'
+import { Menu, Swords, Loader2, User, ShieldCheck, KeyRound, LogOut, UserX, Megaphone, Pin, X } from 'lucide-react'
 import { Sidebar } from './Sidebar'
 import { ChatWidget } from './ChatWidget'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
+import { useNoticeStore } from '@/infrastructure/stores/noticeStore'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 
 export const Layout = () => {
   const { user, loading, signOut, isGuest } = useAuthStore()
+  const { notices, loadNotices } = useNoticeStore()
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const location = useLocation()
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [dismissedNoticeId, setDismissedNoticeId] = useState<string | null>(
+    () => sessionStorage.getItem('dismissedNoticeId')
+  )
   const userMenuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => { loadNotices() }, [loadNotices])
+
+  // 핀 공지 우선, 없으면 최신 공지
+  const prominentNotice = notices.find(n => n.pinned) ?? notices[0] ?? null
+  const showBanner =
+    prominentNotice !== null &&
+    prominentNotice.id !== dismissedNoticeId &&
+    location.pathname !== '/notices'
+
+  const handleDismiss = () => {
+    if (!prominentNotice) return
+    sessionStorage.setItem('dismissedNoticeId', prominentNotice.id)
+    setDismissedNoticeId(prominentNotice.id)
+  }
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -67,8 +88,32 @@ export const Layout = () => {
           collapsed ? 'md:ml-14' : 'md:ml-56',
         )}
       >
-        {/* 모바일 상단 헤더 */}
-        <div className="md:hidden flex items-center gap-3 px-4 py-3 bg-[var(--color-bg-surface)] border-b border-[var(--color-border-subtle)] sticky top-0 z-20">
+        {/* 공지 배너 + 모바일 헤더를 하나의 sticky 블록으로 묶음 */}
+        <div className="sticky top-0 z-20">
+          {/* 공지 배너 */}
+          {showBanner && prominentNotice && (
+            <div className="flex items-center gap-2 px-4 py-2 bg-[var(--color-brand)]/10 border-b border-[var(--color-brand)]/20">
+              {prominentNotice.pinned
+                ? <Pin className="w-3.5 h-3.5 text-[var(--color-brand)] flex-shrink-0" />
+                : <Megaphone className="w-3.5 h-3.5 text-[var(--color-brand)] flex-shrink-0" />}
+              <button
+                onClick={() => navigate('/notices')}
+                className="flex-1 min-w-0 text-left text-xs font-medium text-[var(--color-brand)] hover:underline truncate"
+              >
+                {prominentNotice.title}
+              </button>
+              <button
+                onClick={handleDismiss}
+                className="p-1 rounded text-[var(--color-brand)]/60 hover:text-[var(--color-brand)] hover:bg-[var(--color-brand)]/15 transition-colors flex-shrink-0"
+                aria-label="close"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+
+          {/* 모바일 상단 헤더 */}
+          <div className="md:hidden flex items-center gap-3 px-4 py-3 bg-[var(--color-bg-surface)] border-b border-[var(--color-border-subtle)]">
           <button
             onClick={() => setMobileOpen(true)}
             className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:bg-[var(--color-bg-elevated)] hover:text-[var(--color-text-primary)]"
