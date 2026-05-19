@@ -66,7 +66,7 @@ export const Layout = () => {
   if (!user && !isGuest) return <Navigate to="/sign-in" replace />
 
   return (
-    <div className="flex min-h-screen w-full" style={{ maxWidth: '100vw', overflowX: 'hidden' }}>
+    <div className="flex min-h-screen w-full" style={{ maxWidth: '100vw', overflowX: 'clip' }}>
       {mobileOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-30 md:hidden"
