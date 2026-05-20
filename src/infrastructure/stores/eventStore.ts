@@ -15,6 +15,8 @@ interface EventStore {
   toggleHidden: (eventId: string) => Promise<void>
   toggleShowHidden: () => void
   updateStatus: (memberId: string, eventKey: string, status: AttendanceStatus) => Promise<void>
+  bulkUpdateEvent: (eventKey: string, updates: { memberId: string; status: AttendanceStatus }[]) => Promise<void>
+  bulkUpdateMember: (memberId: string, updates: { eventKey: string; status: AttendanceStatus }[]) => Promise<void>
   syncMemberName: (memberId: string, newName: string) => void
   setSearchQuery: (q: string) => void
   getFiltered: () => EventAttendance[]
@@ -118,6 +120,57 @@ export const useEventStore = create<EventStore>((set, get) => ({
       await supabase
         .from('attendance')
         .upsert({ member_id: memberId, event_id: eventKey, status }, { onConflict: 'member_id,event_id' })
+    }
+  },
+
+  bulkUpdateEvent: async (eventKey, updates) => {
+    // 낙관적 업데이트
+    set((s) => ({
+      attendance: s.attendance.map((a) => {
+        const u = updates.find((x) => x.memberId === a.memberId)
+        if (!u) return a
+        return { ...a, records: { ...a.records, [eventKey]: u.status } }
+      }),
+    }))
+    const toUpsert = updates.filter((u) => u.status !== '')
+    const toDelete = updates.filter((u) => u.status === '')
+    if (toUpsert.length > 0) {
+      await supabase.from('attendance').upsert(
+        toUpsert.map((u) => ({ member_id: u.memberId, event_id: eventKey, status: u.status })),
+        { onConflict: 'member_id,event_id' },
+      )
+    }
+    if (toDelete.length > 0) {
+      await supabase.from('attendance')
+        .delete()
+        .eq('event_id', eventKey)
+        .in('member_id', toDelete.map((u) => u.memberId))
+    }
+  },
+
+  bulkUpdateMember: async (memberId, updates) => {
+    // 낙관적 업데이트
+    set((s) => ({
+      attendance: s.attendance.map((a) => {
+        if (a.memberId !== memberId) return a
+        const newRecords = { ...a.records }
+        updates.forEach((u) => { newRecords[u.eventKey] = u.status })
+        return { ...a, records: newRecords }
+      }),
+    }))
+    const toUpsert = updates.filter((u) => u.status !== '')
+    const toDelete = updates.filter((u) => u.status === '')
+    if (toUpsert.length > 0) {
+      await supabase.from('attendance').upsert(
+        toUpsert.map((u) => ({ member_id: memberId, event_id: u.eventKey, status: u.status })),
+        { onConflict: 'member_id,event_id' },
+      )
+    }
+    if (toDelete.length > 0) {
+      await supabase.from('attendance')
+        .delete()
+        .eq('member_id', memberId)
+        .in('event_id', toDelete.map((u) => u.eventKey))
     }
   },
 
