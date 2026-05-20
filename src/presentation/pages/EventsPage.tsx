@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { Search, Plus, X, Loader2, Trash2, EyeOff, Eye, ClipboardList, Users, UserCheck } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useEventStore } from '@/infrastructure/stores/eventStore'
@@ -342,6 +342,11 @@ export const EventsPage = () => {
   const [newEventDate, setNewEventDate] = useState(() => new Date().toISOString().slice(0, 10))
   const [attendanceModalEventId, setAttendanceModalEventId] = useState<string | null>(null)
   const [memberModalId, setMemberModalId] = useState<string | null>(null)
+  const [cellPopover, setCellPopover] = useState<{
+    memberId: string; eventKey: string; status: AttendanceStatus
+    x: number; y: number
+  } | null>(null)
+  const popoverRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => { loadData() }, [loadData])
 
@@ -393,17 +398,35 @@ export const EventsPage = () => {
     bulkUpdateMember(memberModalId!, updates)
   }
 
+  // 팝오버 외부 클릭 시 닫기
+  useEffect(() => {
+    if (!cellPopover) return
+    const handler = (e: MouseEvent) => {
+      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
+        setCellPopover(null)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [cellPopover])
+
+  const handleCellClick = useCallback((memberId: string, eventKey: string, status: AttendanceStatus, e: React.MouseEvent) => {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+    setCellPopover({ memberId, eventKey, status, x: rect.left + rect.width / 2, y: rect.bottom + 4 })
+  }, [])
+
+  const handlePopoverSelect = (status: AttendanceStatus) => {
+    if (!cellPopover) return
+    updateStatus(cellPopover.memberId, cellPopover.eventKey, status)
+    setCellPopover(null)
+  }
+
   const handleAddEvent = () => {
     if (!newEventName.trim()) return
     addEvent(newEventName.trim(), newEventDate)
     setNewEventName('')
     setNewEventDate(new Date().toISOString().slice(0, 10))
     setShowAddEvent(false)
-  }
-
-  const handleCellClick = (memberId: string, eventKey: string, current: string) => {
-    const next = current === '' ? 'CT' : current === 'CT' ? 'DB' : ''
-    updateStatus(memberId, eventKey, next as 'CT' | 'DB' | '')
   }
 
   if (loading && events.length === 0) return (
@@ -545,13 +568,16 @@ export const EventsPage = () => {
                       <span className="text-[var(--color-success)] font-bold">{total}</span>
                     </td>
                     {visibleEvents.map((e) => {
-                      const status = a.records[e.eventKey] ?? ''
+                      const status = (a.records[e.eventKey] ?? '') as AttendanceStatus
+                      const isOpen = cellPopover?.memberId === a.memberId && cellPopover?.eventKey === e.eventKey
                       return (
                         <td
                           key={e.eventKey}
-                          onClick={() => canEdit && handleCellClick(a.memberId, e.eventKey, status)}
+                          onClick={(ev) => canEdit && handleCellClick(a.memberId, e.eventKey, status, ev)}
                           className={cn(
-                            'px-1 sm:px-2 py-2 sm:py-2.5 text-center cursor-pointer select-none transition-colors text-[10px] sm:text-[11px] font-bold',
+                            'px-1 sm:px-2 py-2 sm:py-2.5 text-center select-none transition-colors text-[10px] sm:text-[11px] font-bold relative',
+                            canEdit && 'cursor-pointer',
+                            isOpen && 'ring-2 ring-[var(--color-brand)]/60 ring-inset',
                             status === 'CT' && 'bg-[var(--color-success)]/15 text-[var(--color-success)] hover:bg-[var(--color-success)]/25',
                             status === 'DB' && 'bg-[var(--color-warning)]/15 text-[var(--color-warning)] hover:bg-[var(--color-warning)]/25',
                             status === '' && 'text-[var(--color-text-muted)] hover:bg-[var(--color-bg-elevated)]',
@@ -609,6 +635,53 @@ export const EventsPage = () => {
               {s.db > 0 && <span className="text-[10px] text-[var(--color-warning)] bg-[var(--color-warning)]/10 px-1.5 py-0.5 rounded">DB {s.db}</span>}
             </div>
           ))}
+        </div>
+      )}
+
+      {/* 셀 팝오버 */}
+      {cellPopover && (
+        <div
+          ref={popoverRef}
+          className="fixed z-[60] flex gap-1 p-1.5 rounded-xl bg-[var(--color-bg-surface)] border border-[var(--color-border)] shadow-2xl"
+          style={{
+            left: cellPopover.x,
+            top: cellPopover.y,
+            transform: 'translateX(-50%)',
+          }}
+        >
+          <button
+            onClick={() => handlePopoverSelect('CT')}
+            className={cn(
+              'px-3.5 py-1.5 rounded-lg text-xs font-bold transition-colors',
+              cellPopover.status === 'CT'
+                ? 'bg-[var(--color-success)] text-white'
+                : 'text-[var(--color-success)] hover:bg-[var(--color-success)]/20',
+            )}
+          >
+            CT
+          </button>
+          <button
+            onClick={() => handlePopoverSelect('DB')}
+            className={cn(
+              'px-3.5 py-1.5 rounded-lg text-xs font-bold transition-colors',
+              cellPopover.status === 'DB'
+                ? 'bg-[var(--color-warning)] text-white'
+                : 'text-[var(--color-warning)] hover:bg-[var(--color-warning)]/20',
+            )}
+          >
+            DB
+          </button>
+          <button
+            onClick={() => handlePopoverSelect('')}
+            className={cn(
+              'px-2.5 py-1.5 rounded-lg text-xs font-bold transition-colors',
+              cellPopover.status === ''
+                ? 'bg-[var(--color-border)] text-[var(--color-text-secondary)]'
+                : 'text-[var(--color-text-muted)] hover:bg-[var(--color-bg-elevated)]',
+            )}
+          >
+            ✕
+          </button>
         </div>
       )}
 
