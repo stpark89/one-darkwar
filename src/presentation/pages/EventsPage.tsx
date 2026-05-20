@@ -21,7 +21,7 @@ interface AttendanceModalProps {
   onClose: () => void
 }
 
-const AttendanceModal = ({ eventId, eventName, eventDate, attendance, onStatusChange, onBulkSet, onClose }: AttendanceModalProps) => {
+const AttendanceModal = ({ eventName, eventDate, attendance, onStatusChange, onBulkSet, onClose }: AttendanceModalProps) => {
   const [search, setSearch] = useState('')
   const filtered = search
     ? attendance.filter((a) => a.inGameName.toLowerCase().includes(search.toLowerCase()))
