@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import type { EventSession, EventAttendance, AttendanceStatus } from '@/domain/entities/Event'
 
@@ -107,23 +108,36 @@ export const useEventStore = create<EventStore>((set, get) => ({
   toggleShowHidden: () => set(s => ({ showHidden: !s.showHidden })),
 
   updateStatus: async (memberId, eventKey, status) => {
-    // 낙관적 업데이트 (즉시 UI 반영)
+    // 롤백용 스냅샷
+    const prev = get().attendance
+    // 낙관적 업데이트
     set((s) => ({
       attendance: s.attendance.map((a) =>
         a.memberId === memberId ? { ...a, records: { ...a.records, [eventKey]: status } } : a,
       ),
     }))
 
+    let error: unknown
     if (status === '') {
-      await supabase.from('attendance').delete().eq('member_id', memberId).eq('event_id', eventKey)
+      const res = await supabase.from('attendance').delete().eq('member_id', memberId).eq('event_id', eventKey)
+      error = res.error
     } else {
-      await supabase
+      const res = await supabase
         .from('attendance')
         .upsert({ member_id: memberId, event_id: eventKey, status }, { onConflict: 'member_id,event_id' })
+      error = res.error
+    }
+
+    if (error) {
+      set({ attendance: prev })
+      const msg = (error as { message?: string }).message ?? '저장 실패'
+      console.error('[updateStatus]', error)
+      toast.error(`출석 저장 실패: ${msg}`)
     }
   },
 
   bulkUpdateEvent: async (eventKey, updates) => {
+    const prev = get().attendance
     // 낙관적 업데이트
     set((s) => ({
       attendance: s.attendance.map((a) => {
@@ -132,23 +146,36 @@ export const useEventStore = create<EventStore>((set, get) => ({
         return { ...a, records: { ...a.records, [eventKey]: u.status } }
       }),
     }))
+
     const toUpsert = updates.filter((u) => u.status !== '')
     const toDelete = updates.filter((u) => u.status === '')
+    const errors: unknown[] = []
+
     if (toUpsert.length > 0) {
-      await supabase.from('attendance').upsert(
+      const res = await supabase.from('attendance').upsert(
         toUpsert.map((u) => ({ member_id: u.memberId, event_id: eventKey, status: u.status })),
         { onConflict: 'member_id,event_id' },
       )
+      if (res.error) errors.push(res.error)
     }
     if (toDelete.length > 0) {
-      await supabase.from('attendance')
+      const res = await supabase.from('attendance')
         .delete()
         .eq('event_id', eventKey)
         .in('member_id', toDelete.map((u) => u.memberId))
+      if (res.error) errors.push(res.error)
+    }
+
+    if (errors.length > 0) {
+      set({ attendance: prev })
+      const msg = (errors[0] as { message?: string }).message ?? '저장 실패'
+      console.error('[bulkUpdateEvent]', errors)
+      toast.error(`일괄 저장 실패: ${msg}`)
     }
   },
 
   bulkUpdateMember: async (memberId, updates) => {
+    const prev = get().attendance
     // 낙관적 업데이트
     set((s) => ({
       attendance: s.attendance.map((a) => {
@@ -158,19 +185,31 @@ export const useEventStore = create<EventStore>((set, get) => ({
         return { ...a, records: newRecords }
       }),
     }))
+
     const toUpsert = updates.filter((u) => u.status !== '')
     const toDelete = updates.filter((u) => u.status === '')
+    const errors: unknown[] = []
+
     if (toUpsert.length > 0) {
-      await supabase.from('attendance').upsert(
+      const res = await supabase.from('attendance').upsert(
         toUpsert.map((u) => ({ member_id: memberId, event_id: u.eventKey, status: u.status })),
         { onConflict: 'member_id,event_id' },
       )
+      if (res.error) errors.push(res.error)
     }
     if (toDelete.length > 0) {
-      await supabase.from('attendance')
+      const res = await supabase.from('attendance')
         .delete()
         .eq('member_id', memberId)
         .in('event_id', toDelete.map((u) => u.eventKey))
+      if (res.error) errors.push(res.error)
+    }
+
+    if (errors.length > 0) {
+      set({ attendance: prev })
+      const msg = (errors[0] as { message?: string }).message ?? '저장 실패'
+      console.error('[bulkUpdateMember]', errors)
+      toast.error(`일괄 저장 실패: ${msg}`)
     }
   },
 

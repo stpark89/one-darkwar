@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Toaster } from "sonner";
 import { Layout } from "@/presentation/components/Layout";
 import { HomePage } from "@/presentation/pages/HomePage";
 import { MembersPage } from "@/presentation/pages/MembersPage";
@@ -32,6 +33,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <Toaster richColors position="top-center" />
       <Routes>
         <Route path="/sign-in" element={<SignInPage />} />
         <Route path="/sign-up" element={<SignUpPage />} />
