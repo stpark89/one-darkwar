@@ -89,10 +89,10 @@ export const Layout = () => {
         )}
       >
         {/* 공지 배너 + 모바일 헤더를 하나의 sticky 블록으로 묶음 */}
-        <div className="sticky top-0 z-20">
+        <div className="sticky top-0 z-20 bg-[var(--color-bg-base)]">
           {/* 공지 배너 */}
           {showBanner && prominentNotice && (
-            <div className="flex items-center gap-2 px-4 py-2 bg-[var(--color-brand)]/10 border-b border-[var(--color-brand)]/20">
+            <div className="flex items-center gap-2 px-4 py-2 bg-[var(--color-brand)]/20 border-b border-[var(--color-brand)]/30">
               {prominentNotice.pinned
                 ? <Pin className="w-3.5 h-3.5 text-[var(--color-brand)] flex-shrink-0" />
                 : <Megaphone className="w-3.5 h-3.5 text-[var(--color-brand)] flex-shrink-0" />}
