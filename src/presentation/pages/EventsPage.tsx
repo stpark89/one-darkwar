@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
-import { Search, Plus, X, Loader2, Trash2, EyeOff, Eye, ClipboardList, Users, UserCheck } from 'lucide-react'
+import { Search, Plus, X, Loader2, Trash2, EyeOff, Eye, ClipboardList, Users, UserCheck, Save, RotateCcw } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useEventStore } from '@/infrastructure/stores/eventStore'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
@@ -305,7 +305,10 @@ const MemberAttendanceModal = ({ memberName, events, onStatusChange, onBulkSet, 
 // ─── 메인 페이지 ──────────────────────────────────────────────────────────────
 export const EventsPage = () => {
   const { t } = useTranslation()
-  const { events, addEvent, deleteEvent, toggleHidden, toggleShowHidden, showHidden, updateStatus, bulkUpdateEvent, bulkUpdateMember, getFiltered, searchQuery, setSearchQuery, getSummary, loadData, loading, attendance: allAttendance } = useEventStore()
+  const { events, addEvent, deleteEvent, toggleHidden, toggleShowHidden, showHidden, batchSave, getFiltered, searchQuery, setSearchQuery, getSummary, loadData, loading, attendance: allAttendance } = useEventStore()
+  // 미저장 변경사항: key = "memberId::eventKey"
+  const [pendingChanges, setPendingChanges] = useState<Map<string, AttendanceStatus>>(new Map())
+  const [isSaving, setIsSaving] = useState(false)
   const { user } = useAuthStore()
   const canEdit = user?.role === 'ROLE_ADMIN'
   const baseAttendance = getFiltered()
@@ -356,20 +359,75 @@ export const EventsPage = () => {
   )
   const attendanceModalMembers = useMemo(() => {
     if (!attendanceModalEventId) return []
-    return allAttendance.map((a) => ({
-      memberId: a.memberId,
-      inGameName: a.inGameName,
-      status: (a.records[attendanceModalEventId] ?? '') as AttendanceStatus,
-    }))
-  }, [attendanceModalEventId, allAttendance])
+    return allAttendance.map((a) => {
+      const key = `${a.memberId}::${attendanceModalEventId}`
+      const status = pendingChanges.has(key)
+        ? pendingChanges.get(key)!
+        : (a.records[attendanceModalEventId] ?? '') as AttendanceStatus
+      return { memberId: a.memberId, inGameName: a.inGameName, status }
+    })
+  }, [attendanceModalEventId, allAttendance, pendingChanges])
+
+  // pending 변경사항 설정 (원본과 같으면 pending에서 제거)
+  const setPending = useCallback((memberId: string, eventKey: string, status: AttendanceStatus) => {
+    const original = (allAttendance.find((a) => a.memberId === memberId)?.records[eventKey] ?? '') as AttendanceStatus
+    setPendingChanges((prev) => {
+      const next = new Map(prev)
+      if (status === original) next.delete(`${memberId}::${eventKey}`)
+      else next.set(`${memberId}::${eventKey}`, status)
+      return next
+    })
+  }, [allAttendance])
+
+  // 특정 이벤트의 전체 멤버 pending 설정
+  const setPendingForEvent = useCallback((eventKey: string, status: AttendanceStatus) => {
+    setPendingChanges((prev) => {
+      const next = new Map(prev)
+      allAttendance.forEach((a) => {
+        const original = (a.records[eventKey] ?? '') as AttendanceStatus
+        if (status === original) next.delete(`${a.memberId}::${eventKey}`)
+        else next.set(`${a.memberId}::${eventKey}`, status)
+      })
+      return next
+    })
+  }, [allAttendance])
+
+  // 특정 멤버의 전체 이벤트 pending 설정
+  const setPendingForMember = useCallback((memberId: string, status: AttendanceStatus) => {
+    setPendingChanges((prev) => {
+      const next = new Map(prev)
+      visibleEvents.forEach((e) => {
+        const member = allAttendance.find((a) => a.memberId === memberId)
+        const original = (member?.records[e.eventKey] ?? '') as AttendanceStatus
+        if (status === original) next.delete(`${memberId}::${e.eventKey}`)
+        else next.set(`${memberId}::${e.eventKey}`, status)
+      })
+      return next
+    })
+  }, [allAttendance, visibleEvents])
+
+  // 저장
+  const handleSave = async () => {
+    if (pendingChanges.size === 0 || isSaving) return
+    setIsSaving(true)
+    const changes = Array.from(pendingChanges.entries()).map(([key, status]) => {
+      const [memberId, eventKey] = key.split('::')
+      return { memberId, eventKey, status }
+    })
+    const ok = await batchSave(changes)
+    if (ok) setPendingChanges(new Map())
+    setIsSaving(false)
+  }
+
+  // 되돌리기
+  const handleDiscard = () => setPendingChanges(new Map())
 
   const handleModalStatusChange = (memberId: string, status: AttendanceStatus) => {
-    updateStatus(memberId, attendanceModalEventId!, status)
+    setPending(memberId, attendanceModalEventId!, status)
   }
 
   const handleModalBulkSet = (status: AttendanceStatus) => {
-    const updates = allAttendance.map((a) => ({ memberId: a.memberId, status }))
-    bulkUpdateEvent(attendanceModalEventId!, updates)
+    setPendingForEvent(attendanceModalEventId!, status)
   }
 
   // 회원별 모달 데이터
@@ -380,22 +438,22 @@ export const EventsPage = () => {
     return {
       memberId: member.memberId,
       memberName: member.inGameName,
-      events: visibleEvents.map((e) => ({
-        eventKey: e.eventKey,
-        name: e.name,
-        date: e.date ?? '',
-        status: (member.records[e.eventKey] ?? '') as AttendanceStatus,
-      })),
+      events: visibleEvents.map((e) => {
+        const key = `${member.memberId}::${e.eventKey}`
+        const status = pendingChanges.has(key)
+          ? pendingChanges.get(key)!
+          : (member.records[e.eventKey] ?? '') as AttendanceStatus
+        return { eventKey: e.eventKey, name: e.name, date: e.date ?? '', status }
+      }),
     }
-  }, [memberModalId, allAttendance, visibleEvents])
+  }, [memberModalId, allAttendance, visibleEvents, pendingChanges])
 
   const handleMemberModalStatusChange = (eventKey: string, status: AttendanceStatus) => {
-    updateStatus(memberModalId!, eventKey, status)
+    setPending(memberModalId!, eventKey, status)
   }
 
   const handleMemberModalBulkSet = (status: AttendanceStatus) => {
-    const updates = visibleEvents.map((e) => ({ eventKey: e.eventKey, status }))
-    bulkUpdateMember(memberModalId!, updates)
+    setPendingForMember(memberModalId!, status)
   }
 
   // 팝오버 외부 클릭 시 닫기
@@ -417,7 +475,7 @@ export const EventsPage = () => {
 
   const handlePopoverSelect = (status: AttendanceStatus) => {
     if (!cellPopover) return
-    updateStatus(cellPopover.memberId, cellPopover.eventKey, status)
+    setPending(cellPopover.memberId, cellPopover.eventKey, status)
     setCellPopover(null)
   }
 
@@ -477,6 +535,37 @@ export const EventsPage = () => {
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" />
         <Input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder={t('events.search_placeholder')} className="pl-9" />
       </div>
+
+      {/* 미저장 변경사항 저장 바 */}
+      {canEdit && (
+        <div className={cn(
+          'flex items-center justify-between px-4 py-2.5 rounded-lg mb-3 border transition-all duration-200',
+          pendingChanges.size > 0
+            ? 'bg-[var(--color-warning)]/10 border-[var(--color-warning)]/30'
+            : 'bg-[var(--color-bg-surface)] border-[var(--color-border-subtle)]',
+        )}>
+          <span className={cn('text-xs font-medium', pendingChanges.size > 0 ? 'text-[var(--color-warning)]' : 'text-[var(--color-text-muted)]')}>
+            {pendingChanges.size > 0 ? `${pendingChanges.size}개 미저장 변경사항` : '변경사항 없음'}
+          </span>
+          <div className="flex gap-2">
+            <button
+              onClick={handleDiscard}
+              disabled={pendingChanges.size === 0}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-[var(--color-text-muted)] hover:bg-[var(--color-bg-elevated)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              <RotateCcw className="w-3 h-3" /> 되돌리기
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={pendingChanges.size === 0 || isSaving}
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold bg-[var(--color-brand)] text-white hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
+            >
+              {isSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
+              저장
+            </button>
+          </div>
+        </div>
+      )}
 
       {activeTab === 'grid' ? (
         <div className="rounded-lg border border-[var(--color-border-subtle)] overflow-auto w-full max-h-[calc(100vh-200px)] sm:max-h-[calc(100vh-280px)]">
@@ -568,22 +657,25 @@ export const EventsPage = () => {
                       <span className="text-[var(--color-success)] font-bold">{total}</span>
                     </td>
                     {visibleEvents.map((e) => {
-                      const status = (a.records[e.eventKey] ?? '') as AttendanceStatus
+                      const pendingKey = `${a.memberId}::${e.eventKey}`
+                      const hasPending = pendingChanges.has(pendingKey)
+                      const displayStatus = hasPending ? pendingChanges.get(pendingKey)! : (a.records[e.eventKey] ?? '') as AttendanceStatus
                       const isOpen = cellPopover?.memberId === a.memberId && cellPopover?.eventKey === e.eventKey
                       return (
                         <td
                           key={e.eventKey}
-                          onClick={(ev) => canEdit && handleCellClick(a.memberId, e.eventKey, status, ev)}
+                          onClick={(ev) => canEdit && handleCellClick(a.memberId, e.eventKey, displayStatus, ev)}
                           className={cn(
                             'px-1 sm:px-2 py-2 sm:py-2.5 text-center select-none transition-colors text-[10px] sm:text-[11px] font-bold relative',
                             canEdit && 'cursor-pointer',
                             isOpen && 'ring-2 ring-[var(--color-brand)]/60 ring-inset',
-                            status === 'CT' && 'bg-[var(--color-success)]/15 text-[var(--color-success)] hover:bg-[var(--color-success)]/25',
-                            status === 'DB' && 'bg-[var(--color-warning)]/15 text-[var(--color-warning)] hover:bg-[var(--color-warning)]/25',
-                            status === '' && 'text-[var(--color-text-muted)] hover:bg-[var(--color-bg-elevated)]',
+                            hasPending && 'ring-1 ring-[var(--color-warning)]/70 ring-inset',
+                            displayStatus === 'CT' && 'bg-[var(--color-success)]/15 text-[var(--color-success)] hover:bg-[var(--color-success)]/25',
+                            displayStatus === 'DB' && 'bg-[var(--color-warning)]/15 text-[var(--color-warning)] hover:bg-[var(--color-warning)]/25',
+                            displayStatus === '' && 'text-[var(--color-text-muted)] hover:bg-[var(--color-bg-elevated)]',
                           )}
                         >
-                          {status || '·'}
+                          {displayStatus || '·'}
                         </td>
                       )
                     })}

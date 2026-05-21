@@ -18,6 +18,7 @@ interface EventStore {
   updateStatus: (memberId: string, eventKey: string, status: AttendanceStatus) => Promise<void>
   bulkUpdateEvent: (eventKey: string, updates: { memberId: string; status: AttendanceStatus }[]) => Promise<void>
   bulkUpdateMember: (memberId: string, updates: { eventKey: string; status: AttendanceStatus }[]) => Promise<void>
+  batchSave: (changes: { memberId: string; eventKey: string; status: AttendanceStatus }[]) => Promise<boolean>
   syncMemberName: (memberId: string, newName: string) => void
   setSearchQuery: (q: string) => void
   getFiltered: () => EventAttendance[]
@@ -117,22 +118,23 @@ export const useEventStore = create<EventStore>((set, get) => ({
       ),
     }))
 
-    let error: unknown
+    let failed = false
     if (status === '') {
       const res = await supabase.from('attendance').delete().eq('member_id', memberId).eq('event_id', eventKey)
-      error = res.error
+      if (res.error) { console.error('[updateStatus delete]', res.error); failed = true }
     } else {
       const res = await supabase
         .from('attendance')
         .upsert({ member_id: memberId, event_id: eventKey, status }, { onConflict: 'member_id,event_id' })
-      error = res.error
+        .select()
+      if (res.error) { console.error('[updateStatus upsert]', res.error); failed = true }
+      // RLS 무음 차단: error 없이 data가 빈 배열이면 실제로 저장 안 된 것
+      else if (!res.data || res.data.length === 0) { console.warn('[updateStatus] RLS blocked — no rows affected'); failed = true }
     }
 
-    if (error) {
+    if (failed) {
       set({ attendance: prev })
-      const msg = (error as { message?: string }).message ?? '저장 실패'
-      console.error('[updateStatus]', error)
-      toast.error(`출석 저장 실패: ${msg}`)
+      toast.error('출석 저장 실패 — Supabase 콘솔에서 RLS 정책을 확인하세요.')
     }
   },
 
@@ -211,6 +213,53 @@ export const useEventStore = create<EventStore>((set, get) => ({
       console.error('[bulkUpdateMember]', errors)
       toast.error(`일괄 저장 실패: ${msg}`)
     }
+  },
+
+  batchSave: async (changes) => {
+    const prev = get().attendance
+    // 낙관적 업데이트
+    set((s) => ({
+      attendance: s.attendance.map((a) => {
+        const mine = changes.filter((c) => c.memberId === a.memberId)
+        if (mine.length === 0) return a
+        const newRecords = { ...a.records }
+        mine.forEach((c) => { newRecords[c.eventKey] = c.status })
+        return { ...a, records: newRecords }
+      }),
+    }))
+
+    const toUpsert = changes.filter((c) => c.status !== '')
+    const toDelete = changes.filter((c) => c.status === '')
+    const errors: unknown[] = []
+
+    if (toUpsert.length > 0) {
+      const res = await supabase
+        .from('attendance')
+        .upsert(
+          toUpsert.map((c) => ({ member_id: c.memberId, event_id: c.eventKey, status: c.status })),
+          { onConflict: 'member_id,event_id' },
+        )
+        .select()
+      if (res.error) errors.push(res.error)
+    }
+    if (toDelete.length > 0) {
+      const results = await Promise.all(
+        toDelete.map((c) =>
+          supabase.from('attendance').delete().eq('member_id', c.memberId).eq('event_id', c.eventKey),
+        ),
+      )
+      results.forEach((r) => { if (r.error) errors.push(r.error) })
+    }
+
+    if (errors.length > 0) {
+      set({ attendance: prev })
+      const msg = (errors[0] as { message?: string }).message ?? '저장 실패'
+      console.error('[batchSave]', errors)
+      toast.error(`저장 실패: ${msg}`)
+      return false
+    }
+    toast.success('저장되었습니다.')
+    return true
   },
 
   syncMemberName: (memberId, newName) =>
