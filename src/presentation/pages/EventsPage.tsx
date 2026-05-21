@@ -22,6 +22,7 @@ interface AttendanceModalProps {
 }
 
 const AttendanceModal = ({ eventName, eventDate, attendance, onStatusChange, onBulkSet, onClose }: AttendanceModalProps) => {
+  const { t } = useTranslation()
   const [search, setSearch] = useState('')
   const filtered = search
     ? attendance.filter((a) => a.inGameName.toLowerCase().includes(search.toLowerCase()))
@@ -33,7 +34,6 @@ const AttendanceModal = ({ eventName, eventDate, attendance, onStatusChange, onB
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
       <div className="bg-[var(--color-bg-surface)] rounded-xl border border-[var(--color-border)] w-full max-w-md flex flex-col max-h-[90vh]">
-        {/* 헤더 */}
         <div className="flex items-start justify-between px-5 pt-5 pb-4 border-b border-[var(--color-border-subtle)] flex-shrink-0">
           <div>
             <div className="flex items-center gap-2">
@@ -49,105 +49,52 @@ const AttendanceModal = ({ eventName, eventDate, attendance, onStatusChange, onB
           </button>
         </div>
 
-        {/* 요약 + 일괄 설정 */}
         <div className="px-5 py-3 border-b border-[var(--color-border-subtle)] flex-shrink-0">
           <div className="flex items-center justify-between mb-2.5">
             <div className="flex items-center gap-1.5 text-xs text-[var(--color-text-muted)]">
               <Users className="w-3.5 h-3.5" />
-              <span>참여 <span className="font-bold text-[var(--color-success)]">{total}</span>명</span>
+              <span>{t('events.attend_count', { count: total })}</span>
               {ct > 0 && <span className="text-[var(--color-success)] bg-[var(--color-success)]/10 px-1.5 py-0.5 rounded">CT {ct}</span>}
               {db > 0 && <span className="text-[var(--color-warning)] bg-[var(--color-warning)]/10 px-1.5 py-0.5 rounded">DB {db}</span>}
             </div>
           </div>
           <div className="flex gap-1.5">
-            <button
-              onClick={() => onBulkSet('CT')}
-              className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-[var(--color-success)]/15 text-[var(--color-success)] hover:bg-[var(--color-success)]/25 transition-colors"
-            >
-              전체 CT
+            <button onClick={() => onBulkSet('CT')} className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-[var(--color-success)]/15 text-[var(--color-success)] hover:bg-[var(--color-success)]/25 transition-colors">
+              {t('events.bulk_ct')}
             </button>
-            <button
-              onClick={() => onBulkSet('DB')}
-              className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-[var(--color-warning)]/15 text-[var(--color-warning)] hover:bg-[var(--color-warning)]/25 transition-colors"
-            >
-              전체 DB
+            <button onClick={() => onBulkSet('DB')} className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-[var(--color-warning)]/15 text-[var(--color-warning)] hover:bg-[var(--color-warning)]/25 transition-colors">
+              {t('events.bulk_db')}
             </button>
-            <button
-              onClick={() => onBulkSet('')}
-              className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:bg-[var(--color-border)] transition-colors"
-            >
-              전체 초기화
+            <button onClick={() => onBulkSet('')} className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:bg-[var(--color-border)] transition-colors">
+              {t('events.bulk_clear')}
             </button>
           </div>
         </div>
 
-        {/* 검색 */}
         <div className="px-5 py-2.5 border-b border-[var(--color-border-subtle)] flex-shrink-0">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--color-text-muted)]" />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="멤버 검색..."
-              className="w-full pl-8 pr-3 py-1.5 text-sm bg-[var(--color-bg-elevated)] border border-[var(--color-border-subtle)] rounded-lg text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] outline-none focus:border-[var(--color-brand)]/50"
-            />
+            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('events.member_search_placeholder')} className="w-full pl-8 pr-3 py-1.5 text-sm bg-[var(--color-bg-elevated)] border border-[var(--color-border-subtle)] rounded-lg text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] outline-none focus:border-[var(--color-brand)]/50" />
           </div>
         </div>
 
-        {/* 멤버 목록 */}
         <div className="overflow-y-auto flex-1 px-3 py-2">
           {filtered.map((a) => (
             <div key={a.memberId} className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-[var(--color-bg-elevated)] transition-colors">
               <span className="flex-1 text-sm font-medium text-[var(--color-text-primary)] truncate">{a.inGameName}</span>
               <div className="flex gap-1 flex-shrink-0">
-                <button
-                  onClick={() => onStatusChange(a.memberId, 'CT')}
-                  className={cn(
-                    'px-3 py-1 rounded-md text-xs font-bold transition-colors',
-                    a.status === 'CT'
-                      ? 'bg-[var(--color-success)] text-white'
-                      : 'bg-[var(--color-bg-base)] text-[var(--color-text-muted)] hover:bg-[var(--color-success)]/20 hover:text-[var(--color-success)]'
-                  )}
-                >
-                  CT
-                </button>
-                <button
-                  onClick={() => onStatusChange(a.memberId, 'DB')}
-                  className={cn(
-                    'px-3 py-1 rounded-md text-xs font-bold transition-colors',
-                    a.status === 'DB'
-                      ? 'bg-[var(--color-warning)] text-white'
-                      : 'bg-[var(--color-bg-base)] text-[var(--color-text-muted)] hover:bg-[var(--color-warning)]/20 hover:text-[var(--color-warning)]'
-                  )}
-                >
-                  DB
-                </button>
-                <button
-                  onClick={() => onStatusChange(a.memberId, '')}
-                  className={cn(
-                    'px-2 py-1 rounded-md text-xs font-bold transition-colors',
-                    a.status === ''
-                      ? 'bg-[var(--color-border)] text-[var(--color-text-secondary)]'
-                      : 'bg-[var(--color-bg-base)] text-[var(--color-text-muted)] hover:bg-[var(--color-bg-elevated)]'
-                  )}
-                >
-                  ✕
-                </button>
+                <button onClick={() => onStatusChange(a.memberId, 'CT')} className={cn('px-3 py-1 rounded-md text-xs font-bold transition-colors', a.status === 'CT' ? 'bg-[var(--color-success)] text-white' : 'bg-[var(--color-bg-base)] text-[var(--color-text-muted)] hover:bg-[var(--color-success)]/20 hover:text-[var(--color-success)]')}>CT</button>
+                <button onClick={() => onStatusChange(a.memberId, 'DB')} className={cn('px-3 py-1 rounded-md text-xs font-bold transition-colors', a.status === 'DB' ? 'bg-[var(--color-warning)] text-white' : 'bg-[var(--color-bg-base)] text-[var(--color-text-muted)] hover:bg-[var(--color-warning)]/20 hover:text-[var(--color-warning)]')}>DB</button>
+                <button onClick={() => onStatusChange(a.memberId, '')} className={cn('px-2 py-1 rounded-md text-xs font-bold transition-colors', a.status === '' ? 'bg-[var(--color-border)] text-[var(--color-text-secondary)]' : 'bg-[var(--color-bg-base)] text-[var(--color-text-muted)] hover:bg-[var(--color-bg-elevated)]')}>✕</button>
               </div>
             </div>
           ))}
-          {filtered.length === 0 && (
-            <p className="text-center text-xs text-[var(--color-text-muted)] py-8">검색 결과가 없습니다.</p>
-          )}
+          {filtered.length === 0 && <p className="text-center text-xs text-[var(--color-text-muted)] py-8">{t('events.no_results')}</p>}
         </div>
 
-        {/* 닫기 */}
         <div className="px-5 py-4 border-t border-[var(--color-border-subtle)] flex-shrink-0">
-          <button
-            onClick={onClose}
-            className="w-full py-2 rounded-lg bg-[var(--color-brand)] text-white text-sm font-semibold hover:opacity-90 transition-opacity"
-          >
-            완료
+          <button onClick={onClose} className="w-full py-2 rounded-lg bg-[var(--color-brand)] text-white text-sm font-semibold hover:opacity-90 transition-opacity">
+            {t('events.modal_done')}
           </button>
         </div>
       </div>
@@ -166,6 +113,7 @@ interface MemberAttendanceModalProps {
 }
 
 const MemberAttendanceModal = ({ memberName, events, onStatusChange, onBulkSet, onClose }: MemberAttendanceModalProps) => {
+  const { t } = useTranslation()
   const [search, setSearch] = useState('')
   const filtered = search
     ? events.filter((e) => e.name.toLowerCase().includes(search.toLowerCase()) || e.date.includes(search))
@@ -185,7 +133,7 @@ const MemberAttendanceModal = ({ memberName, events, onStatusChange, onBulkSet, 
               <h2 className="text-base font-bold text-[var(--color-text-primary)]">{memberName}</h2>
             </div>
             <p className="text-xs text-[var(--color-text-muted)] mt-0.5 ml-6">
-              전체 이벤트 출석 관리
+              {t('events.member_modal_subtitle')}
             </p>
           </div>
           <button onClick={onClose} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] p-1 -mr-1">
@@ -198,7 +146,7 @@ const MemberAttendanceModal = ({ memberName, events, onStatusChange, onBulkSet, 
           <div className="flex items-center justify-between mb-2.5">
             <div className="flex items-center gap-1.5 text-xs text-[var(--color-text-muted)]">
               <ClipboardList className="w-3.5 h-3.5" />
-              <span>참여 <span className="font-bold text-[var(--color-success)]">{total}</span> / {events.length}개</span>
+              <span>{t('events.attend_ratio', { attended: total, total: events.length })}</span>
               {ct > 0 && <span className="text-[var(--color-success)] bg-[var(--color-success)]/10 px-1.5 py-0.5 rounded">CT {ct}</span>}
               {db > 0 && <span className="text-[var(--color-warning)] bg-[var(--color-warning)]/10 px-1.5 py-0.5 rounded">DB {db}</span>}
             </div>
@@ -208,19 +156,19 @@ const MemberAttendanceModal = ({ memberName, events, onStatusChange, onBulkSet, 
               onClick={() => onBulkSet('CT')}
               className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-[var(--color-success)]/15 text-[var(--color-success)] hover:bg-[var(--color-success)]/25 transition-colors"
             >
-              전체 CT
+              {t('events.bulk_ct')}
             </button>
             <button
               onClick={() => onBulkSet('DB')}
               className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-[var(--color-warning)]/15 text-[var(--color-warning)] hover:bg-[var(--color-warning)]/25 transition-colors"
             >
-              전체 DB
+              {t('events.bulk_db')}
             </button>
             <button
               onClick={() => onBulkSet('')}
               className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:bg-[var(--color-border)] transition-colors"
             >
-              전체 초기화
+              {t('events.bulk_clear')}
             </button>
           </div>
         </div>
@@ -232,7 +180,7 @@ const MemberAttendanceModal = ({ memberName, events, onStatusChange, onBulkSet, 
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="이벤트 검색..."
+              placeholder={t('events.event_search_placeholder')}
               className="w-full pl-8 pr-3 py-1.5 text-sm bg-[var(--color-bg-elevated)] border border-[var(--color-border-subtle)] rounded-lg text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] outline-none focus:border-[var(--color-brand)]/50"
             />
           </div>
@@ -284,7 +232,7 @@ const MemberAttendanceModal = ({ memberName, events, onStatusChange, onBulkSet, 
             </div>
           ))}
           {filtered.length === 0 && (
-            <p className="text-center text-xs text-[var(--color-text-muted)] py-8">검색 결과가 없습니다.</p>
+            <p className="text-center text-xs text-[var(--color-text-muted)] py-8">{t('events.no_results')}</p>
           )}
         </div>
 
@@ -294,7 +242,7 @@ const MemberAttendanceModal = ({ memberName, events, onStatusChange, onBulkSet, 
             onClick={onClose}
             className="w-full py-2 rounded-lg bg-[var(--color-brand)] text-white text-sm font-semibold hover:opacity-90 transition-opacity"
           >
-            완료
+            {t('events.modal_done')}
           </button>
         </div>
       </div>
@@ -545,7 +493,7 @@ export const EventsPage = () => {
             : 'bg-[var(--color-bg-surface)] border-[var(--color-border-subtle)]',
         )}>
           <span className={cn('text-xs font-medium', pendingChanges.size > 0 ? 'text-[var(--color-warning)]' : 'text-[var(--color-text-muted)]')}>
-            {pendingChanges.size > 0 ? `${pendingChanges.size}개 미저장 변경사항` : '변경사항 없음'}
+            {pendingChanges.size > 0 ? t('events.unsaved_changes', { count: pendingChanges.size }) : t('events.no_changes')}
           </span>
           <div className="flex gap-2">
             <button
@@ -553,7 +501,7 @@ export const EventsPage = () => {
               disabled={pendingChanges.size === 0}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-[var(--color-text-muted)] hover:bg-[var(--color-bg-elevated)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             >
-              <RotateCcw className="w-3 h-3" /> 되돌리기
+              <RotateCcw className="w-3 h-3" /> {t('events.discard_btn')}
             </button>
             <button
               onClick={handleSave}
@@ -561,7 +509,7 @@ export const EventsPage = () => {
               className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold bg-[var(--color-brand)] text-white hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
             >
               {isSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
-              저장
+              {t('common.save')}
             </button>
           </div>
         </div>
