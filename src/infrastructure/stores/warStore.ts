@@ -34,7 +34,7 @@ interface WarStore {
   getMemberRows: () => MemberWarRow[]
   getSummary: () => SummaryRow[]
   batchSave: (changes: { roundId: string; memberId: string; team: WarTeam; role: WarRole; note: string }[]) => Promise<boolean>
-  batchSaveVs: (changes: { roundId: string; memberId: string; points: number }[]) => Promise<boolean>
+  batchSaveVs: (changes: { roundId: string; memberId: string; points: string }[]) => Promise<boolean>
 }
 
 function sortRoundsByDate(rounds: WarRound[]): WarRound[] {
@@ -108,7 +108,7 @@ export const useWarStore = create<WarStore>((set, get) => ({
           vsPoints = (vsRows ?? []).map(r => ({
             roundId: r.round_id,
             memberId: r.member_id,
-            points: r.points ?? 0,
+            points: r.points != null ? String(r.points) : '',
           }))
         }
       } catch {
@@ -199,8 +199,8 @@ export const useWarStore = create<WarStore>((set, get) => ({
 
   batchSaveVs: async (changes) => {
     try {
-      const toUpsert = changes.filter(c => c.points !== 0)
-      const toDelete = changes.filter(c => c.points === 0)
+      const toUpsert = changes.filter(c => c.points.trim() !== '')
+      const toDelete = changes.filter(c => c.points.trim() === '')
 
       if (toUpsert.length > 0) {
         const { error } = await supabase.from('war_vs_points').upsert(
@@ -225,7 +225,7 @@ export const useWarStore = create<WarStore>((set, get) => ({
         let vsPoints = [...s.vsPoints]
         for (const c of changes) {
           vsPoints = vsPoints.filter(v => !(v.roundId === c.roundId && v.memberId === c.memberId))
-          if (c.points !== 0) {
+          if (c.points.trim() !== '') {
             vsPoints.push({ roundId: c.roundId, memberId: c.memberId, points: c.points })
           }
         }

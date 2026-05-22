@@ -25,7 +25,7 @@ export interface WarEntry {
 export interface VsPointEntry {
   roundId: string
   memberId: string
-  points: number
+  points: string
 }
 
 export interface MemberWarRow {

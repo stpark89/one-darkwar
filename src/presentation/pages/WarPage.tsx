@@ -83,7 +83,7 @@ export const WarPage = () => {
   const [isSaving, setIsSaving] = useState(false)
 
   // ── Pending VS points ──
-  const [pendingVs, setPendingVs] = useState<Map<string, number>>(new Map())
+  const [pendingVs, setPendingVs] = useState<Map<string, string>>(new Map())
   const [isSavingVs, setIsSavingVs] = useState(false)
 
   // ── Popovers ──
@@ -122,15 +122,15 @@ export const WarPage = () => {
     })
   }, [baseMemberRows, sortKey, sortDir])
 
-  // ── VS rows (sorted by total desc) ──
+  // ── VS rows (sorted by total desc, 숫자 파싱 가능한 값만 합산) ──
+  const parseVsNum = (v: string) => { const n = parseFloat(v.replace(/,/g, '')); return isNaN(n) ? 0 : n }
   const vsRows = useMemo(() => {
     return members.map(m => {
       const totalVs = rounds.reduce((sum, r) => {
         const key = `${m.id}::${r.id}`
         const pending = pendingVs.get(key)
-        if (pending !== undefined) return sum + pending
-        const stored = vsPoints.find(v => v.roundId === r.id && v.memberId === m.id)
-        return sum + (stored?.points ?? 0)
+        const val = pending !== undefined ? pending : (vsPoints.find(v => v.roundId === r.id && v.memberId === m.id)?.points ?? '')
+        return sum + parseVsNum(val)
       }, 0)
       return { memberId: m.id, inGameName: m.inGameName, totalVs }
     }).sort((a, b) => b.totalVs - a.totalVs)
@@ -196,16 +196,15 @@ export const WarPage = () => {
     const key = `${memberId}::${roundId}`
     const pending = pendingVs.get(key)
     const stored = vsPoints.find(v => v.roundId === roundId && v.memberId === memberId)
-    const pts = pending !== undefined ? pending : (stored?.points ?? 0)
-    setVsPopover({ roundId, memberId, points: pts, inputValue: pts === 0 ? '' : String(pts), x: rect.left + rect.width / 2, y: rect.bottom + 4 })
+    const current = pending !== undefined ? pending : (stored?.points ?? '')
+    setVsPopover({ roundId, memberId, points: 0, inputValue: current, x: rect.left + rect.width / 2, y: rect.bottom + 4 })
   }
 
   const commitVsPopover = (roundId: string, memberId: string, value: string) => {
-    const pts = parseInt(value, 10)
     const key = `${memberId}::${roundId}`
     const stored = vsPoints.find(v => v.roundId === roundId && v.memberId === memberId)
-    const original = stored?.points ?? 0
-    const resolved = isNaN(pts) ? 0 : pts
+    const original = stored?.points ?? ''
+    const resolved = value.trim()
     setPendingVs(prev => {
       const next = new Map(prev)
       if (resolved !== original) next.set(key, resolved)
@@ -235,7 +234,7 @@ export const WarPage = () => {
     setIsSavingVs(true)
     const changes = Array.from(pendingVs.entries()).map(([key, points]) => {
       const [memberId, roundId] = key.split('::')
-      return { roundId, memberId, points }
+      return { roundId, memberId, points } // points is string
     })
     const ok = await batchSaveVs(changes)
     if (ok) setPendingVs(new Map())
@@ -500,7 +499,7 @@ export const WarPage = () => {
                       const key = `${row.memberId}::${r.id}`
                       const pending = pendingVs.get(key)
                       const stored = vsPoints.find(v => v.roundId === r.id && v.memberId === row.memberId)
-                      const pts = pending !== undefined ? pending : (stored?.points ?? 0)
+                      const pts = pending !== undefined ? pending : (stored?.points ?? '')
                       const isPending = pending !== undefined
                       const isVsOpen = vsPopover?.roundId === r.id && vsPopover?.memberId === row.memberId
                       return (
@@ -511,8 +510,8 @@ export const WarPage = () => {
                             canEdit && 'cursor-pointer',
                             isVsOpen && 'bg-[var(--color-bg-elevated)]',
                           )}>
-                          <span className={cn('relative inline-block', pts > 0 ? 'text-[var(--color-text-primary)] font-medium' : 'text-[var(--color-text-muted)]')}>
-                            {pts > 0 ? pts : '·'}
+                          <span className={cn('relative inline-block', pts ? 'text-[var(--color-text-primary)] font-medium' : 'text-[var(--color-text-muted)]')}>
+                            {pts || '·'}
                             {isPending && <span className="absolute -top-1 -right-2 w-1.5 h-1.5 rounded-full bg-yellow-400" />}
                           </span>
                         </td>
@@ -575,7 +574,7 @@ export const WarPage = () => {
           className="bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-xl shadow-2xl p-2 w-36"
           onMouseDown={e => e.stopPropagation()}
         >
-          <input type="number" autoFocus
+          <input type="text" autoFocus
             value={vsPopover.inputValue}
             onChange={e => setVsPopover(prev => prev ? { ...prev, inputValue: e.target.value } : null)}
             onKeyDown={e => {
