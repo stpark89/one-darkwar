@@ -31,7 +31,7 @@ const STATUS_STYLE = {
 export const ExcelPage = () => {
   const { t } = useTranslation()
   const { members, addMember, updateMember } = useMemberStore()
-  const { getMemberRows, rounds, entries, updateEntry } = useWarStore()
+  const { getMemberRows, rounds, entries, batchSave: batchSaveWar } = useWarStore()
   const { events, attendance, updateStatus } = useEventStore()
   const fileRef = useRef<HTMLInputElement>(null)
   const [dragging, setDragging] = useState(false)
@@ -72,11 +72,13 @@ export const ExcelPage = () => {
         }
       }
     } else if (preview.type === 'war') {
-      for (const c of preview.changes) {
-        if (!c.memberId || !c.roundId) continue
-        const [team, role] = c.to.split('·')
-        await updateEntry(c.roundId, c.memberId, (team ?? '') as WarTeam, (role ?? '') as WarRole)
-      }
+      const warChanges = preview.changes
+        .filter(c => c.memberId && c.roundId)
+        .map(c => {
+          const [team, role] = c.to.split('·')
+          return { roundId: c.roundId!, memberId: c.memberId!, team: (team ?? '') as WarTeam, role: (role ?? '') as WarRole, note: '' }
+        })
+      await batchSaveWar(warChanges)
     } else if (preview.type === 'events') {
       for (const c of preview.changes) {
         if (!c.memberId || !c.eventId) continue
