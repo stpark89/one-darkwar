@@ -72,6 +72,7 @@ export default {
     no_changes: '無變更',
     discard_btn: '捨棄',
     round_count: '{{n}} 輪次',
+    attend_yes: '參與',
   },
   events: {
     title: '活動出席',

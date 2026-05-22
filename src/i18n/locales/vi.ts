@@ -72,6 +72,7 @@ export default {
     no_changes: 'Không có thay đổi',
     discard_btn: 'Hoàn tác',
     round_count: '{{n}} đợt',
+    attend_yes: 'Tham gia',
   },
   events: {
     title: 'Điểm danh sự kiện',

@@ -72,6 +72,7 @@ export default {
     no_changes: '변경사항 없음',
     discard_btn: '되돌리기',
     round_count: '{{n}}회차',
+    attend_yes: '참여',
   },
   events: {
     title: '이벤트 출석',

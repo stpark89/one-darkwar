@@ -72,6 +72,7 @@ export default {
     no_changes: 'No changes',
     discard_btn: 'Discard',
     round_count: '{{n}} rounds',
+    attend_yes: 'Attend',
   },
   events: {
     title: 'Event Attendance',
