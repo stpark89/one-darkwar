@@ -19,11 +19,18 @@ export interface WarEntry {
   memberId: string
   team: WarTeam
   role: WarRole
+  note: string
+}
+
+export interface VsPointEntry {
+  roundId: string
+  memberId: string
+  points: number
 }
 
 export interface MemberWarRow {
   memberId: string
   inGameName: string
-  entryMap: Record<string, { team: WarTeam; role: WarRole }>
+  entryMap: Record<string, { team: WarTeam; role: WarRole; note: string }>
   total: number
 }

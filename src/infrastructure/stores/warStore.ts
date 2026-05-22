@@ -1,6 +1,7 @@
 import { create } from 'zustand'
+import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
-import type { Season, WarRound, WarEntry, WarTeam, WarRole, MemberWarRow } from '@/domain/entities/War'
+import type { Season, WarRound, WarEntry, WarTeam, WarRole, MemberWarRow, VsPointEntry } from '@/domain/entities/War'
 
 interface SummaryRow {
   memberId: string
@@ -17,6 +18,7 @@ interface WarStore {
   activeSeason: Season | null
   rounds: WarRound[]
   entries: WarEntry[]
+  vsPoints: VsPointEntry[]
   members: { id: string; inGameName: string }[]
   loading: boolean
   searchQuery: string
@@ -25,20 +27,24 @@ interface WarStore {
   loadData: () => Promise<void>
   addRound: (date: string) => Promise<void>
   deleteRound: (roundId: string) => Promise<void>
-  updateEntry: (roundId: string, memberId: string, team: WarTeam, role: WarRole) => Promise<void>
+  updateRoundDate: (roundId: string, date: string) => Promise<void>
   syncMemberName: (memberId: string, newName: string) => void
   setSearchQuery: (q: string) => void
   setFilterTeam: (team: string) => void
   getMemberRows: () => MemberWarRow[]
   getSummary: () => SummaryRow[]
+  batchSave: (changes: { roundId: string; memberId: string; team: WarTeam; role: WarRole; note: string }[]) => Promise<boolean>
+  batchSaveVs: (changes: { roundId: string; memberId: string; points: number }[]) => Promise<boolean>
 }
 
-export const nextEntry = (team: string, role: string): [WarTeam, WarRole] => {
-  if (!team || !role) return ['A', 'CT']
-  if (team === 'A' && role === 'CT') return ['A', 'DB']
-  if (team === 'A' && role === 'DB') return ['B', 'CT']
-  if (team === 'B' && role === 'CT') return ['B', 'DB']
-  return ['', '']
+function sortRoundsByDate(rounds: WarRound[]): WarRound[] {
+  return [...rounds]
+    .sort((a, b) => {
+      if (a.date < b.date) return -1
+      if (a.date > b.date) return 1
+      return 0
+    })
+    .map((r, idx) => ({ ...r, sortOrder: idx + 1 }))
 }
 
 export const useWarStore = create<WarStore>((set, get) => ({
@@ -46,6 +52,7 @@ export const useWarStore = create<WarStore>((set, get) => ({
   activeSeason: null,
   rounds: [],
   entries: [],
+  vsPoints: [],
   members: [],
   loading: false,
   searchQuery: '',
@@ -67,17 +74,18 @@ export const useWarStore = create<WarStore>((set, get) => ({
       const members = (memberRows ?? []).map(r => ({ id: r.id, inGameName: r.in_game_name }))
 
       if (!activeSeason) {
-        set({ seasons, activeSeason: null, rounds: [], entries: [], members })
+        set({ seasons, activeSeason: null, rounds: [], entries: [], vsPoints: [], members })
         return
       }
 
       const { data: roundRows } = await supabase
         .from('war_rounds').select('*')
-        .eq('season_id', activeSeason.id).order('sort_order')
+        .eq('season_id', activeSeason.id)
 
-      const rounds: WarRound[] = (roundRows ?? []).map(r => ({
-        id: r.id, seasonId: r.season_id, sortOrder: r.sort_order, date: r.round_date ?? '',
+      const rawRounds: WarRound[] = (roundRows ?? []).map(r => ({
+        id: r.id, seasonId: r.season_id, sortOrder: 0, date: r.round_date ?? '',
       }))
+      const rounds = sortRoundsByDate(rawRounds)
 
       const roundIds = rounds.map(r => r.id)
       const { data: entryRows } = roundIds.length > 0
@@ -85,11 +93,29 @@ export const useWarStore = create<WarStore>((set, get) => ({
         : { data: [] }
 
       const entries: WarEntry[] = (entryRows ?? []).map(r => ({
-        roundId: r.round_id, memberId: r.member_id,
-        team: r.team as WarTeam, role: r.role as WarRole,
+        roundId: r.round_id,
+        memberId: r.member_id,
+        team: r.team as WarTeam,
+        role: r.role as WarRole,
+        note: r.note ?? '',
       }))
 
-      set({ seasons, activeSeason, rounds, entries, members })
+      let vsPoints: VsPointEntry[] = []
+      try {
+        if (roundIds.length > 0) {
+          const { data: vsRows } = await supabase
+            .from('war_vs_points').select('*').in('round_id', roundIds)
+          vsPoints = (vsRows ?? []).map(r => ({
+            roundId: r.round_id,
+            memberId: r.member_id,
+            points: r.points ?? 0,
+          }))
+        }
+      } catch {
+        // table may not exist yet — graceful fallback
+      }
+
+      set({ seasons, activeSeason, rounds, entries, vsPoints, members })
     } finally {
       set({ loading: false })
     }
@@ -103,34 +129,114 @@ export const useWarStore = create<WarStore>((set, get) => ({
       .insert({ season_id: activeSeason.id, sort_order: rounds.length + 1, round_date: date || null })
       .select().single()
     if (!data) return
-    const newRound: WarRound = { id: data.id, seasonId: data.season_id, sortOrder: data.sort_order, date: data.round_date ?? '' }
-    set(s => ({ rounds: [...s.rounds, newRound] }))
+    const newRound: WarRound = { id: data.id, seasonId: data.season_id, sortOrder: 0, date: data.round_date ?? '' }
+    const sorted = sortRoundsByDate([...rounds, newRound])
+    set({ rounds: sorted })
   },
 
   deleteRound: async (roundId) => {
-    // war_entries는 DB cascade로 자동 삭제
     await supabase.from('war_rounds').delete().eq('id', roundId)
     set(s => ({
-      rounds: s.rounds.filter(r => r.id !== roundId),
+      rounds: s.rounds.filter(r => r.id !== roundId).map((r, idx) => ({ ...r, sortOrder: idx + 1 })),
       entries: s.entries.filter(e => e.roundId !== roundId),
+      vsPoints: s.vsPoints.filter(v => v.roundId !== roundId),
     }))
   },
 
-  updateEntry: async (roundId, memberId, team, role) => {
-    // 낙관적 업데이트
+  updateRoundDate: async (roundId, date) => {
+    await supabase.from('war_rounds').update({ round_date: date }).eq('id', roundId)
     set(s => {
-      const others = s.entries.filter(e => !(e.roundId === roundId && e.memberId === memberId))
-      if (!team && !role) return { entries: others }
-      return { entries: [...others, { roundId, memberId, team, role }] }
+      const updated = s.rounds.map(r => r.id === roundId ? { ...r, date } : r)
+      return { rounds: sortRoundsByDate(updated) }
     })
+  },
 
-    if (!team && !role) {
-      await supabase.from('war_entries').delete().eq('round_id', roundId).eq('member_id', memberId)
-    } else {
-      await supabase.from('war_entries').upsert(
-        { round_id: roundId, member_id: memberId, team, role },
-        { onConflict: 'round_id,member_id' }
-      )
+  batchSave: async (changes) => {
+    try {
+      const toUpsert = changes.filter(c => c.team !== '' || c.role !== '')
+      const toDelete = changes.filter(c => c.team === '' && c.role === '')
+
+      if (toUpsert.length > 0) {
+        const { error } = await supabase.from('war_entries').upsert(
+          toUpsert.map(c => ({
+            round_id: c.roundId,
+            member_id: c.memberId,
+            team: c.team,
+            role: c.role,
+            note: c.note,
+          })),
+          { onConflict: 'round_id,member_id' }
+        )
+        if (error) throw error
+      }
+
+      for (const c of toDelete) {
+        await supabase.from('war_entries')
+          .delete()
+          .eq('round_id', c.roundId)
+          .eq('member_id', c.memberId)
+      }
+
+      // update local state
+      set(s => {
+        let entries = [...s.entries]
+        for (const c of changes) {
+          entries = entries.filter(e => !(e.roundId === c.roundId && e.memberId === c.memberId))
+          if (c.team !== '' || c.role !== '') {
+            entries.push({ roundId: c.roundId, memberId: c.memberId, team: c.team, role: c.role, note: c.note })
+          }
+        }
+        return { entries }
+      })
+
+      return true
+    } catch (err) {
+      console.error('batchSave error', err)
+      toast.error('저장 중 오류가 발생했습니다.')
+      return false
+    }
+  },
+
+  batchSaveVs: async (changes) => {
+    try {
+      const toUpsert = changes.filter(c => c.points !== 0)
+      const toDelete = changes.filter(c => c.points === 0)
+
+      if (toUpsert.length > 0) {
+        const { error } = await supabase.from('war_vs_points').upsert(
+          toUpsert.map(c => ({
+            round_id: c.roundId,
+            member_id: c.memberId,
+            points: c.points,
+          })),
+          { onConflict: 'round_id,member_id' }
+        )
+        if (error) throw error
+      }
+
+      for (const c of toDelete) {
+        await supabase.from('war_vs_points')
+          .delete()
+          .eq('round_id', c.roundId)
+          .eq('member_id', c.memberId)
+      }
+
+      set(s => {
+        let vsPoints = [...s.vsPoints]
+        for (const c of changes) {
+          vsPoints = vsPoints.filter(v => !(v.roundId === c.roundId && v.memberId === c.memberId))
+          if (c.points !== 0) {
+            vsPoints.push({ roundId: c.roundId, memberId: c.memberId, points: c.points })
+          }
+        }
+        return { vsPoints }
+      })
+
+      return true
+    } catch (err) {
+      console.error('batchSaveVs error', err)
+      toast.error('VS 포인트 저장 중 오류가 발생했습니다.')
+      return false
     }
   },
 
@@ -143,10 +249,10 @@ export const useWarStore = create<WarStore>((set, get) => ({
   getMemberRows: () => {
     const { entries, rounds, members, searchQuery, filterTeam } = get()
     let rows: MemberWarRow[] = members.map(m => {
-      const entryMap: Record<string, { team: WarTeam; role: WarRole }> = {}
+      const entryMap: Record<string, { team: WarTeam; role: WarRole; note: string }> = {}
       rounds.forEach(r => {
         const e = entries.find(en => en.roundId === r.id && en.memberId === m.id)
-        entryMap[r.id] = { team: e?.team ?? '', role: e?.role ?? '' }
+        entryMap[r.id] = { team: e?.team ?? '', role: e?.role ?? '', note: e?.note ?? '' }
       })
       const total = Object.values(entryMap).filter(e => e.role !== '').length
       return { memberId: m.id, inGameName: m.inGameName, entryMap, total }
