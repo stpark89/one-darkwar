@@ -22,17 +22,36 @@ type CellPopoverState = {
   y: number
 } | null
 
-// ─── EntryCell: 참여(✓) / 미참여(·) 표시 ─────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+const ENTRY_STYLE: Record<string, string> = {
+  'A-CT': 'bg-blue-500/20 text-blue-400',
+  'A-DB': 'bg-blue-500/10 text-blue-300',
+  'B-CT': 'bg-purple-500/20 text-purple-400',
+  'B-DB': 'bg-purple-500/10 text-purple-300',
+}
+
+const entryScore = (team: string, role: string) => {
+  if (!team || !role) return 0
+  if (team === 'A' && role === 'CT') return 4
+  if (team === 'A' && role === 'DB') return 3
+  if (team === 'B' && role === 'CT') return 2
+  return 1
+}
+
+// ─── Sub-components ──────────────────────────────────────────────────────────
 
 const EntryCell = ({
-  role, note, pending,
-}: { role: string; note: string; pending: boolean }) => {
-  const attended = role !== ''
+  team, role, note, pending,
+}: { team: string; role: string; note: string; pending: boolean }) => {
+  const key = `${team}-${role}`
   return (
     <span className="relative inline-flex items-center justify-center">
-      {attended
-        ? <span className="text-[var(--color-success)] text-sm font-bold">✓</span>
-        : <span className="text-[var(--color-text-muted)]">·</span>
+      {!team || !role
+        ? <span className="text-[var(--color-text-muted)]">·</span>
+        : <span className={cn('text-[11px] font-bold px-1.5 py-0.5 rounded', ENTRY_STYLE[key] ?? '')}>
+            {team}·{role}
+          </span>
       }
       {note && (
         <span className="absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full bg-orange-400" title={note} />
@@ -54,6 +73,7 @@ export const WarPage = () => {
   const {
     activeSeason, rounds, entries, loading,
     searchQuery, setSearchQuery,
+    filterTeam, setFilterTeam,
     getMemberRows, getSummary,
     addRound, deleteRound, updateRoundDate, loadData,
     batchSave,
@@ -69,7 +89,7 @@ export const WarPage = () => {
   const [sortKey, setSortKey] = useState<string>('total')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
 
-  // ── Pending entries (grid tab) ──
+  // ── Pending entries ──
   const [pendingEntries, setPendingEntries] = useState<Map<string, PendingEntry>>(new Map())
   const [isSaving, setIsSaving] = useState(false)
 
@@ -98,10 +118,9 @@ export const WarPage = () => {
       if (sortKey === 'inGameName') cmp = a.inGameName.localeCompare(b.inGameName)
       else if (sortKey === 'total') cmp = a.total - b.total
       else {
-        // 회차별 정렬: 참여(1) > 미참여(0)
-        const ea = a.entryMap[sortKey] ?? { role: '' }
-        const eb = b.entryMap[sortKey] ?? { role: '' }
-        cmp = (ea.role !== '' ? 1 : 0) - (eb.role !== '' ? 1 : 0)
+        const ea = a.entryMap[sortKey] ?? { team: '', role: '' }
+        const eb = b.entryMap[sortKey] ?? { team: '', role: '' }
+        cmp = entryScore(ea.team, ea.role) - entryScore(eb.team, eb.role)
       }
       return sortDir === 'asc' ? cmp : -cmp
     })
@@ -127,6 +146,7 @@ export const WarPage = () => {
     const key = `${memberId}::${roundId}`
     const original = getOriginalEntry(roundId, memberId)
     const isDiff =
+      entry.team !== original.team ||
       entry.role !== original.role ||
       entry.note !== original.note
 
@@ -139,7 +159,7 @@ export const WarPage = () => {
     setCellPopover(null)
   }, [cellPopover, getOriginalEntry])
 
-  // Close popovers on outside click
+  // Close popover on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (cellPopover && popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
@@ -196,35 +216,6 @@ export const WarPage = () => {
     </div>
   )
 
-  // Save bar component
-  const SaveBar = ({
-    count, saving, onSave, onDiscard,
-  }: { count: number; saving: boolean; onSave: () => void; onDiscard: () => void }) => (
-    <div className={cn(
-      'flex items-center justify-between gap-3 mb-3 px-3 py-2 rounded-lg border text-xs transition-all',
-      count > 0
-        ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-300'
-        : 'bg-[var(--color-bg-surface)] border-[var(--color-border-subtle)] text-[var(--color-text-muted)]',
-    )}>
-      <span>{count > 0 ? t('war.unsaved_changes', { count }) : t('war.no_changes')}</span>
-      <div className="flex gap-2">
-        <button
-          onClick={onDiscard} disabled={count === 0 || saving}
-          className="flex items-center gap-1 px-2 py-1 rounded hover:bg-[var(--color-bg-elevated)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-        >
-          <RotateCcw className="w-3 h-3" /> {t('war.discard_btn')}
-        </button>
-        <button
-          onClick={onSave} disabled={count === 0 || saving}
-          className="flex items-center gap-1 px-2.5 py-1 rounded font-medium bg-[var(--color-brand)] text-white hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
-        >
-          {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
-          {t('common.save')}
-        </button>
-      </div>
-    </div>
-  )
-
   return (
     <div className="p-3 sm:p-6">
       {/* Header */}
@@ -254,20 +245,57 @@ export const WarPage = () => {
         </div>
       </div>
 
-      {/* Search (grid tab) */}
+      {/* Search + Filter row */}
       {activeTab === 'grid' && (
-        <div className="flex items-center gap-2 mb-2 sm:mb-3">
-          <div className="relative flex-1">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+          <div className="relative w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" />
             <Input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder={t('war.search_placeholder')} className="pl-9" />
           </div>
-          <span className="text-xs text-[var(--color-text-muted)] whitespace-nowrap">{memberRows.length}{t('common.count_people')}</span>
+          <div className="flex gap-2 items-center flex-wrap">
+            <span className="text-xs text-[var(--color-text-muted)]">{t('war.filter_team')}</span>
+            {(['', 'A', 'B'] as const).map(team => (
+              <button
+                key={team}
+                onClick={() => setFilterTeam(team)}
+                className={cn('px-2.5 py-1 rounded text-xs font-medium transition-colors',
+                  filterTeam === team
+                    ? 'bg-[var(--color-brand)] text-white'
+                    : 'bg-[var(--color-bg-elevated)] text-[var(--color-text-secondary)] hover:bg-[var(--color-border)]')}
+              >
+                {team === '' ? t('war.team_all') : `Team ${team}`}
+              </button>
+            ))}
+            <span className="text-xs text-[var(--color-text-muted)] ml-auto sm:ml-0">{memberRows.length}{t('common.count_people')}</span>
+          </div>
         </div>
       )}
 
       {/* Save bar */}
       {canEdit && activeTab === 'grid' && (
-        <SaveBar count={pendingEntries.size} saving={isSaving} onSave={handleSaveEntries} onDiscard={handleDiscardEntries} />
+        <div className={cn(
+          'flex items-center justify-between gap-3 mb-3 px-3 py-2 rounded-lg border text-xs transition-all',
+          pendingEntries.size > 0
+            ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-300'
+            : 'bg-[var(--color-bg-surface)] border-[var(--color-border-subtle)] text-[var(--color-text-muted)]',
+        )}>
+          <span>{pendingEntries.size > 0 ? t('war.unsaved_changes', { count: pendingEntries.size }) : t('war.no_changes')}</span>
+          <div className="flex gap-2">
+            <button
+              onClick={handleDiscardEntries} disabled={pendingEntries.size === 0 || isSaving}
+              className="flex items-center gap-1 px-2 py-1 rounded hover:bg-[var(--color-bg-elevated)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <RotateCcw className="w-3 h-3" /> {t('war.discard_btn')}
+            </button>
+            <button
+              onClick={handleSaveEntries} disabled={pendingEntries.size === 0 || isSaving}
+              className="flex items-center gap-1 px-2.5 py-1 rounded font-medium bg-[var(--color-brand)] text-white hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
+            >
+              {isSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
+              {t('common.save')}
+            </button>
+          </div>
+        </div>
       )}
 
       {/* ── GRID TAB ── */}
@@ -286,7 +314,7 @@ export const WarPage = () => {
                 </th>
                 {rounds.map(r => (
                   <th key={r.id} onClick={() => handleSort(r.id)}
-                    className="px-3 py-3 text-center text-[var(--color-text-muted)] min-w-[64px] group cursor-pointer select-none hover:text-[var(--color-text-primary)] transition-colors">
+                    className="px-3 py-3 text-center text-[var(--color-text-muted)] min-w-[72px] group cursor-pointer select-none hover:text-[var(--color-text-primary)] transition-colors">
                     <div className="text-[10px] font-normal flex items-center justify-center gap-1">
                       {r.date?.slice(5) ?? ''}
                       {canEdit && (
@@ -317,7 +345,11 @@ export const WarPage = () => {
                     {row.inGameName}
                   </td>
                   <td className="px-3 py-2.5 text-center">
-                    <span className="text-[var(--color-success)] font-bold">{row.total}</span>
+                    <span className="text-[var(--color-success)] font-bold">
+                      {filterTeam
+                        ? Object.values(row.entryMap).filter(e => e.team === filterTeam && e.role !== '').length
+                        : row.total}
+                    </span>
                   </td>
                   {rounds.map(r => {
                     const pendingKey = `${row.memberId}::${r.id}`
@@ -325,6 +357,7 @@ export const WarPage = () => {
                     const baseEntry = row.entryMap[r.id] ?? { team: '', role: '', note: '' }
                     const isPopoverOpen = cellPopover?.roundId === r.id && cellPopover?.memberId === row.memberId
                     const displayEntry = isPopoverOpen ? cellPopover.entry : (pending ?? baseEntry)
+                    const visible = !filterTeam || displayEntry.team === filterTeam
                     const isPending = !!pending && !isPopoverOpen
                     return (
                       <td key={r.id}
@@ -334,7 +367,12 @@ export const WarPage = () => {
                           canEdit && 'cursor-pointer',
                           isPopoverOpen && 'bg-[var(--color-bg-elevated)]',
                         )}>
-                        <EntryCell role={displayEntry.role} note={displayEntry.note} pending={isPending} />
+                        <EntryCell
+                          team={visible ? displayEntry.team : ''}
+                          role={visible ? displayEntry.role : ''}
+                          note={displayEntry.note}
+                          pending={isPending}
+                        />
                       </td>
                     )
                   })}
@@ -348,14 +386,19 @@ export const WarPage = () => {
                 </td>
                 <td className="px-3 py-2.5 text-center">
                   <span className="text-xs font-bold text-[var(--color-text-primary)]">
-                    {memberRows.filter(row => row.total > 0).length}
+                    {memberRows.filter(row =>
+                      filterTeam
+                        ? Object.values(row.entryMap).some(e => e.team === filterTeam && e.role !== '')
+                        : row.total > 0
+                    ).length}
                   </span>
                 </td>
                 {rounds.map(r => {
                   const count = memberRows.filter(row => {
                     const pending = pendingEntries.get(`${row.memberId}::${r.id}`)
-                    const e = pending ?? (row.entryMap[r.id] ?? { role: '' })
-                    return e.role !== ''
+                    const base = row.entryMap[r.id] ?? { team: '', role: '' }
+                    const e = pending ?? base
+                    return filterTeam ? e.team === filterTeam && e.role !== '' : e.role !== ''
                   }).length
                   return (
                     <td key={r.id} className="px-3 py-2.5 text-center">
@@ -382,6 +425,10 @@ export const WarPage = () => {
               </span>
               <span className="flex-1 font-medium text-[var(--color-text-primary)] text-sm">{s.inGameName}</span>
               <span className="text-[var(--color-success)] font-bold text-sm">{t('war.ranking_total', { count: s.total })}</span>
+              {s.ct > 0 && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400">CT {s.ct}</span>}
+              {s.db > 0 && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-400">DB {s.db}</span>}
+              {s.teamA > 0 && <span className="text-[10px] text-[var(--color-text-muted)]">A:{s.teamA}</span>}
+              {s.teamB > 0 && <span className="text-[10px] text-[var(--color-text-muted)]">B:{s.teamB}</span>}
             </div>
           ))}
         </div>
@@ -391,41 +438,48 @@ export const WarPage = () => {
       {cellPopover && (
         <div ref={popoverRef}
           style={{ position: 'fixed', left: cellPopover.x, top: cellPopover.y, transform: 'translateX(-50%)', zIndex: 9999 }}
-          className="bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-xl shadow-2xl p-2.5 w-52"
+          className="bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-xl shadow-2xl p-2 w-64"
           onMouseDown={e => e.stopPropagation()}
         >
-          {/* 참여 여부 버튼 */}
+          {/* Team·Role 4-button row */}
           <div className="flex gap-1.5 mb-2">
+            {(['A-CT', 'A-DB', 'B-CT', 'B-DB'] as const).map(opt => {
+              const [tTeam, tRole] = opt.split('-') as [WarTeam, WarRole]
+              const isActive = cellPopover.entry.team === tTeam && cellPopover.entry.role === tRole
+              return (
+                <button
+                  key={opt}
+                  onClick={() => setCellPopover(prev => prev ? { ...prev, entry: { ...prev.entry, team: tTeam, role: tRole } } : null)}
+                  className={cn(
+                    'flex-1 py-1.5 rounded text-[11px] font-bold transition-colors',
+                    isActive
+                      ? tTeam === 'A' ? 'bg-blue-500 text-white' : 'bg-purple-500 text-white'
+                      : 'bg-[var(--color-bg-elevated)] text-[var(--color-text-secondary)] hover:bg-[var(--color-border)]',
+                  )}
+                >
+                  {tTeam}·{tRole}
+                </button>
+              )
+            })}
             <button
-              onClick={() => setCellPopover(prev => prev ? { ...prev, entry: { ...prev.entry, team: '' as WarTeam, role: 'CT' as WarRole } } : null)}
+              onClick={() => setCellPopover(prev => prev ? { ...prev, entry: { ...prev.entry, team: '', role: '' } } : null)}
               className={cn(
-                'flex-1 py-2 rounded-lg text-xs font-bold transition-colors',
-                cellPopover.entry.role !== ''
-                  ? 'bg-[var(--color-success)] text-white'
-                  : 'bg-[var(--color-bg-elevated)] text-[var(--color-text-secondary)] hover:bg-[var(--color-success)]/20 hover:text-[var(--color-success)]',
-              )}
-            >
-              ✓ {t('war.attend_yes')}
-            </button>
-            <button
-              onClick={() => setCellPopover(prev => prev ? { ...prev, entry: { ...prev.entry, team: '' as WarTeam, role: '' as WarRole } } : null)}
-              className={cn(
-                'px-3 py-2 rounded-lg text-xs font-bold transition-colors',
-                cellPopover.entry.role === ''
+                'px-2 py-1.5 rounded text-[11px] font-bold transition-colors',
+                (!cellPopover.entry.team && !cellPopover.entry.role)
                   ? 'bg-[var(--color-danger)]/20 text-[var(--color-danger)]'
                   : 'bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:bg-[var(--color-border)]',
               )}
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="w-3 h-3" />
             </button>
           </div>
-          {/* 비고 입력 */}
+          {/* Note input */}
           <input
             type="text"
             value={cellPopover.entry.note}
             onChange={e => setCellPopover(prev => prev ? { ...prev, entry: { ...prev.entry, note: e.target.value } } : null)}
             placeholder={t('war.note_placeholder')}
-            className="w-full px-2 py-1.5 text-xs rounded-lg bg-[var(--color-bg-elevated)] border border-[var(--color-border-subtle)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-brand)]"
+            className="w-full px-2 py-1.5 text-xs rounded bg-[var(--color-bg-elevated)] border border-[var(--color-border-subtle)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-brand)]"
           />
         </div>
       )}

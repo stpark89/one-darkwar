@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { Search, Plus, X, Loader2, Trash2, EyeOff, Eye, ClipboardList, Users, UserCheck, Save, RotateCcw } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useEventStore } from '@/infrastructure/stores/eventStore'
@@ -9,6 +9,10 @@ import { SortIcon, nextSortDir } from '@/presentation/components/ui/sort-icon'
 import type { SortDir } from '@/presentation/components/ui/sort-icon'
 import type { AttendanceStatus } from '@/domain/entities/Event'
 import { cn } from '@/lib/utils'
+
+// 참여로 저장되는 status 값 (기존 'CT'/'DB' 데이터도 합산에서는 모두 참여로 인식)
+const ATTEND: AttendanceStatus = 'CT'
+const isAttended = (s: AttendanceStatus) => s === 'CT' || s === 'DB'
 
 // ─── 출석 입력 모달 ───────────────────────────────────────────────────────────
 interface AttendanceModalProps {
@@ -27,9 +31,7 @@ const AttendanceModal = ({ eventName, eventDate, attendance, onStatusChange, onB
   const filtered = search
     ? attendance.filter((a) => a.inGameName.toLowerCase().includes(search.toLowerCase()))
     : attendance
-  const ct = attendance.filter((a) => a.status === 'CT').length
-  const db = attendance.filter((a) => a.status === 'DB').length
-  const total = ct + db
+  const total = attendance.filter((a) => isAttended(a.status)).length
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
@@ -54,16 +56,11 @@ const AttendanceModal = ({ eventName, eventDate, attendance, onStatusChange, onB
             <div className="flex items-center gap-1.5 text-xs text-[var(--color-text-muted)]">
               <Users className="w-3.5 h-3.5" />
               <span>{t('events.attend_count', { count: total })}</span>
-              {ct > 0 && <span className="text-[var(--color-success)] bg-[var(--color-success)]/10 px-1.5 py-0.5 rounded">CT {ct}</span>}
-              {db > 0 && <span className="text-[var(--color-warning)] bg-[var(--color-warning)]/10 px-1.5 py-0.5 rounded">DB {db}</span>}
             </div>
           </div>
           <div className="flex gap-1.5">
-            <button onClick={() => onBulkSet('CT')} className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-[var(--color-success)]/15 text-[var(--color-success)] hover:bg-[var(--color-success)]/25 transition-colors">
-              {t('events.bulk_ct')}
-            </button>
-            <button onClick={() => onBulkSet('DB')} className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-[var(--color-warning)]/15 text-[var(--color-warning)] hover:bg-[var(--color-warning)]/25 transition-colors">
-              {t('events.bulk_db')}
+            <button onClick={() => onBulkSet(ATTEND)} className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-[var(--color-success)]/15 text-[var(--color-success)] hover:bg-[var(--color-success)]/25 transition-colors">
+              {t('events.bulk_attend')}
             </button>
             <button onClick={() => onBulkSet('')} className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:bg-[var(--color-border)] transition-colors">
               {t('events.bulk_clear')}
@@ -79,16 +76,30 @@ const AttendanceModal = ({ eventName, eventDate, attendance, onStatusChange, onB
         </div>
 
         <div className="overflow-y-auto flex-1 px-3 py-2">
-          {filtered.map((a) => (
-            <div key={a.memberId} className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-[var(--color-bg-elevated)] transition-colors">
-              <span className="flex-1 text-sm font-medium text-[var(--color-text-primary)] truncate">{a.inGameName}</span>
-              <div className="flex gap-1 flex-shrink-0">
-                <button onClick={() => onStatusChange(a.memberId, 'CT')} className={cn('px-3 py-1 rounded-md text-xs font-bold transition-colors', a.status === 'CT' ? 'bg-[var(--color-success)] text-white' : 'bg-[var(--color-bg-base)] text-[var(--color-text-muted)] hover:bg-[var(--color-success)]/20 hover:text-[var(--color-success)]')}>CT</button>
-                <button onClick={() => onStatusChange(a.memberId, 'DB')} className={cn('px-3 py-1 rounded-md text-xs font-bold transition-colors', a.status === 'DB' ? 'bg-[var(--color-warning)] text-white' : 'bg-[var(--color-bg-base)] text-[var(--color-text-muted)] hover:bg-[var(--color-warning)]/20 hover:text-[var(--color-warning)]')}>DB</button>
-                <button onClick={() => onStatusChange(a.memberId, '')} className={cn('px-2 py-1 rounded-md text-xs font-bold transition-colors', a.status === '' ? 'bg-[var(--color-border)] text-[var(--color-text-secondary)]' : 'bg-[var(--color-bg-base)] text-[var(--color-text-muted)] hover:bg-[var(--color-bg-elevated)]')}>✕</button>
+          {filtered.map((a) => {
+            const attended = isAttended(a.status)
+            return (
+              <div key={a.memberId} className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-[var(--color-bg-elevated)] transition-colors">
+                <span className="flex-1 text-sm font-medium text-[var(--color-text-primary)] truncate">{a.inGameName}</span>
+                <div className="flex gap-1 flex-shrink-0">
+                  <button
+                    onClick={() => onStatusChange(a.memberId, ATTEND)}
+                    className={cn('px-3 py-1 rounded-md text-xs font-bold transition-colors',
+                      attended ? 'bg-[var(--color-success)] text-white' : 'bg-[var(--color-bg-base)] text-[var(--color-text-muted)] hover:bg-[var(--color-success)]/20 hover:text-[var(--color-success)]')}
+                  >
+                    ✓ {t('events.attend_yes')}
+                  </button>
+                  <button
+                    onClick={() => onStatusChange(a.memberId, '')}
+                    className={cn('px-2 py-1 rounded-md text-xs font-bold transition-colors',
+                      !attended ? 'bg-[var(--color-border)] text-[var(--color-text-secondary)]' : 'bg-[var(--color-bg-base)] text-[var(--color-text-muted)] hover:bg-[var(--color-bg-elevated)]')}
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
           {filtered.length === 0 && <p className="text-center text-xs text-[var(--color-text-muted)] py-8">{t('events.no_results')}</p>}
         </div>
 
@@ -118,14 +129,11 @@ const MemberAttendanceModal = ({ memberName, events, onStatusChange, onBulkSet, 
   const filtered = search
     ? events.filter((e) => e.name.toLowerCase().includes(search.toLowerCase()) || e.date.includes(search))
     : events
-  const ct = events.filter((e) => e.status === 'CT').length
-  const db = events.filter((e) => e.status === 'DB').length
-  const total = ct + db
+  const total = events.filter((e) => isAttended(e.status)).length
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
       <div className="bg-[var(--color-bg-surface)] rounded-xl border border-[var(--color-border)] w-full max-w-md flex flex-col max-h-[90vh]">
-        {/* 헤더 */}
         <div className="flex items-start justify-between px-5 pt-5 pb-4 border-b border-[var(--color-border-subtle)] flex-shrink-0">
           <div>
             <div className="flex items-center gap-2">
@@ -141,39 +149,23 @@ const MemberAttendanceModal = ({ memberName, events, onStatusChange, onBulkSet, 
           </button>
         </div>
 
-        {/* 요약 + 일괄 설정 */}
         <div className="px-5 py-3 border-b border-[var(--color-border-subtle)] flex-shrink-0">
           <div className="flex items-center justify-between mb-2.5">
             <div className="flex items-center gap-1.5 text-xs text-[var(--color-text-muted)]">
               <ClipboardList className="w-3.5 h-3.5" />
               <span>{t('events.attend_ratio', { attended: total, total: events.length })}</span>
-              {ct > 0 && <span className="text-[var(--color-success)] bg-[var(--color-success)]/10 px-1.5 py-0.5 rounded">CT {ct}</span>}
-              {db > 0 && <span className="text-[var(--color-warning)] bg-[var(--color-warning)]/10 px-1.5 py-0.5 rounded">DB {db}</span>}
             </div>
           </div>
           <div className="flex gap-1.5">
-            <button
-              onClick={() => onBulkSet('CT')}
-              className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-[var(--color-success)]/15 text-[var(--color-success)] hover:bg-[var(--color-success)]/25 transition-colors"
-            >
-              {t('events.bulk_ct')}
+            <button onClick={() => onBulkSet(ATTEND)} className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-[var(--color-success)]/15 text-[var(--color-success)] hover:bg-[var(--color-success)]/25 transition-colors">
+              {t('events.bulk_attend')}
             </button>
-            <button
-              onClick={() => onBulkSet('DB')}
-              className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-[var(--color-warning)]/15 text-[var(--color-warning)] hover:bg-[var(--color-warning)]/25 transition-colors"
-            >
-              {t('events.bulk_db')}
-            </button>
-            <button
-              onClick={() => onBulkSet('')}
-              className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:bg-[var(--color-border)] transition-colors"
-            >
+            <button onClick={() => onBulkSet('')} className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:bg-[var(--color-border)] transition-colors">
               {t('events.bulk_clear')}
             </button>
           </div>
         </div>
 
-        {/* 검색 */}
         <div className="px-5 py-2.5 border-b border-[var(--color-border-subtle)] flex-shrink-0">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--color-text-muted)]" />
@@ -186,57 +178,39 @@ const MemberAttendanceModal = ({ memberName, events, onStatusChange, onBulkSet, 
           </div>
         </div>
 
-        {/* 이벤트 목록 */}
         <div className="overflow-y-auto flex-1 px-3 py-2">
-          {filtered.map((e) => (
-            <div key={e.eventKey} className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-[var(--color-bg-elevated)] transition-colors">
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-[var(--color-text-primary)] truncate">{e.name}</p>
-                {e.date && <p className="text-[11px] text-[var(--color-text-muted)]">{e.date}</p>}
+          {filtered.map((e) => {
+            const attended = isAttended(e.status)
+            return (
+              <div key={e.eventKey} className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-[var(--color-bg-elevated)] transition-colors">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-[var(--color-text-primary)] truncate">{e.name}</p>
+                  {e.date && <p className="text-[11px] text-[var(--color-text-muted)]">{e.date}</p>}
+                </div>
+                <div className="flex gap-1 flex-shrink-0">
+                  <button
+                    onClick={() => onStatusChange(e.eventKey, ATTEND)}
+                    className={cn('px-3 py-1 rounded-md text-xs font-bold transition-colors',
+                      attended ? 'bg-[var(--color-success)] text-white' : 'bg-[var(--color-bg-base)] text-[var(--color-text-muted)] hover:bg-[var(--color-success)]/20 hover:text-[var(--color-success)]')}
+                  >
+                    ✓ {t('events.attend_yes')}
+                  </button>
+                  <button
+                    onClick={() => onStatusChange(e.eventKey, '')}
+                    className={cn('px-2 py-1 rounded-md text-xs font-bold transition-colors',
+                      !attended ? 'bg-[var(--color-border)] text-[var(--color-text-secondary)]' : 'bg-[var(--color-bg-base)] text-[var(--color-text-muted)] hover:bg-[var(--color-bg-elevated)]')}
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
               </div>
-              <div className="flex gap-1 flex-shrink-0">
-                <button
-                  onClick={() => onStatusChange(e.eventKey, 'CT')}
-                  className={cn(
-                    'px-3 py-1 rounded-md text-xs font-bold transition-colors',
-                    e.status === 'CT'
-                      ? 'bg-[var(--color-success)] text-white'
-                      : 'bg-[var(--color-bg-base)] text-[var(--color-text-muted)] hover:bg-[var(--color-success)]/20 hover:text-[var(--color-success)]',
-                  )}
-                >
-                  CT
-                </button>
-                <button
-                  onClick={() => onStatusChange(e.eventKey, 'DB')}
-                  className={cn(
-                    'px-3 py-1 rounded-md text-xs font-bold transition-colors',
-                    e.status === 'DB'
-                      ? 'bg-[var(--color-warning)] text-white'
-                      : 'bg-[var(--color-bg-base)] text-[var(--color-text-muted)] hover:bg-[var(--color-warning)]/20 hover:text-[var(--color-warning)]',
-                  )}
-                >
-                  DB
-                </button>
-                <button
-                  onClick={() => onStatusChange(e.eventKey, '')}
-                  className={cn(
-                    'px-2 py-1 rounded-md text-xs font-bold transition-colors',
-                    e.status === ''
-                      ? 'bg-[var(--color-border)] text-[var(--color-text-secondary)]'
-                      : 'bg-[var(--color-bg-base)] text-[var(--color-text-muted)] hover:bg-[var(--color-bg-elevated)]',
-                  )}
-                >
-                  ✕
-                </button>
-              </div>
-            </div>
-          ))}
+            )
+          })}
           {filtered.length === 0 && (
             <p className="text-center text-xs text-[var(--color-text-muted)] py-8">{t('events.no_results')}</p>
           )}
         </div>
 
-        {/* 닫기 */}
         <div className="px-5 py-4 border-t border-[var(--color-border-subtle)] flex-shrink-0">
           <button
             onClick={onClose}
@@ -254,7 +228,6 @@ const MemberAttendanceModal = ({ memberName, events, onStatusChange, onBulkSet, 
 export const EventsPage = () => {
   const { t } = useTranslation()
   const { events, addEvent, deleteEvent, toggleHidden, toggleShowHidden, showHidden, batchSave, getFiltered, searchQuery, setSearchQuery, getSummary, loadData, loading, attendance: allAttendance } = useEventStore()
-  // 미저장 변경사항: key = "memberId::eventKey"
   const [pendingChanges, setPendingChanges] = useState<Map<string, AttendanceStatus>>(new Map())
   const [isSaving, setIsSaving] = useState(false)
   const { user } = useAuthStore()
@@ -273,16 +246,12 @@ export const EventsPage = () => {
   }
 
   const hiddenCount = events.filter(e => e.hidden).length
-  // 최신순(역순) + 숨김 필터
   const visibleEvents = [...events].reverse().filter(e => showHidden || !e.hidden)
 
   const attendance = [...baseAttendance].sort((a, b) => {
     if (!sortDir) return 0
     const calcTotal = (rec: Record<string, string>) =>
-      visibleEvents.reduce((acc, e) => {
-        const s = rec[e.eventKey] ?? ''
-        return acc + (s === 'CT' || s === 'DB' ? 1 : 0)
-      }, 0)
+      visibleEvents.reduce((acc, e) => acc + (isAttended((rec[e.eventKey] ?? '') as AttendanceStatus) ? 1 : 0), 0)
     const cmp = sortKey === 'inGameName' ? a.inGameName.localeCompare(b.inGameName) : calcTotal(a.records) - calcTotal(b.records)
     return sortDir === 'asc' ? cmp : -cmp
   })
@@ -293,11 +262,6 @@ export const EventsPage = () => {
   const [newEventDate, setNewEventDate] = useState(() => new Date().toISOString().slice(0, 10))
   const [attendanceModalEventId, setAttendanceModalEventId] = useState<string | null>(null)
   const [memberModalId, setMemberModalId] = useState<string | null>(null)
-  const [cellPopover, setCellPopover] = useState<{
-    memberId: string; eventKey: string; status: AttendanceStatus
-    x: number; y: number
-  } | null>(null)
-  const popoverRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => { loadData() }, [loadData])
 
@@ -316,7 +280,6 @@ export const EventsPage = () => {
     })
   }, [attendanceModalEventId, allAttendance, pendingChanges])
 
-  // pending 변경사항 설정 (원본과 같으면 pending에서 제거)
   const setPending = useCallback((memberId: string, eventKey: string, status: AttendanceStatus) => {
     const original = (allAttendance.find((a) => a.memberId === memberId)?.records[eventKey] ?? '') as AttendanceStatus
     setPendingChanges((prev) => {
@@ -327,7 +290,6 @@ export const EventsPage = () => {
     })
   }, [allAttendance])
 
-  // 특정 이벤트의 전체 멤버 pending 설정
   const setPendingForEvent = useCallback((eventKey: string, status: AttendanceStatus) => {
     setPendingChanges((prev) => {
       const next = new Map(prev)
@@ -340,7 +302,6 @@ export const EventsPage = () => {
     })
   }, [allAttendance])
 
-  // 특정 멤버의 전체 이벤트 pending 설정
   const setPendingForMember = useCallback((memberId: string, status: AttendanceStatus) => {
     setPendingChanges((prev) => {
       const next = new Map(prev)
@@ -354,7 +315,6 @@ export const EventsPage = () => {
     })
   }, [allAttendance, visibleEvents])
 
-  // 저장
   const handleSave = async () => {
     if (pendingChanges.size === 0 || isSaving) return
     setIsSaving(true)
@@ -367,7 +327,6 @@ export const EventsPage = () => {
     setIsSaving(false)
   }
 
-  // 되돌리기
   const handleDiscard = () => setPendingChanges(new Map())
 
   const handleModalStatusChange = (memberId: string, status: AttendanceStatus) => {
@@ -378,7 +337,6 @@ export const EventsPage = () => {
     setPendingForEvent(attendanceModalEventId!, status)
   }
 
-  // 회원별 모달 데이터
   const memberModalData = useMemo(() => {
     if (!memberModalId) return null
     const member = allAttendance.find((a) => a.memberId === memberModalId)
@@ -404,28 +362,11 @@ export const EventsPage = () => {
     setPendingForMember(memberModalId!, status)
   }
 
-  // 팝오버 외부 클릭 시 닫기
-  useEffect(() => {
-    if (!cellPopover) return
-    const handler = (e: MouseEvent) => {
-      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
-        setCellPopover(null)
-      }
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [cellPopover])
-
-  const handleCellClick = useCallback((memberId: string, eventKey: string, status: AttendanceStatus, e: React.MouseEvent) => {
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-    setCellPopover({ memberId, eventKey, status, x: rect.left + rect.width / 2, y: rect.bottom + 4 })
-  }, [])
-
-  const handlePopoverSelect = (status: AttendanceStatus) => {
-    if (!cellPopover) return
-    setPending(cellPopover.memberId, cellPopover.eventKey, status)
-    setCellPopover(null)
-  }
+  // 셀 클릭: 토글 (참여 ↔ 미참여)
+  const handleCellToggle = useCallback((memberId: string, eventKey: string, currentStatus: AttendanceStatus) => {
+    const next: AttendanceStatus = isAttended(currentStatus) ? '' : ATTEND
+    setPending(memberId, eventKey, next)
+  }, [setPending])
 
   const handleAddEvent = () => {
     if (!newEventName.trim()) return
@@ -582,10 +523,7 @@ export const EventsPage = () => {
             </thead>
             <tbody className="divide-y divide-[var(--color-border-subtle)]">
               {attendance.map((a) => {
-                const total = visibleEvents.reduce((acc, e) => {
-                  const s = a.records[e.eventKey] ?? ''
-                  return acc + (s === 'CT' || s === 'DB' ? 1 : 0)
-                }, 0)
+                const total = visibleEvents.reduce((acc, e) => acc + (isAttended((a.records[e.eventKey] ?? '') as AttendanceStatus) ? 1 : 0), 0)
                 return (
                   <tr key={a.memberId} className="hover:bg-[var(--color-bg-surface)] transition-colors">
                     <td className="px-2 sm:px-3 py-2 sm:py-2.5 font-medium whitespace-nowrap sticky left-0 bg-[var(--color-bg-base)] hover:bg-[var(--color-bg-surface)]">
@@ -608,22 +546,19 @@ export const EventsPage = () => {
                       const pendingKey = `${a.memberId}::${e.eventKey}`
                       const hasPending = pendingChanges.has(pendingKey)
                       const displayStatus = hasPending ? pendingChanges.get(pendingKey)! : (a.records[e.eventKey] ?? '') as AttendanceStatus
-                      const isOpen = cellPopover?.memberId === a.memberId && cellPopover?.eventKey === e.eventKey
+                      const attended = isAttended(displayStatus)
                       return (
                         <td
                           key={e.eventKey}
-                          onClick={(ev) => canEdit && handleCellClick(a.memberId, e.eventKey, displayStatus, ev)}
+                          onClick={() => canEdit && handleCellToggle(a.memberId, e.eventKey, displayStatus)}
                           className={cn(
-                            'px-1 sm:px-2 py-2 sm:py-2.5 text-center select-none transition-colors text-[10px] sm:text-[11px] font-bold relative',
+                            'px-1 sm:px-2 py-2 sm:py-2.5 text-center select-none transition-colors text-[11px] sm:text-sm font-bold relative',
                             canEdit && 'cursor-pointer',
-                            isOpen && 'ring-2 ring-[var(--color-brand)]/60 ring-inset',
                             hasPending && 'ring-1 ring-[var(--color-warning)]/70 ring-inset',
-                            displayStatus === 'CT' && 'bg-[var(--color-success)]/15 text-[var(--color-success)] hover:bg-[var(--color-success)]/25',
-                            displayStatus === 'DB' && 'bg-[var(--color-warning)]/15 text-[var(--color-warning)] hover:bg-[var(--color-warning)]/25',
-                            displayStatus === '' && 'text-[var(--color-text-muted)] hover:bg-[var(--color-bg-elevated)]',
+                            attended ? 'text-[var(--color-success)] hover:bg-[var(--color-success)]/15' : 'text-[var(--color-text-muted)] hover:bg-[var(--color-bg-elevated)]',
                           )}
                         >
-                          {displayStatus || '·'}
+                          {attended ? '✓' : '·'}
                         </td>
                       )
                     })}
@@ -639,15 +574,12 @@ export const EventsPage = () => {
                 <td className="px-1 sm:px-3 py-2 sm:py-2.5 text-center">
                   <span className="text-xs font-bold text-[var(--color-text-primary)]">
                     {attendance.filter(a =>
-                      visibleEvents.some(e => { const s = a.records[e.eventKey] ?? ''; return s === 'CT' || s === 'DB' })
+                      visibleEvents.some(e => isAttended((a.records[e.eventKey] ?? '') as AttendanceStatus))
                     ).length}
                   </span>
                 </td>
                 {visibleEvents.map((e) => {
-                  const count = attendance.filter(a => {
-                    const s = a.records[e.eventKey] ?? ''
-                    return s === 'CT' || s === 'DB'
-                  }).length
+                  const count = attendance.filter(a => isAttended((a.records[e.eventKey] ?? '') as AttendanceStatus)).length
                   return (
                     <td key={e.eventKey} className="px-1 sm:px-2 py-2 sm:py-2.5 text-center">
                       <span className={cn('text-xs font-bold', count > 0 ? 'text-[var(--color-brand)]' : 'text-[var(--color-text-muted)]')}>
@@ -671,57 +603,8 @@ export const EventsPage = () => {
               <span className="text-[var(--color-success)] font-bold">
                 {t('events.ranking_attended', { count: s.total })}
               </span>
-              {s.ct > 0 && <span className="text-[10px] text-[var(--color-success)] bg-[var(--color-success)]/10 px-1.5 py-0.5 rounded">CT {s.ct}</span>}
-              {s.db > 0 && <span className="text-[10px] text-[var(--color-warning)] bg-[var(--color-warning)]/10 px-1.5 py-0.5 rounded">DB {s.db}</span>}
             </div>
           ))}
-        </div>
-      )}
-
-      {/* 셀 팝오버 */}
-      {cellPopover && (
-        <div
-          ref={popoverRef}
-          className="fixed z-[60] flex gap-1 p-1.5 rounded-xl bg-[var(--color-bg-surface)] border border-[var(--color-border)] shadow-2xl"
-          style={{
-            left: cellPopover.x,
-            top: cellPopover.y,
-            transform: 'translateX(-50%)',
-          }}
-        >
-          <button
-            onClick={() => handlePopoverSelect('CT')}
-            className={cn(
-              'px-3.5 py-1.5 rounded-lg text-xs font-bold transition-colors',
-              cellPopover.status === 'CT'
-                ? 'bg-[var(--color-success)] text-white'
-                : 'text-[var(--color-success)] hover:bg-[var(--color-success)]/20',
-            )}
-          >
-            CT
-          </button>
-          <button
-            onClick={() => handlePopoverSelect('DB')}
-            className={cn(
-              'px-3.5 py-1.5 rounded-lg text-xs font-bold transition-colors',
-              cellPopover.status === 'DB'
-                ? 'bg-[var(--color-warning)] text-white'
-                : 'text-[var(--color-warning)] hover:bg-[var(--color-warning)]/20',
-            )}
-          >
-            DB
-          </button>
-          <button
-            onClick={() => handlePopoverSelect('')}
-            className={cn(
-              'px-2.5 py-1.5 rounded-lg text-xs font-bold transition-colors',
-              cellPopover.status === ''
-                ? 'bg-[var(--color-border)] text-[var(--color-text-secondary)]'
-                : 'text-[var(--color-text-muted)] hover:bg-[var(--color-bg-elevated)]',
-            )}
-          >
-            ✕
-          </button>
         </div>
       )}
 
