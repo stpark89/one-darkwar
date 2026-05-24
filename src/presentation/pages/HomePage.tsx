@@ -66,7 +66,30 @@ export const HomePage = () => {
     }
   }, [])
 
+  // 설치 직전 캐시/SW 정리 — 옛 빌드 잔여물로 인한 흰 화면·반영 누락 방지
+  // localStorage / IndexedDB는 건드리지 않음(로그인 세션·언어 설정 보존)
+  const cleanupBeforeInstall = async () => {
+    try {
+      if ('caches' in window) {
+        const keys = await caches.keys()
+        await Promise.all(keys.map((k) => caches.delete(k)))
+      }
+    } catch (err) {
+      console.warn('cache cleanup 실패:', err)
+    }
+    try {
+      if ('serviceWorker' in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations()
+        await Promise.all(regs.map((r) => r.update()))
+      }
+    } catch (err) {
+      console.warn('SW update 실패:', err)
+    }
+  }
+
   const handleInstall = async () => {
+    await cleanupBeforeInstall()
+
     if (installPrompt) {
       await installPrompt.prompt()
       const { outcome } = await installPrompt.userChoice
