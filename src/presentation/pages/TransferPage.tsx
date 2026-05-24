@@ -148,17 +148,27 @@ export const TransferPage = () => {
     REJECTED: apps.filter((a) => a.status === 'REJECTED').length,
   }
 
-  // 승인된 신청자들의 등급별 집계 (capacity 진행률 표시용)
+  // 승인된 신청자들의 등급별 집계 + 잔여/종합 통계
   const approvedByTier = useMemo(() => {
     const map = new Map<string, number>()
-    let unmatched = 0
+    const unmatchedApps: typeof apps = []
     for (const a of apps) {
       if (a.status !== 'APPROVED') continue
       const tier = findTierForCp(tiers, parseCp(a.cp))
       if (tier) map.set(tier.id, (map.get(tier.id) ?? 0) + 1)
-      else unmatched += 1
+      else unmatchedApps.push(a)
     }
-    return { map, unmatched }
+    const totalCapacity = tiers.reduce((sum, t) => sum + (t.capacity || 0), 0)
+    const totalApproved = Array.from(map.values()).reduce((sum, n) => sum + n, 0)
+    const totalRemaining = Math.max(0, totalCapacity - totalApproved)
+    return {
+      map,
+      unmatched: unmatchedApps.length,
+      unmatchedApps,
+      totalCapacity,
+      totalApproved,
+      totalRemaining,
+    }
   }, [apps, tiers])
 
   // 게스트도 관리자도 아닌 일반 회원이 직접 URL로 접근하면 홈으로
@@ -330,6 +340,47 @@ export const TransferPage = () => {
               </div>
             </div>
 
+            {/* 종합 요약 (편집 모드 아닐 때만) */}
+            {!tierEditMode && tiers.length > 0 && (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3 pb-3 border-b border-[var(--color-border-subtle)]">
+                <div className="text-center">
+                  <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider">{t('transfer.summary_capacity')}</p>
+                  <p className="text-base font-bold text-[var(--color-text-primary)]">{approvedByTier.totalCapacity}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider">{t('transfer.summary_approved')}</p>
+                  <p className="text-base font-bold text-[var(--color-success)]">{approvedByTier.totalApproved}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider">{t('transfer.summary_remaining')}</p>
+                  <p className="text-base font-bold text-[var(--color-brand)]">{approvedByTier.totalRemaining}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider">{t('transfer.dashboard_unmatched')}</p>
+                  <p className={cn('text-base font-bold', approvedByTier.unmatched > 0 ? 'text-yellow-400' : 'text-[var(--color-text-muted)]')}>
+                    {approvedByTier.unmatched}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* 미매칭 안내 (등급 범위가 신청자 CP를 못 커버할 때) */}
+            {!tierEditMode && approvedByTier.unmatched > 0 && approvedByTier.unmatchedApps.length > 0 && (
+              <div className="mb-3 px-3 py-2 rounded-lg bg-yellow-400/10 border border-yellow-400/30">
+                <p className="text-[11px] text-yellow-300 mb-1 font-semibold">{t('transfer.unmatched_hint')}</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {approvedByTier.unmatchedApps.slice(0, 8).map((a) => (
+                    <span key={a.id} className="text-[10px] px-1.5 py-0.5 rounded bg-yellow-400/15 text-yellow-200">
+                      {a.inGameName} · {a.cp || '?'}
+                    </span>
+                  ))}
+                  {approvedByTier.unmatchedApps.length > 8 && (
+                    <span className="text-[10px] text-yellow-400/60">+{approvedByTier.unmatchedApps.length - 8}</span>
+                  )}
+                </div>
+              </div>
+            )}
+
             {tiers.length === 0 && !tierEditMode ? (
               <p className="text-xs text-[var(--color-text-muted)] py-4 text-center">{t('tiers.no_data')}</p>
             ) : (
@@ -356,6 +407,7 @@ export const TransferPage = () => {
                   }
                   const cur = approvedByTier.map.get(tier.id) ?? 0
                   const cap = tier.capacity
+                  const remaining = Math.max(0, cap - cur)
                   const pct = cap > 0 ? Math.min(100, (cur / cap) * 100) : 0
                   const over = cap > 0 && cur > cap
                   const full = cap > 0 && cur >= cap && !over
@@ -370,7 +422,7 @@ export const TransferPage = () => {
                           {cur}/{cap}
                         </span>
                       </div>
-                      <div className="h-1.5 rounded-full bg-[var(--color-bg-elevated)] overflow-hidden">
+                      <div className="h-1.5 rounded-full bg-[var(--color-bg-elevated)] overflow-hidden mb-1.5">
                         <div
                           className={cn(
                             'h-full transition-all',
@@ -379,6 +431,16 @@ export const TransferPage = () => {
                           style={{ width: `${over ? 100 : pct}%` }}
                         />
                       </div>
+                      <p className={cn(
+                        'text-[10px] font-medium text-center',
+                        over ? 'text-[var(--color-danger)]' : full ? 'text-yellow-400' : 'text-[var(--color-text-muted)]',
+                      )}>
+                        {over
+                          ? t('transfer.tier_over', { n: cur - cap })
+                          : full
+                            ? t('transfer.tier_full')
+                            : t('transfer.tier_remaining', { n: remaining })}
+                      </p>
                     </div>
                   )
                 })}
@@ -390,15 +452,6 @@ export const TransferPage = () => {
                     <Plus className="w-4 h-4" />
                     <span className="text-xs font-semibold">{t('tiers.add_btn')}</span>
                   </button>
-                )}
-                {!tierEditMode && approvedByTier.unmatched > 0 && (
-                  <div className="bg-[var(--color-bg-base)] rounded-lg p-2.5">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-semibold text-[var(--color-text-muted)]">{t('transfer.dashboard_unmatched')}</span>
-                      <span className="text-[11px] font-bold text-[var(--color-text-muted)]">{approvedByTier.unmatched}</span>
-                    </div>
-                    <div className="h-1.5 rounded-full bg-[var(--color-bg-elevated)]" />
-                  </div>
                 )}
               </div>
             )}
