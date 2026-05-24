@@ -60,7 +60,7 @@ export const TransferPage = () => {
   const { user, isGuest } = useAuthStore()
   const isAdmin = user?.role === 'ROLE_ADMIN'
 
-  const { apps, loading, submit, loadAll, updateStatus, remove } = useTransferStore()
+  const { apps, loading, submit, loadAll, updateStatus, updateTier, remove } = useTransferStore()
   const { tiers, loadAll: loadTiers, upsert: upsertTier, remove: removeTier } = useTransferTierStore()
 
   const [inGameName, setInGameName] = useState('')
@@ -68,6 +68,7 @@ export const TransferPage = () => {
   const [currentServer, setCurrentServer] = useState('')
   const [country, setCountry] = useState('')
   const [cp, setCp] = useState('')
+  const [selectedTierId, setSelectedTierId] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [tab, setTab] = useState<TransferStatus>('PENDING')
@@ -77,8 +78,12 @@ export const TransferPage = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [tierFilter, setTierFilter] = useState<string>('all') // 'all' | tier.id | 'unmatched'
 
-  // 국가 셀렉터 드롭다운
+  // 국가 / 등급 셀렉터 드롭다운
   const [countryOpen, setCountryOpen] = useState(false)
+  const [tierSelectOpen, setTierSelectOpen] = useState(false)
+
+  // 관리자: 신청서 카드에서 등급 변경 드롭다운 열림 상태
+  const [adminTierEditId, setAdminTierEditId] = useState<string | null>(null)
 
   // 등급 편집 (관리자만)
   const [tierEditMode, setTierEditMode] = useState(false)
@@ -87,9 +92,10 @@ export const TransferPage = () => {
   const [deleteTierId, setDeleteTierId] = useState<string | null>(null)
 
   useEffect(() => {
+    // 등급 옵션은 게스트 신청 폼에도 노출돼야 하므로 항상 로드
+    loadTiers()
     if (isAdmin) {
       loadAll()
-      loadTiers()
     }
   }, [isAdmin, loadAll, loadTiers])
 
@@ -97,7 +103,7 @@ export const TransferPage = () => {
     e.preventDefault()
     if (!inGameName.trim() || submitting) return
     setSubmitting(true)
-    const ok = await submit({ inGameName, uid, currentServer, country, cp })
+    const ok = await submit({ inGameName, uid, currentServer, country, cp, tierId: selectedTierId })
     setSubmitting(false)
     if (ok) {
       setSubmitted(true)
@@ -106,6 +112,7 @@ export const TransferPage = () => {
       setCurrentServer('')
       setCountry('')
       setCp('')
+      setSelectedTierId(null)
       if (isAdmin) loadAll()
     }
   }
@@ -148,6 +155,14 @@ export const TransferPage = () => {
     if (ok) setTierDraft(null)
   }
 
+  // 신청서의 effective tier:
+  //   1) 사용자가 직접 선택한 tier_id 가 있으면 그것
+  //   2) 없으면 CP 기반 자동 매칭
+  const getEffectiveTier = (a: typeof apps[number]) => {
+    if (a.tierId) return tiers.find((tt) => tt.id === a.tierId) ?? null
+    return findTierForCp(tiers, parseCp(a.cp))
+  }
+
   const filtered = apps.filter((a) => {
     if (a.status !== tab) return false
     const q = searchQuery.trim().toLowerCase()
@@ -156,7 +171,7 @@ export const TransferPage = () => {
       if (!hit) return false
     }
     if (tierFilter !== 'all') {
-      const tier = findTierForCp(tiers, parseCp(a.cp))
+      const tier = getEffectiveTier(a)
       if (tierFilter === 'unmatched') {
         if (tier) return false
       } else if (tier?.id !== tierFilter) {
@@ -172,12 +187,15 @@ export const TransferPage = () => {
   }
 
   // 승인된 신청자들의 등급별 집계 + 잔여/종합 통계
+  // tier_id 가 있으면 그것 우선, 없으면 CP 기반 자동 매칭
   const approvedByTier = useMemo(() => {
     const map = new Map<string, number>()
     const unmatchedApps: typeof apps = []
     for (const a of apps) {
       if (a.status !== 'APPROVED') continue
-      const tier = findTierForCp(tiers, parseCp(a.cp))
+      const tier = a.tierId
+        ? tiers.find((tt) => tt.id === a.tierId) ?? null
+        : findTierForCp(tiers, parseCp(a.cp))
       if (tier) map.set(tier.id, (map.get(tier.id) ?? 0) + 1)
       else unmatchedApps.push(a)
     }
@@ -310,12 +328,64 @@ export const TransferPage = () => {
             </div>
 
             <div>
+              <label className="text-xs text-[var(--color-text-muted)] mb-1 block">{t('transfer.field_tier')}</label>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setTierSelectOpen((v) => !v)}
+                  disabled={tiers.length === 0}
+                  className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-[var(--color-bg-elevated)] border border-[var(--color-border-subtle)] hover:border-[var(--color-brand)]/40 transition-colors disabled:opacity-50"
+                >
+                  {selectedTierId ? (
+                    <span className="flex items-center gap-2 text-sm text-[var(--color-text-primary)]">
+                      <span className="w-2 h-2 rounded-full bg-[var(--color-brand)]" />
+                      <span>{tiers.find((tt) => tt.id === selectedTierId)?.name ?? '—'}</span>
+                    </span>
+                  ) : (
+                    <span className="text-sm text-[var(--color-text-muted)]">
+                      {tiers.length === 0
+                        ? t('transfer.field_tier_empty')
+                        : t('transfer.field_tier_placeholder')}
+                    </span>
+                  )}
+                  <ChevronDown className={cn('w-4 h-4 text-[var(--color-text-muted)] transition-transform flex-shrink-0', tierSelectOpen && 'rotate-180')} />
+                </button>
+                {tierSelectOpen && tiers.length > 0 && (
+                  <>
+                    <div className="fixed inset-0 z-10" onClick={() => setTierSelectOpen(false)} />
+                    <div className="absolute left-0 right-0 mt-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-surface)] shadow-xl overflow-hidden z-20">
+                      {tiers.map((tier) => (
+                        <button
+                          key={tier.id}
+                          type="button"
+                          onClick={() => { setSelectedTierId(tier.id); setTierSelectOpen(false) }}
+                          className={cn(
+                            'w-full flex items-center gap-2 px-3 py-2.5 text-sm transition-colors text-left',
+                            selectedTierId === tier.id
+                              ? 'bg-[var(--color-brand)]/15 text-[var(--color-brand)] font-semibold'
+                              : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-elevated)]',
+                          )}
+                        >
+                          <span className="w-2 h-2 rounded-full bg-[var(--color-brand)]" />
+                          <span className="flex-1">{tier.name}</span>
+                          {selectedTierId === tier.id && <span className="text-[10px]">✓</span>}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+              <p className="text-[11px] text-[var(--color-text-muted)] mt-1">{t('transfer.field_tier_hint')}</p>
+            </div>
+
+            <div>
               <label className="text-xs text-[var(--color-text-muted)] mb-1 block">{t('transfer.field_cp')}</label>
               <Input
                 value={cp}
                 onChange={(e) => setCp(e.target.value)}
                 placeholder={t('transfer.field_cp_placeholder')}
               />
+              <p className="text-[11px] text-[var(--color-text-muted)] mt-1">{t('transfer.field_cp_hint')}</p>
             </div>
 
             <Button type="submit" size="full" disabled={!inGameName.trim() || submitting} className="mt-2">
@@ -602,13 +672,68 @@ export const TransferPage = () => {
                         </span>
                       </div>
                       <div className="flex gap-2">
+                        <span className="text-[var(--color-text-muted)] w-16 flex-shrink-0">{t('transfer.field_tier')}</span>
+                        <span className="text-[var(--color-text-primary)] flex items-center gap-1.5 flex-wrap">
+                          {(() => {
+                            const userTier = a.tierId ? tiers.find((tt) => tt.id === a.tierId) : null
+                            return userTier ? (
+                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[var(--color-brand)]/15 text-[var(--color-brand)]">{userTier.name}</span>
+                            ) : (
+                              <span className="text-[var(--color-text-muted)]">—</span>
+                            )
+                          })()}
+                          {tiers.length > 0 && (
+                            <div className="relative">
+                              <button
+                                type="button"
+                                onClick={() => setAdminTierEditId((cur) => (cur === a.id ? null : a.id))}
+                                className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-border)] transition-colors"
+                              >
+                                {t('transfer.tier_edit_btn')}
+                              </button>
+                              {adminTierEditId === a.id && (
+                                <>
+                                  <div className="fixed inset-0 z-10" onClick={() => setAdminTierEditId(null)} />
+                                  <div className="absolute left-0 mt-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-surface)] shadow-xl overflow-hidden z-20 min-w-[140px]">
+                                    <button
+                                      type="button"
+                                      onClick={async () => { await updateTier(a.id, null); setAdminTierEditId(null) }}
+                                      className={cn(
+                                        'w-full flex items-center gap-2 px-3 py-2 text-xs transition-colors text-left',
+                                        !a.tierId ? 'bg-[var(--color-brand)]/15 text-[var(--color-brand)] font-semibold' : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-elevated)]',
+                                      )}
+                                    >
+                                      <span className="flex-1">{t('transfer.tier_none')}</span>
+                                    </button>
+                                    {tiers.map((tier) => (
+                                      <button
+                                        key={tier.id}
+                                        type="button"
+                                        onClick={async () => { await updateTier(a.id, tier.id); setAdminTierEditId(null) }}
+                                        className={cn(
+                                          'w-full flex items-center gap-2 px-3 py-2 text-xs transition-colors text-left',
+                                          a.tierId === tier.id ? 'bg-[var(--color-brand)]/15 text-[var(--color-brand)] font-semibold' : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-elevated)]',
+                                        )}
+                                      >
+                                        <span className="w-2 h-2 rounded-full bg-[var(--color-brand)]" />
+                                        <span className="flex-1">{tier.name}</span>
+                                      </button>
+                                    ))}
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          )}
+                        </span>
+                      </div>
+                      <div className="flex gap-2">
                         <span className="text-[var(--color-text-muted)] w-16 flex-shrink-0">{t('transfer.field_cp')}</span>
                         <span className="text-[var(--color-text-primary)] flex items-center gap-1.5">
                           {a.cp || '—'}
                           {(() => {
                             const tier = findTierForCp(tiers, parseCp(a.cp))
                             return tier
-                              ? <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[var(--color-brand)]/15 text-[var(--color-brand)]">{tier.name}</span>
+                              ? <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)]" title={t('transfer.cp_suggested_tooltip')}>~ {tier.name}</span>
                               : null
                           })()}
                         </span>

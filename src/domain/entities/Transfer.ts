@@ -7,6 +7,7 @@ export interface TransferApplication {
   currentServer: string
   country: string
   cp: string
+  tierId: string | null
   status: TransferStatus
   reviewedAt: string | null
   reviewedBy: string | null
@@ -19,4 +20,5 @@ export interface TransferDraft {
   currentServer: string
   country: string
   cp: string
+  tierId: string | null
 }

@@ -11,6 +11,7 @@ const toApp = (r: any): TransferApplication => ({
   currentServer: r.current_server ?? '',
   country: r.country ?? '',
   cp: r.cp ?? '',
+  tierId: r.tier_id ?? null,
   status: r.status,
   reviewedAt: r.reviewed_at,
   reviewedBy: r.reviewed_by,
@@ -23,6 +24,7 @@ interface TransferStore {
   submit: (draft: TransferDraft) => Promise<boolean>
   loadAll: () => Promise<void>
   updateStatus: (id: string, status: TransferStatus, reviewerId: string) => Promise<void>
+  updateTier: (id: string, tierId: string | null) => Promise<void>
   remove: (id: string) => Promise<void>
 }
 
@@ -42,6 +44,7 @@ export const useTransferStore = create<TransferStore>((set) => ({
       current_server: draft.currentServer.trim(),
       country: draft.country.trim(),
       cp: draft.cp.trim(),
+      tier_id: draft.tierId,
     })
     if (error) {
       console.error('transfer submit error', error)
@@ -87,6 +90,21 @@ export const useTransferStore = create<TransferStore>((set) => ({
           ? { ...a, status, reviewedAt: new Date().toISOString(), reviewedBy: reviewerId }
           : a,
       ),
+    }))
+  },
+
+  updateTier: async (id, tierId) => {
+    const { error } = await supabase
+      .from('transfer_applications')
+      .update({ tier_id: tierId })
+      .eq('id', id)
+    if (error) {
+      console.error('transfer updateTier error', error)
+      toast.error('등급 변경 중 오류가 발생했습니다.')
+      return
+    }
+    set((s) => ({
+      apps: s.apps.map((a) => (a.id === id ? { ...a, tierId } : a)),
     }))
   },
 
