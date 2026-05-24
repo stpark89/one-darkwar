@@ -52,7 +52,7 @@ export const WarPage = () => {
   const canEdit = user?.role === 'ROLE_ADMIN'
 
   const {
-    activeSeason, rounds, entries, members, loading,
+    activeSeason, rounds, entries, loading,
     searchQuery, setSearchQuery,
     getMemberRows, getSummary,
     addRound, deleteRound, updateRoundDate, loadData,
