@@ -26,8 +26,10 @@ if (existsSync(PNG_SRC)) {
 }
 console.log(`📷 원본: ${label}`)
 
-const BG = { r: 255, g: 255, b: 255, alpha: 1 } // 흰색 배경으로 정사각형 패딩
+const BG = { r: 255, g: 255, b: 255, alpha: 1 } // 일반 아이콘: 흰색 패딩
+const MASKABLE_BG = { r: 15, g: 17, b: 21, alpha: 1 } // maskable: 앱 다크 테마 (#0f1115)
 
+// 일반 아이콘 (purpose: any) — 정사각형에 흰색 배경, 토끼 풀로 차게
 const targets = [
   { size: 512, name: 'icon-512.png' },
   { size: 192, name: 'icon-192.png' },
@@ -43,4 +45,24 @@ for (const { size, name } of targets) {
     .png({ compressionLevel: 9 })
     .toFile(out)
   console.log(`✓ ${name} (${size}×${size})`)
+}
+
+// maskable 아이콘 — Android adaptive icon 가운데 80% 안전 영역 안에 토끼가
+// 들어가도록 패딩. 외곽 10% 는 OS 가 잘라낼 영역이라 다크 테마 색.
+const maskables = [
+  { size: 512, name: 'icon-maskable-512.png' },
+  { size: 192, name: 'icon-maskable-192.png' },
+]
+
+for (const { size, name } of maskables) {
+  const inner = Math.floor(size * 0.8)
+  const pad = Math.floor((size - inner) / 2)
+  const out = resolve(root, 'public', name)
+  await sharp(src)
+    .resize(inner, inner, { fit: 'contain', background: MASKABLE_BG })
+    .extend({ top: pad, bottom: pad, left: pad, right: pad, background: MASKABLE_BG })
+    .flatten({ background: MASKABLE_BG })
+    .png({ compressionLevel: 9 })
+    .toFile(out)
+  console.log(`✓ ${name} (${size}×${size}, maskable)`)
 }
