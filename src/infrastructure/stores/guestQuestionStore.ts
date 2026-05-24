@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
+import { withTimeout } from '@/lib/timeout'
 import type { GuestQuestion, GuestAnswer, GuestQuestionDraft } from '@/domain/entities/GuestQuestion'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -42,11 +43,6 @@ export const useGuestQuestionStore = create<GuestQuestionStore>((set) => ({
     set({ loading: true })
     try {
       // 두 쿼리 중 한쪽 hang 되어도 다른 쪽 결과 사용 + 15초 timeout 안전망
-      const withTimeout = <T>(p: Promise<T>, ms = 15000): Promise<T> =>
-        Promise.race([
-          p,
-          new Promise<T>((_, reject) => setTimeout(() => reject(new Error('timeout')), ms)),
-        ])
       const fetchQuestions = async () =>
         supabase.from('guest_questions').select('*').order('created_at', { ascending: false })
       const fetchAnswers = async () =>

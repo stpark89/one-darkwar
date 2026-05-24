@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { supabase } from '@/lib/supabase'
+import { withTimeout } from '@/lib/timeout'
 
 export interface PendingUser {
   id: string
@@ -44,11 +45,13 @@ export const useApprovalStore = create<ApprovalStore>((set, get) => ({
   loadPending: async () => {
     set({ loading: true })
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, in_game_name, created_at, status')
-        .eq('status', 'PENDING')
-        .order('created_at', { ascending: true })
+      const fetchPending = async () =>
+        supabase
+          .from('profiles')
+          .select('id, in_game_name, created_at, status')
+          .eq('status', 'PENDING')
+          .order('created_at', { ascending: true })
+      const { data, error } = await withTimeout(fetchPending())
       if (error) {
         console.error('[approvalStore] loadPending error:', error)
         return
@@ -69,11 +72,13 @@ export const useApprovalStore = create<ApprovalStore>((set, get) => ({
   loadRejected: async () => {
     set({ rejectedLoading: true })
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, in_game_name, created_at, status')
-        .eq('status', 'REJECTED')
-        .order('created_at', { ascending: false })
+      const fetchRejected = async () =>
+        supabase
+          .from('profiles')
+          .select('id, in_game_name, created_at, status')
+          .eq('status', 'REJECTED')
+          .order('created_at', { ascending: false })
+      const { data, error } = await withTimeout(fetchRejected())
       if (error) {
         console.error('[approvalStore] loadRejected error:', error)
         return
@@ -148,11 +153,13 @@ export const useApprovalStore = create<ApprovalStore>((set, get) => ({
   loadApproved: async () => {
     set({ approvedLoading: true })
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, in_game_name, role, created_at')
-        .eq('status', 'APPROVED')
-        .order('role', { ascending: false })
+      const fetchApproved = async () =>
+        supabase
+          .from('profiles')
+          .select('id, in_game_name, role, created_at')
+          .eq('status', 'APPROVED')
+          .order('role', { ascending: false })
+      const { data, error } = await withTimeout(fetchApproved())
       if (error) {
         console.error('[approvalStore] loadApproved error:', error)
         return
