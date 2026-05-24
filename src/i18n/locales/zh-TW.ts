@@ -90,6 +90,7 @@ export default {
     field_server_placeholder: '例：S312、S205',
     field_country: '國家',
     field_country_placeholder: '請選擇國家...',
+    field_country_selected: '已選擇：{{name}}',
     country_kr: '韓國',
     country_vn: '越南',
     country_tw: '台灣',

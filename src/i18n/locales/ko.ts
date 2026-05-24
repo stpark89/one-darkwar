@@ -90,6 +90,7 @@ export default {
     field_server_placeholder: '예: S312, S205',
     field_country: '국가',
     field_country_placeholder: '국가 선택...',
+    field_country_selected: '선택: {{name}}',
     country_kr: '한국',
     country_vn: '베트남',
     country_tw: '대만',

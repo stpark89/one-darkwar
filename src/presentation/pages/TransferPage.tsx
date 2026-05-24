@@ -216,17 +216,33 @@ export const TransferPage = () => {
             </div>
 
             <div>
-              <label className="text-xs text-[var(--color-text-muted)] mb-1 block">{t('transfer.field_country')}</label>
-              <select
-                value={country}
-                onChange={(e) => setCountry(e.target.value)}
-                className="w-full px-3 py-2 text-sm rounded-lg bg-[var(--color-bg-elevated)] border border-[var(--color-border-subtle)] text-[var(--color-text-primary)] outline-none focus:border-[var(--color-brand)] appearance-none cursor-pointer"
-              >
-                <option value="">{t('transfer.field_country_placeholder')}</option>
-                {COUNTRY_OPTIONS.map((code) => (
-                  <option key={code} value={code}>{COUNTRY_FLAGS[code]} {t(`transfer.country_${code.toLowerCase()}`)}</option>
-                ))}
-              </select>
+              <label className="text-xs text-[var(--color-text-muted)] mb-1.5 block">{t('transfer.field_country')}</label>
+              <div className="grid grid-cols-4 sm:grid-cols-7 gap-1.5">
+                {COUNTRY_OPTIONS.map((code) => {
+                  const selected = country === code
+                  return (
+                    <button
+                      key={code}
+                      type="button"
+                      onClick={() => setCountry(selected ? '' : code)}
+                      title={t(`transfer.country_${code.toLowerCase()}`)}
+                      className={cn(
+                        'aspect-square flex items-center justify-center rounded-lg border text-2xl transition-all',
+                        selected
+                          ? 'border-[var(--color-brand)] bg-[var(--color-brand)]/15 scale-105 shadow-md'
+                          : 'border-[var(--color-border-subtle)] bg-[var(--color-bg-elevated)] hover:border-[var(--color-brand)]/40 hover:bg-[var(--color-bg-base)] opacity-70 hover:opacity-100',
+                      )}
+                    >
+                      <span className="leading-none">{COUNTRY_FLAGS[code]}</span>
+                    </button>
+                  )
+                })}
+              </div>
+              {country && (
+                <p className="text-[11px] text-[var(--color-text-muted)] mt-1.5">
+                  {t('transfer.field_country_selected', { name: t(`transfer.country_${country.toLowerCase()}`) })}
+                </p>
+              )}
             </div>
 
             <div>

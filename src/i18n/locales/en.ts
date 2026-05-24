@@ -90,6 +90,7 @@ export default {
     field_server_placeholder: 'e.g. S312, S205',
     field_country: 'Country',
     field_country_placeholder: 'Select country...',
+    field_country_selected: 'Selected: {{name}}',
     country_kr: 'Korea',
     country_vn: 'Vietnam',
     country_tw: 'Taiwan',

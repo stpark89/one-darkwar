@@ -90,6 +90,7 @@ export default {
     field_server_placeholder: 'VD: S312, S205',
     field_country: 'Quốc gia',
     field_country_placeholder: 'Chọn quốc gia...',
+    field_country_selected: 'Đã chọn: {{name}}',
     country_kr: 'Hàn Quốc',
     country_vn: 'Việt Nam',
     country_tw: 'Đài Loan',
