@@ -11,7 +11,7 @@ export const GuestHomePage = () => {
 
   const handleStartTour = () => {
     enterTourMode()
-    navigate('/notices')
+    navigate('/')
   }
 
   return (
