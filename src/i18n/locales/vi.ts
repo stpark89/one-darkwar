@@ -110,6 +110,7 @@ export default {
     dashboard_title: 'Đã duyệt (theo cấp)',
     dashboard_hint: 'Dựa trên đơn đã duyệt',
     dashboard_unmatched: 'Chưa khớp',
+    edit_tiers_btn: 'Sửa cấp',
     tab_pending: 'Chờ',
     tab_approved: 'Đã duyệt',
     tab_rejected: 'Từ chối',

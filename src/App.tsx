@@ -15,7 +15,6 @@ import { MemberApprovalPage } from "@/presentation/pages/MemberApprovalPage";
 import { NoticePage } from "@/presentation/pages/NoticePage";
 import { BoardPage } from "@/presentation/pages/BoardPage";
 import { TransferPage } from "@/presentation/pages/TransferPage";
-import { TransferTiersPage } from "@/presentation/pages/TransferTiersPage";
 import { SignInPage } from "@/presentation/pages/SignInPage";
 import { SignUpPage } from "@/presentation/pages/SignUpPage";
 import { ChangePasswordPage } from "@/presentation/pages/ChangePasswordPage";
@@ -61,7 +60,6 @@ function App() {
           <Route path="/notices" element={<NoticePage />} />
           <Route path="/board" element={<BoardPage />} />
           <Route path="/transfer" element={<TransferPage />} />
-          <Route path="/transfer-tiers" element={<TransferTiersPage />} />
           <Route path="/questions" element={<GuestQuestionsPage />} />
           {/* 존재하지 않는 경로는 홈으로 (오타 등) */}
           <Route path="*" element={<Navigate to="/" replace />} />

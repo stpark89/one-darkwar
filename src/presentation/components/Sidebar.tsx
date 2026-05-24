@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { Home, Users, Swords, CalendarDays, FileSpreadsheet, BarChart3, Megaphone, ChevronUp, ChevronLeft, ChevronRight, X, LogOut, ShieldCheck, User, KeyRound, UserX, UserCheck, MessageSquare, Target, UserPlus, MessageCircleQuestion, Layers } from 'lucide-react'
+import { Home, Users, Swords, CalendarDays, FileSpreadsheet, BarChart3, Megaphone, ChevronUp, ChevronLeft, ChevronRight, X, LogOut, ShieldCheck, User, KeyRound, UserX, UserCheck, MessageSquare, Target, UserPlus, MessageCircleQuestion } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { LANGUAGES, type LangCode } from '@/i18n'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
@@ -55,7 +55,6 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
     { to: '/approval', icon: UserCheck, label: t('nav.join_management'), badge: pendingCount },
     { to: '/questions', icon: MessageCircleQuestion, label: t('nav.questions'), badge: 0 },
     { to: '/transfer', icon: UserPlus, label: t('nav.transfer'), badge: 0 },
-    { to: '/transfer-tiers', icon: Layers, label: t('nav.transfer_tiers'), badge: 0 },
   ]
 
   const navItems = isGuest ? NAV_GUEST : NAV_GENERAL

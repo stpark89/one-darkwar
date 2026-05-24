@@ -110,6 +110,7 @@ export default {
     dashboard_title: 'Approved (by Tier)',
     dashboard_hint: 'Based on approved applicants',
     dashboard_unmatched: 'Unmatched',
+    edit_tiers_btn: 'Edit Tiers',
     tab_pending: 'Pending',
     tab_approved: 'Approved',
     tab_rejected: 'Rejected',

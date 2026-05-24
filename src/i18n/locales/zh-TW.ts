@@ -110,6 +110,7 @@ export default {
     dashboard_title: '已通過（依等級）',
     dashboard_hint: '依已通過申請者統計',
     dashboard_unmatched: '未匹配',
+    edit_tiers_btn: '編輯等級',
     tab_pending: '待審核',
     tab_approved: '已通過',
     tab_rejected: '已拒絕',

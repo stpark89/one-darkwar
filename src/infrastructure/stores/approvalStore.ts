@@ -42,35 +42,55 @@ export const useApprovalStore = create<ApprovalStore>((set, get) => ({
   approvedLoading: false,
 
   loadPending: async () => {
+    if (get().loading) return
     set({ loading: true })
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('id, in_game_name, created_at, status')
-      .eq('status', 'PENDING')
-      .order('created_at', { ascending: true })
-    if (error) console.error('[approvalStore] loadPending error:', error)
-    const users: PendingUser[] = (data ?? []).map((r) => ({
-      id: r.id,
-      inGameName: r.in_game_name,
-      createdAt: r.created_at,
-    }))
-    set({ pendingUsers: users, pendingCount: users.length, loading: false })
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, in_game_name, created_at, status')
+        .eq('status', 'PENDING')
+        .order('created_at', { ascending: true })
+      if (error) {
+        console.error('[approvalStore] loadPending error:', error)
+        return
+      }
+      const users: PendingUser[] = (data ?? []).map((r) => ({
+        id: r.id,
+        inGameName: r.in_game_name,
+        createdAt: r.created_at,
+      }))
+      set({ pendingUsers: users, pendingCount: users.length })
+    } catch (err) {
+      console.error('[approvalStore] loadPending exception:', err)
+    } finally {
+      set({ loading: false })
+    }
   },
 
   loadRejected: async () => {
+    if (get().rejectedLoading) return
     set({ rejectedLoading: true })
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('id, in_game_name, created_at, status')
-      .eq('status', 'REJECTED')
-      .order('created_at', { ascending: false })
-    if (error) console.error('[approvalStore] loadRejected error:', error)
-    const users: PendingUser[] = (data ?? []).map((r) => ({
-      id: r.id,
-      inGameName: r.in_game_name,
-      createdAt: r.created_at,
-    }))
-    set({ rejectedUsers: users, rejectedLoading: false })
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, in_game_name, created_at, status')
+        .eq('status', 'REJECTED')
+        .order('created_at', { ascending: false })
+      if (error) {
+        console.error('[approvalStore] loadRejected error:', error)
+        return
+      }
+      const users: PendingUser[] = (data ?? []).map((r) => ({
+        id: r.id,
+        inGameName: r.in_game_name,
+        createdAt: r.created_at,
+      }))
+      set({ rejectedUsers: users })
+    } catch (err) {
+      console.error('[approvalStore] loadRejected exception:', err)
+    } finally {
+      set({ rejectedLoading: false })
+    }
   },
 
   approveUser: async (userId) => {
@@ -128,20 +148,30 @@ export const useApprovalStore = create<ApprovalStore>((set, get) => ({
   },
 
   loadApproved: async () => {
+    if (get().approvedLoading) return
     set({ approvedLoading: true })
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('id, in_game_name, role, created_at')
-      .eq('status', 'APPROVED')
-      .order('role', { ascending: false })
-    if (error) console.error('[approvalStore] loadApproved error:', error)
-    const users: ApprovedUser[] = (data ?? []).map((r) => ({
-      id: r.id,
-      inGameName: r.in_game_name,
-      role: r.role as 'ROLE_ADMIN' | 'ROLE_USER',
-      createdAt: r.created_at,
-    }))
-    set({ approvedUsers: users, approvedLoading: false })
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, in_game_name, role, created_at')
+        .eq('status', 'APPROVED')
+        .order('role', { ascending: false })
+      if (error) {
+        console.error('[approvalStore] loadApproved error:', error)
+        return
+      }
+      const users: ApprovedUser[] = (data ?? []).map((r) => ({
+        id: r.id,
+        inGameName: r.in_game_name,
+        role: r.role as 'ROLE_ADMIN' | 'ROLE_USER',
+        createdAt: r.created_at,
+      }))
+      set({ approvedUsers: users })
+    } catch (err) {
+      console.error('[approvalStore] loadApproved exception:', err)
+    } finally {
+      set({ approvedLoading: false })
+    }
   },
 
   changeRole: async (userId, role) => {

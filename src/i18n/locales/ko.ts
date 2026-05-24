@@ -110,6 +110,7 @@ export default {
     dashboard_title: '승인 현황 (등급별)',
     dashboard_hint: '승인된 신청자 기준',
     dashboard_unmatched: '미매칭',
+    edit_tiers_btn: '등급 편집',
     tab_pending: '대기',
     tab_approved: '승인',
     tab_rejected: '거절',

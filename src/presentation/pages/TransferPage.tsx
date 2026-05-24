@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, Navigate } from 'react-router-dom'
-import { Send, Loader2, CheckCircle2, XCircle, Clock, Trash2, RotateCcw, Home, Layers } from 'lucide-react'
+import { Send, Loader2, CheckCircle2, XCircle, Clock, Trash2, RotateCcw, Home, Layers, Pencil, Plus, Save, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { useTransferStore } from '@/infrastructure/stores/transferStore'
@@ -8,8 +8,36 @@ import { useTransferTierStore, findTierForCp } from '@/infrastructure/stores/tra
 import type { TransferStatus } from '@/domain/entities/Transfer'
 import { Input } from '@/presentation/components/ui/input'
 import { Button } from '@/presentation/components/ui/button'
-import { parseCp } from '@/lib/cp'
+import { parseCp, formatCp } from '@/lib/cp'
 import { cn } from '@/lib/utils'
+
+interface TierDraftForm {
+  id?: string
+  name: string
+  minCpStr: string
+  maxCpStr: string
+  capacityStr: string
+  sortOrderStr: string
+  seasonName: string
+}
+
+const EMPTY_TIER_DRAFT: TierDraftForm = { name: '', minCpStr: '', maxCpStr: '', capacityStr: '0', sortOrderStr: '0', seasonName: '' }
+
+// "3.54G" → 3540, "" → null
+const parseTierInput = (s: string): number | null => {
+  const t = s.trim().toUpperCase()
+  if (!t) return null
+  const num = parseFloat(t.replace(/[^0-9.]/g, ''))
+  if (isNaN(num)) return null
+  if (t.includes('G') || t.includes('B')) return Math.round(num * 1000)
+  return Math.round(num)
+}
+
+const formatTierRange = (minCp: number, maxCp: number | null) => {
+  const min = minCp > 0 ? formatCp(minCp) : '0'
+  const max = maxCp != null ? formatCp(maxCp) : '∞'
+  return `${min} ~ ${max}`
+}
 
 const STATUS_META: Record<TransferStatus, { icon: typeof Clock; color: string; bg: string }> = {
   PENDING: { icon: Clock, color: 'text-yellow-400', bg: 'bg-yellow-400/15' },
@@ -30,7 +58,7 @@ export const TransferPage = () => {
   const isAdmin = user?.role === 'ROLE_ADMIN'
 
   const { apps, loading, submit, loadAll, updateStatus, remove } = useTransferStore()
-  const { tiers, loadAll: loadTiers } = useTransferTierStore()
+  const { tiers, loadAll: loadTiers, upsert: upsertTier, remove: removeTier } = useTransferTierStore()
 
   const [inGameName, setInGameName] = useState('')
   const [currentServer, setCurrentServer] = useState('')
@@ -40,6 +68,12 @@ export const TransferPage = () => {
   const [submitted, setSubmitted] = useState(false)
   const [tab, setTab] = useState<TransferStatus>('PENDING')
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
+
+  // 등급 편집 (관리자만)
+  const [tierEditMode, setTierEditMode] = useState(false)
+  const [tierDraft, setTierDraft] = useState<TierDraftForm | null>(null)
+  const [tierSaving, setTierSaving] = useState(false)
+  const [deleteTierId, setDeleteTierId] = useState<string | null>(null)
 
   useEffect(() => {
     if (isAdmin) {
@@ -65,6 +99,42 @@ export const TransferPage = () => {
   }
 
   const handleResetForm = () => setSubmitted(false)
+
+  // ── 등급 편집 핸들러 ──
+  const startEditTier = (id: string) => {
+    const tier = tiers.find((t) => t.id === id)
+    if (!tier) return
+    setTierDraft({
+      id: tier.id,
+      name: tier.name,
+      minCpStr: tier.minCp > 0 ? formatCp(tier.minCp) : '',
+      maxCpStr: tier.maxCp != null ? formatCp(tier.maxCp) : '',
+      capacityStr: String(tier.capacity),
+      sortOrderStr: String(tier.sortOrder),
+      seasonName: tier.seasonName,
+    })
+  }
+
+  const startNewTier = () => {
+    const nextOrder = tiers.length > 0 ? Math.max(...tiers.map((x) => x.sortOrder)) + 1 : 1
+    setTierDraft({ ...EMPTY_TIER_DRAFT, sortOrderStr: String(nextOrder) })
+  }
+
+  const saveTier = async () => {
+    if (!tierDraft || tierSaving) return
+    setTierSaving(true)
+    const ok = await upsertTier({
+      id: tierDraft.id,
+      name: tierDraft.name.trim(),
+      minCp: parseTierInput(tierDraft.minCpStr) ?? 0,
+      maxCp: parseTierInput(tierDraft.maxCpStr),
+      capacity: parseInt(tierDraft.capacityStr, 10) || 0,
+      sortOrder: parseInt(tierDraft.sortOrderStr, 10) || 0,
+      seasonName: tierDraft.seasonName,
+    })
+    setTierSaving(false)
+    if (ok) setTierDraft(null)
+  }
 
   const filtered = apps.filter((a) => a.status === tab)
   const counts = {
@@ -187,18 +257,56 @@ export const TransferPage = () => {
             </button>
           </div>
 
-          {/* 등급별 정원 대시보드 (승인된 신청자 기준) */}
-          {tiers.length > 0 && (
-            <div className="bg-[var(--color-bg-surface)] border border-[var(--color-border-subtle)] rounded-xl p-4">
-              <div className="flex items-center justify-between mb-3 flex-wrap gap-1">
-                <h3 className="text-sm font-bold text-[var(--color-text-primary)] flex items-center gap-1.5">
-                  <Layers className="w-4 h-4 text-[var(--color-brand)]" />
-                  {t('transfer.dashboard_title')}
-                </h3>
-                <span className="text-[11px] text-[var(--color-text-muted)]">{t('transfer.dashboard_hint')}</span>
+          {/* 등급별 정원 대시보드 + 인라인 편집 */}
+          <div className="bg-[var(--color-bg-surface)] border border-[var(--color-border-subtle)] rounded-xl p-4">
+            <div className="flex items-center justify-between mb-3 flex-wrap gap-1">
+              <h3 className="text-sm font-bold text-[var(--color-text-primary)] flex items-center gap-1.5">
+                <Layers className="w-4 h-4 text-[var(--color-brand)]" />
+                {tierEditMode ? t('tiers.title') : t('transfer.dashboard_title')}
+              </h3>
+              <div className="flex items-center gap-2">
+                {!tierEditMode && (
+                  <span className="text-[11px] text-[var(--color-text-muted)]">{t('transfer.dashboard_hint')}</span>
+                )}
+                <button
+                  onClick={() => setTierEditMode((v) => !v)}
+                  className={cn(
+                    'flex items-center gap-1 px-2 py-1 rounded text-[11px] font-semibold transition-colors',
+                    tierEditMode
+                      ? 'bg-[var(--color-brand)] text-white'
+                      : 'bg-[var(--color-bg-elevated)] text-[var(--color-text-secondary)] hover:bg-[var(--color-border)]',
+                  )}
+                >
+                  {tierEditMode ? <CheckCircle2 className="w-3 h-3" /> : <Pencil className="w-3 h-3" />}
+                  {tierEditMode ? t('common.close') : t('transfer.edit_tiers_btn')}
+                </button>
               </div>
+            </div>
+
+            {tiers.length === 0 && !tierEditMode ? (
+              <p className="text-xs text-[var(--color-text-muted)] py-4 text-center">{t('tiers.no_data')}</p>
+            ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                 {tiers.map((tier) => {
+                  if (tierEditMode) {
+                    return (
+                      <div key={tier.id} className="group bg-[var(--color-bg-base)] rounded-lg p-2.5 border border-[var(--color-border-subtle)] hover:border-[var(--color-brand)]/40 transition-colors">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs font-semibold text-[var(--color-text-primary)] truncate">{tier.name}</span>
+                          <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onClick={() => startEditTier(tier.id)} className="p-1 rounded text-[var(--color-text-muted)] hover:text-[var(--color-brand)]">
+                              <Pencil className="w-3 h-3" />
+                            </button>
+                            <button onClick={() => setDeleteTierId(tier.id)} className="p-1 rounded text-[var(--color-text-muted)] hover:text-[var(--color-danger)]">
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </div>
+                        <p className="text-[10px] text-[var(--color-text-muted)]">{formatTierRange(tier.minCp, tier.maxCp)}</p>
+                        <p className="text-[10px] text-[var(--color-text-muted)]">{t('tiers.capacity')}: {tier.capacity}</p>
+                      </div>
+                    )
+                  }
                   const cur = approvedByTier.map.get(tier.id) ?? 0
                   const cap = tier.capacity
                   const pct = cap > 0 ? Math.min(100, (cur / cap) * 100) : 0
@@ -227,7 +335,16 @@ export const TransferPage = () => {
                     </div>
                   )
                 })}
-                {approvedByTier.unmatched > 0 && (
+                {tierEditMode && (
+                  <button
+                    onClick={startNewTier}
+                    className="bg-[var(--color-bg-base)] rounded-lg p-2.5 border border-dashed border-[var(--color-border)] hover:border-[var(--color-brand)] hover:bg-[var(--color-bg-elevated)] transition-colors flex items-center justify-center gap-1 text-[var(--color-text-muted)] hover:text-[var(--color-brand)]"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span className="text-xs font-semibold">{t('tiers.add_btn')}</span>
+                  </button>
+                )}
+                {!tierEditMode && approvedByTier.unmatched > 0 && (
                   <div className="bg-[var(--color-bg-base)] rounded-lg p-2.5">
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xs font-semibold text-[var(--color-text-muted)]">{t('transfer.dashboard_unmatched')}</span>
@@ -237,8 +354,8 @@ export const TransferPage = () => {
                   </div>
                 )}
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* 탭 */}
           <div className="flex gap-1 p-1 bg-[var(--color-bg-surface)] rounded-lg border border-[var(--color-border-subtle)] w-fit">
@@ -374,6 +491,79 @@ export const TransferPage = () => {
               <Button variant="outline" size="full" onClick={() => setDeleteConfirmId(null)}>{t('common.cancel')}</Button>
               <Button size="full" className="bg-[var(--color-danger)] hover:bg-red-700 text-white"
                 onClick={async () => { await remove(deleteConfirmId); setDeleteConfirmId(null) }}>
+                {t('common.delete')}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TIER 추가/수정 모달 */}
+      {tierDraft && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-[var(--color-bg-surface)] rounded-xl border border-[var(--color-border)] w-full max-w-md p-5 space-y-3">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-base font-bold">{tierDraft.id ? t('tiers.edit_title') : t('tiers.add_title')}</h2>
+              <button onClick={() => setTierDraft(null)} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] -mr-1 p-1">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div>
+              <label className="text-xs text-[var(--color-text-muted)] mb-1 block">{t('tiers.field_name')} *</label>
+              <Input value={tierDraft.name} onChange={(e) => setTierDraft({ ...tierDraft, name: e.target.value })} placeholder="T1, T2, ..." />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-[var(--color-text-muted)] mb-1 block">{t('tiers.field_min_cp')}</label>
+                <Input value={tierDraft.minCpStr} onChange={(e) => setTierDraft({ ...tierDraft, minCpStr: e.target.value })} placeholder="3G" />
+              </div>
+              <div>
+                <label className="text-xs text-[var(--color-text-muted)] mb-1 block">{t('tiers.field_max_cp')}</label>
+                <Input value={tierDraft.maxCpStr} onChange={(e) => setTierDraft({ ...tierDraft, maxCpStr: e.target.value })} placeholder={t('tiers.unlimited_placeholder')} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-[var(--color-text-muted)] mb-1 block">{t('tiers.field_capacity')} *</label>
+                <Input type="number" value={tierDraft.capacityStr} onChange={(e) => setTierDraft({ ...tierDraft, capacityStr: e.target.value })} />
+              </div>
+              <div>
+                <label className="text-xs text-[var(--color-text-muted)] mb-1 block">{t('tiers.field_sort_order')}</label>
+                <Input type="number" value={tierDraft.sortOrderStr} onChange={(e) => setTierDraft({ ...tierDraft, sortOrderStr: e.target.value })} />
+              </div>
+            </div>
+            <div>
+              <label className="text-xs text-[var(--color-text-muted)] mb-1 block">{t('tiers.field_season')}</label>
+              <Input value={tierDraft.seasonName} onChange={(e) => setTierDraft({ ...tierDraft, seasonName: e.target.value })} placeholder={t('tiers.season_placeholder')} />
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <Button variant="outline" size="full" onClick={() => setTierDraft(null)}>{t('common.cancel')}</Button>
+              <Button size="full" disabled={!tierDraft.name.trim() || tierSaving} onClick={saveTier}>
+                {tierSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                {t('common.save')}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TIER 삭제 확인 모달 */}
+      {deleteTierId && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[60] p-4">
+          <div className="bg-[var(--color-bg-surface)] rounded-xl border border-[var(--color-border)] w-full max-w-sm p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-[var(--color-danger)]/15 flex items-center justify-center flex-shrink-0">
+                <Trash2 className="w-5 h-5 text-[var(--color-danger)]" />
+              </div>
+              <h2 className="text-base font-bold text-[var(--color-text-primary)]">{t('tiers.delete_title')}</h2>
+            </div>
+            <p className="text-sm text-[var(--color-text-secondary)] mb-5">{t('tiers.delete_desc')}</p>
+            <div className="flex gap-2">
+              <Button variant="outline" size="full" onClick={() => setDeleteTierId(null)}>{t('common.cancel')}</Button>
+              <Button size="full" className="bg-[var(--color-danger)] hover:bg-red-700 text-white"
+                onClick={async () => { await removeTier(deleteTierId); setDeleteTierId(null) }}>
                 {t('common.delete')}
               </Button>
             </div>
