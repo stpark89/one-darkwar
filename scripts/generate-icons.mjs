@@ -1,14 +1,32 @@
-// SVG → PNG 변환기. public/icon-source.svg 를 다양한 크기로 생성합니다.
-// 실행: node scripts/generate-icons.mjs
+// 원본 이미지 → 다양한 크기 PNG 변환기.
+// 우선순위: public/bunny-source.png > public/icon-source.svg
+// 실행: node scripts/generate-icons.mjs  (또는 npm run icons)
 import sharp from 'sharp'
-import { readFileSync } from 'node:fs'
+import { readFileSync, existsSync } from 'node:fs'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = resolve(__dirname, '..')
-const src = resolve(root, 'public/icon-source.svg')
-const svg = readFileSync(src)
+
+const PNG_SRC = resolve(root, 'public/bunny-source.png')
+const SVG_SRC = resolve(root, 'public/icon-source.svg')
+
+let src
+let label
+if (existsSync(PNG_SRC)) {
+  src = readFileSync(PNG_SRC)
+  label = 'bunny-source.png'
+} else if (existsSync(SVG_SRC)) {
+  src = readFileSync(SVG_SRC)
+  label = 'icon-source.svg'
+} else {
+  console.error('❌ 원본 이미지가 없습니다: public/bunny-source.png 또는 public/icon-source.svg')
+  process.exit(1)
+}
+console.log(`📷 원본: ${label}`)
+
+const BG = { r: 255, g: 255, b: 255, alpha: 1 } // 흰색 배경으로 정사각형 패딩
 
 const targets = [
   { size: 512, name: 'icon-512.png' },
@@ -19,8 +37,9 @@ const targets = [
 
 for (const { size, name } of targets) {
   const out = resolve(root, 'public', name)
-  await sharp(svg)
-    .resize(size, size)
+  await sharp(src)
+    .resize(size, size, { fit: 'contain', background: BG })
+    .flatten({ background: BG })
     .png({ compressionLevel: 9 })
     .toFile(out)
   console.log(`✓ ${name} (${size}×${size})`)
