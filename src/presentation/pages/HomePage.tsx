@@ -131,32 +131,38 @@ export const HomePage = () => {
   useEffect(() => {
     const init = async () => {
       setLoading(true)
-      const promises: Promise<unknown>[] = []
+      try {
+        const promises: Promise<unknown>[] = []
 
-      if (members.length === 0) promises.push(loadMembers())
-      if (warStore.rounds.length === 0 && !warStore.loading) promises.push(warStore.loadData())
-      if (eventStore.events.length === 0 && !eventStore.loading) promises.push(eventStore.loadData())
+        if (members.length === 0) promises.push(loadMembers())
+        if (warStore.rounds.length === 0 && !warStore.loading) promises.push(warStore.loadData())
+        if (eventStore.events.length === 0 && !eventStore.loading) promises.push(eventStore.loadData())
 
-      // Fetch online count from supabase directly
-      const onlineFetch = async () => {
-        const { data } = await supabase
-          .from('profiles')
-          .select('last_seen_at')
-          .eq('status', 'APPROVED')
-        const count = (data ?? []).filter(
-          (r) => r.last_seen_at && Date.now() - new Date(r.last_seen_at).getTime() < ONLINE_MS,
-        ).length
-        setOnlineCount(count)
+        // Fetch online count from supabase directly
+        const onlineFetch = async () => {
+          const { data } = await supabase
+            .from('profiles')
+            .select('last_seen_at')
+            .eq('status', 'APPROVED')
+          const count = (data ?? []).filter(
+            (r) => r.last_seen_at && Date.now() - new Date(r.last_seen_at).getTime() < ONLINE_MS,
+          ).length
+          setOnlineCount(count)
+        }
+
+        promises.push(onlineFetch())
+
+        if (user?.role === 'ROLE_ADMIN') promises.push(loadPending())
+        promises.push(loadNotices())
+        promises.push(loadPosts(true))
+
+        // Promise.allSettled 로 일부 실패해도 다른 fetch 완료 보장
+        await Promise.allSettled(promises)
+      } catch (err) {
+        console.error('[HomePage] init exception:', err)
+      } finally {
+        setLoading(false)
       }
-
-      promises.push(onlineFetch())
-
-      if (user?.role === 'ROLE_ADMIN') promises.push(loadPending())
-      promises.push(loadNotices())
-      promises.push(loadPosts(true))
-
-      await Promise.all(promises)
-      setLoading(false)
     }
 
     init()

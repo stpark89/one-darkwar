@@ -44,6 +44,34 @@ loadXxx: async () => {
 - 한 스토어가 여러 로딩 상태를 갖는다면 (`loading`, `rejectedLoading`,
   `approvedLoading` 등) 각각에 같은 try-finally 적용.
 
+### 페이지에서 여러 store 를 동시에 로드할 때
+
+`HomePage` 처럼 mount 시 여러 store 의 load 함수를 동시에 호출하는
+패턴은 페이지 자체의 `loading` 상태도 같은 규칙을 따른다:
+
+```tsx
+useEffect(() => {
+  const init = async () => {
+    setLoading(true)
+    try {
+      const promises = [loadA(), loadB(), loadC()]
+      // Promise.all 대신 allSettled — 일부 실패해도 나머지 완료 보장
+      await Promise.allSettled(promises)
+    } catch (err) {
+      console.error('[Page] init exception:', err)
+    } finally {
+      setLoading(false)   // 어떤 경로로 끝나도 spinner 풀림
+    }
+  }
+  init()
+}, [])
+```
+
+❌ `Promise.all` + try-finally 없음 → 하나라도 reject 되면 setLoading(false)
+미실행 → 무한 spinner.
+
+✅ `Promise.allSettled` + try-finally → 어떤 상황에서도 spinner 풀림.
+
 ---
 
 ## 2. 외부 호출 hang 방지 (auth / 결제 등)
