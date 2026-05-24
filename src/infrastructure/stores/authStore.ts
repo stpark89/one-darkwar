@@ -102,6 +102,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
   },
 
   signIn: async (inGameName, password) => {
+    try {
     const { data, error } = await supabase.auth.signInWithPassword({
       email: toEmail(inGameName),
       password,
@@ -121,6 +122,10 @@ export const useAuthStore = create<AuthStore>((set) => ({
       set({ user: profile ? { id: profile.id, inGameName: profile.in_game_name, role: profile.role as UserRole } : null })
     }
     return null
+    } catch (err) {
+      console.error('[authStore] signIn exception:', err)
+      return '로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+    }
   },
 
   signUp: async (inGameName, password) => {

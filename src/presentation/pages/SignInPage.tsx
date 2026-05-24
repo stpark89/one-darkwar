@@ -29,13 +29,20 @@ export const SignInPage = () => {
     if (!name.trim() || !password) return
     setLoading(true)
     setError(null)
-    const err = await signIn(name, password)
-    setLoading(false)
-    if (err) {
-      setError(err === PENDING_APPROVAL_ERROR ? t('auth.pending_login_error') : t('auth.sign_in_error'))
-      return
+    try {
+      const err = await signIn(name, password)
+      if (err) {
+        setError(err === PENDING_APPROVAL_ERROR ? t('auth.pending_login_error') : t('auth.sign_in_error'))
+        return
+      }
+      navigate('/', { replace: true })
+    } catch (e) {
+      console.error('[SignIn] exception:', e)
+      setError(t('auth.sign_in_error'))
+    } finally {
+      // 어떤 경로로 끝나도 spinner 풀림
+      setLoading(false)
     }
-    navigate('/', { replace: true })
   }
 
   return (
