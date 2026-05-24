@@ -15,7 +15,7 @@ export const SignInPage = () => {
 
   const handleGuestLogin = () => {
     guestLogin()
-    navigate('/members', { replace: true })
+    navigate('/', { replace: true })
   }
 
   const [name, setName] = useState('')
@@ -35,7 +35,7 @@ export const SignInPage = () => {
       setError(err === PENDING_APPROVAL_ERROR ? t('auth.pending_login_error') : t('auth.sign_in_error'))
       return
     }
-    navigate('/members', { replace: true })
+    navigate('/', { replace: true })
   }
 
   return (
