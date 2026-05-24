@@ -15,6 +15,12 @@ const STATUS_META: Record<TransferStatus, { icon: typeof Clock; color: string; b
   REJECTED: { icon: XCircle, color: 'text-[var(--color-danger)]', bg: 'bg-[var(--color-danger)]/15' },
 }
 
+// 국가 옵션 — 저장은 코드값(KR/VN/TW/CN/JP/EN/OTHER), 표시는 t()로 다국어 라벨
+const COUNTRY_OPTIONS = ['KR', 'VN', 'TW', 'CN', 'JP', 'EN', 'OTHER'] as const
+const COUNTRY_FLAGS: Record<string, string> = {
+  KR: '🇰🇷', VN: '🇻🇳', TW: '🇹🇼', CN: '🇨🇳', JP: '🇯🇵', EN: '🇺🇸', OTHER: '🌐',
+}
+
 export const TransferPage = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -122,11 +128,16 @@ export const TransferPage = () => {
 
             <div>
               <label className="text-xs text-[var(--color-text-muted)] mb-1 block">{t('transfer.field_country')}</label>
-              <Input
+              <select
                 value={country}
                 onChange={(e) => setCountry(e.target.value)}
-                placeholder={t('transfer.field_country_placeholder')}
-              />
+                className="w-full px-3 py-2 text-sm rounded-lg bg-[var(--color-bg-elevated)] border border-[var(--color-border-subtle)] text-[var(--color-text-primary)] outline-none focus:border-[var(--color-brand)] appearance-none cursor-pointer"
+              >
+                <option value="">{t('transfer.field_country_placeholder')}</option>
+                {COUNTRY_OPTIONS.map((code) => (
+                  <option key={code} value={code}>{COUNTRY_FLAGS[code]} {t(`transfer.country_${code.toLowerCase()}`)}</option>
+                ))}
+              </select>
             </div>
 
             <div>
@@ -212,7 +223,13 @@ export const TransferPage = () => {
                       </div>
                       <div className="flex gap-2">
                         <span className="text-[var(--color-text-muted)] w-16 flex-shrink-0">{t('transfer.field_country')}</span>
-                        <span className="text-[var(--color-text-primary)]">{a.country || '—'}</span>
+                        <span className="text-[var(--color-text-primary)]">
+                          {a.country
+                            ? (COUNTRY_OPTIONS.includes(a.country as typeof COUNTRY_OPTIONS[number])
+                                ? `${COUNTRY_FLAGS[a.country]} ${t(`transfer.country_${a.country.toLowerCase()}`)}`
+                                : a.country)
+                            : '—'}
+                        </span>
                       </div>
                       <div className="flex gap-2">
                         <span className="text-[var(--color-text-muted)] w-16 flex-shrink-0">{t('transfer.field_cp')}</span>
