@@ -12,6 +12,7 @@ export interface GuestAnswer {
   questionId: string
   authorId: string | null
   authorName: string
+  isAdmin: boolean
   content: string
   createdAt: string
 }

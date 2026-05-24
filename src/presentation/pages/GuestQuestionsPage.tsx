@@ -1,17 +1,18 @@
 import { useEffect, useState } from 'react'
-import { Send, Loader2, MessageCircleQuestion, Trash2, Reply, X, MessageSquare } from 'lucide-react'
+import { Send, Loader2, MessageCircleQuestion, Trash2, Reply, X, MessageSquare, Languages, ShieldCheck } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { useGuestQuestionStore } from '@/infrastructure/stores/guestQuestionStore'
 import { Input } from '@/presentation/components/ui/input'
 import { Button } from '@/presentation/components/ui/button'
+import { translateText } from '@/lib/translate'
 import { cn } from '@/lib/utils'
 
 const PREVIEW_LIMIT = 80
 
 export const GuestQuestionsPage = () => {
-  const { t } = useTranslation()
-  const { user } = useAuthStore()
+  const { t, i18n } = useTranslation()
+  const { user, isGuest } = useAuthStore()
   const isAdmin = user?.role === 'ROLE_ADMIN'
 
   const { questions, loading, loadAll, submit, addAnswer, deleteQuestion, deleteAnswer } = useGuestQuestionStore()
@@ -28,6 +29,7 @@ export const GuestQuestionsPage = () => {
   const activeQuestion = activeId ? questions.find((q) => q.id === activeId) ?? null : null
 
   // 답변 작성 (상세 모달 안)
+  const [replyName, setReplyName] = useState('')
   const [replyContent, setReplyContent] = useState('')
   const [submittingReply, setSubmittingReply] = useState(false)
 
@@ -37,6 +39,10 @@ export const GuestQuestionsPage = () => {
     | { type: 'answer'; id: string; questionId: string }
     | null
   >(null)
+
+  // 번역 캐시: key = 'q-{id}' 또는 'a-{id}', value = 번역된 텍스트
+  const [translations, setTranslations] = useState<Map<string, string>>(new Map())
+  const [translating, setTranslating] = useState<Set<string>>(new Set())
 
   useEffect(() => { loadAll() }, [loadAll])
 
@@ -55,11 +61,19 @@ export const GuestQuestionsPage = () => {
   }
 
   const handleReply = async () => {
-    if (!user || !activeQuestion || submittingReply) return
+    if (!activeQuestion || submittingReply) return
     setSubmittingReply(true)
-    const ok = await addAnswer(activeQuestion.id, replyContent, user.id, user.inGameName)
+    // 로그인 회원이면 자기 이름 사용, 게스트면 입력한 이름 사용
+    const name = user ? user.inGameName : replyName
+    const ok = await addAnswer(activeQuestion.id, replyContent, name, {
+      authorId: user?.id,
+      isAdmin: isAdmin,
+    })
     setSubmittingReply(false)
-    if (ok) setReplyContent('')
+    if (ok) {
+      setReplyContent('')
+      if (isGuest || !user) setReplyName('')
+    }
   }
 
   const confirmDelete = async () => {
@@ -74,6 +88,35 @@ export const GuestQuestionsPage = () => {
   }
 
   const truncate = (s: string) => (s.length > PREVIEW_LIMIT ? s.slice(0, PREVIEW_LIMIT) + '…' : s)
+
+  // 번역 토글
+  const toggleTranslate = async (key: string, original: string) => {
+    // 이미 번역 표시 중이면 원본으로 토글
+    if (translations.has(key)) {
+      setTranslations((prev) => {
+        const next = new Map(prev)
+        next.delete(key)
+        return next
+      })
+      return
+    }
+    if (!original.trim()) return
+    setTranslating((prev) => new Set(prev).add(key))
+    try {
+      const translated = await translateText(original, i18n.language)
+      setTranslations((prev) => new Map(prev).set(key, translated))
+    } catch (err) {
+      console.error('translate error', err)
+    } finally {
+      setTranslating((prev) => {
+        const next = new Set(prev)
+        next.delete(key)
+        return next
+      })
+    }
+  }
+
+  const displayOrTranslation = (key: string, original: string) => translations.get(key) ?? original
 
   return (
     <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
@@ -174,7 +217,9 @@ export const GuestQuestionsPage = () => {
           <div className="bg-[var(--color-bg-surface)] rounded-xl border border-[var(--color-border)] w-full max-w-2xl flex flex-col max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-start justify-between px-5 py-4 border-b border-[var(--color-border-subtle)] flex-shrink-0">
               <div className="min-w-0 flex-1">
-                <h2 className="text-base sm:text-lg font-bold text-[var(--color-text-primary)] break-words">{activeQuestion.title}</h2>
+                <h2 className="text-base sm:text-lg font-bold text-[var(--color-text-primary)] break-words">
+                  {displayOrTranslation(`q-title-${activeQuestion.id}`, activeQuestion.title)}
+                </h2>
                 <p className="text-[11px] text-[var(--color-text-muted)] mt-1">
                   {activeQuestion.authorName} · {new Date(activeQuestion.createdAt).toLocaleString()}
                 </p>
@@ -195,59 +240,115 @@ export const GuestQuestionsPage = () => {
             </div>
 
             <div className="overflow-y-auto flex-1 px-5 py-4 space-y-4">
+              {/* 질문 본문 */}
               {activeQuestion.content && (
-                <p className="text-sm text-[var(--color-text-secondary)] whitespace-pre-wrap break-words leading-relaxed">{activeQuestion.content}</p>
+                <div>
+                  <p className="text-sm text-[var(--color-text-secondary)] whitespace-pre-wrap break-words leading-relaxed">
+                    {displayOrTranslation(`q-${activeQuestion.id}`, activeQuestion.content)}
+                  </p>
+                  <button
+                    onClick={() => {
+                      toggleTranslate(`q-title-${activeQuestion.id}`, activeQuestion.title)
+                      toggleTranslate(`q-${activeQuestion.id}`, activeQuestion.content)
+                    }}
+                    disabled={translating.has(`q-${activeQuestion.id}`)}
+                    className="mt-2 flex items-center gap-1 text-[11px] text-[var(--color-brand)] hover:underline disabled:opacity-40"
+                  >
+                    {translating.has(`q-${activeQuestion.id}`)
+                      ? <Loader2 className="w-3 h-3 animate-spin" />
+                      : <Languages className="w-3 h-3" />}
+                    {translations.has(`q-${activeQuestion.id}`) ? t('questions.show_original') : t('questions.translate_btn')}
+                  </button>
+                </div>
               )}
 
-              {/* 답변 목록 */}
+              {/* 답변/댓글 목록 */}
               {activeQuestion.answers.length > 0 && (
                 <div className="space-y-2 pt-3 border-t border-[var(--color-border-subtle)]">
                   <p className="text-[11px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">
-                    {activeQuestion.answers.length} {t('board.comment_count', { n: activeQuestion.answers.length }).replace(/^\d+\s*/, '')}
+                    {t('questions.answers_count', { n: activeQuestion.answers.length })}
                   </p>
-                  {activeQuestion.answers.map((a) => (
-                    <div key={a.id} className="bg-[var(--color-brand)]/8 border-l-2 border-[var(--color-brand)] rounded-r-lg pl-3 pr-2 py-2">
-                      <div className="flex items-start justify-between gap-2 mb-1">
-                        <div className="flex items-center gap-1.5 text-[11px] text-[var(--color-brand)] font-semibold">
-                          <Reply className="w-3 h-3" />
-                          {a.authorName} <span className="text-[var(--color-text-muted)] font-normal">· {new Date(a.createdAt).toLocaleString()}</span>
+                  {activeQuestion.answers.map((a) => {
+                    const key = `a-${a.id}`
+                    const isTranslating = translating.has(key)
+                    const isShowingTrans = translations.has(key)
+                    return (
+                      <div key={a.id} className={cn(
+                        'border-l-2 rounded-r-lg pl-3 pr-2 py-2',
+                        a.isAdmin ? 'bg-[var(--color-brand)]/8 border-[var(--color-brand)]' : 'bg-[var(--color-bg-base)] border-[var(--color-border)]',
+                      )}>
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <div className="flex items-center gap-1.5 text-[11px] font-semibold flex-wrap">
+                            {a.isAdmin
+                              ? <ShieldCheck className="w-3 h-3 text-[var(--color-brand)]" />
+                              : <Reply className="w-3 h-3 text-[var(--color-text-muted)]" />}
+                            <span className={a.isAdmin ? 'text-[var(--color-brand)]' : 'text-[var(--color-text-primary)]'}>
+                              {a.authorName}
+                            </span>
+                            {a.isAdmin && (
+                              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[var(--color-brand)]/20 text-[var(--color-brand)]">
+                                {t('questions.admin_badge')}
+                              </span>
+                            )}
+                            <span className="text-[var(--color-text-muted)] font-normal">· {new Date(a.createdAt).toLocaleString()}</span>
+                          </div>
+                          {isAdmin && (
+                            <button
+                              onClick={() => setDeleteTarget({ type: 'answer', id: a.id, questionId: activeQuestion.id })}
+                              className="p-1 rounded text-[var(--color-text-muted)] hover:bg-[var(--color-danger)]/15 hover:text-[var(--color-danger)] transition-colors flex-shrink-0"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          )}
                         </div>
-                        {isAdmin && (
-                          <button
-                            onClick={() => setDeleteTarget({ type: 'answer', id: a.id, questionId: activeQuestion.id })}
-                            className="p-1 rounded text-[var(--color-text-muted)] hover:bg-[var(--color-danger)]/15 hover:text-[var(--color-danger)] transition-colors flex-shrink-0"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
-                        )}
+                        <p className="text-sm text-[var(--color-text-secondary)] whitespace-pre-wrap break-words leading-relaxed">
+                          {displayOrTranslation(key, a.content)}
+                        </p>
+                        <button
+                          onClick={() => toggleTranslate(key, a.content)}
+                          disabled={isTranslating}
+                          className="mt-1.5 flex items-center gap-1 text-[10px] text-[var(--color-brand)] hover:underline disabled:opacity-40"
+                        >
+                          {isTranslating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Languages className="w-3 h-3" />}
+                          {isShowingTrans ? t('questions.show_original') : t('questions.translate_btn')}
+                        </button>
                       </div>
-                      <p className="text-sm text-[var(--color-text-secondary)] whitespace-pre-wrap break-words leading-relaxed">{a.content}</p>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
             </div>
 
-            {/* 관리자 답변 작성 */}
-            {isAdmin && (
-              <div className="px-5 py-3 border-t border-[var(--color-border-subtle)] flex-shrink-0 space-y-2">
-                <textarea
-                  value={replyContent}
-                  onChange={(e) => setReplyContent(e.target.value)}
-                  placeholder={t('questions.reply_placeholder')}
-                  rows={2}
-                  className="w-full px-3 py-2 text-sm rounded-lg bg-[var(--color-bg-elevated)] border border-[var(--color-border-subtle)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] outline-none focus:border-[var(--color-brand)] resize-none"
+            {/* 답변/댓글 작성 — 누구나 가능 */}
+            <div className="px-5 py-3 border-t border-[var(--color-border-subtle)] flex-shrink-0 space-y-2">
+              {(isGuest || !user) && (
+                <Input
+                  value={replyName}
+                  onChange={(e) => setReplyName(e.target.value)}
+                  placeholder={t('questions.field_name_placeholder')}
+                  className="text-sm"
                 />
-                <button
-                  onClick={handleReply}
-                  disabled={!replyContent.trim() || submittingReply}
-                  className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-[var(--color-brand)] text-white hover:opacity-90 disabled:opacity-40 transition-opacity"
-                >
-                  {submittingReply ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
-                  {t('questions.reply_submit')}
-                </button>
-              </div>
-            )}
+              )}
+              <textarea
+                value={replyContent}
+                onChange={(e) => setReplyContent(e.target.value)}
+                placeholder={t('questions.reply_placeholder')}
+                rows={2}
+                className="w-full px-3 py-2 text-sm rounded-lg bg-[var(--color-bg-elevated)] border border-[var(--color-border-subtle)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] outline-none focus:border-[var(--color-brand)] resize-none"
+              />
+              <button
+                onClick={handleReply}
+                disabled={
+                  !replyContent.trim() ||
+                  submittingReply ||
+                  ((isGuest || !user) && !replyName.trim())
+                }
+                className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-[var(--color-brand)] text-white hover:opacity-90 disabled:opacity-40 transition-opacity"
+              >
+                {submittingReply ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
+                {t('questions.reply_submit')}
+              </button>
+            </div>
           </div>
         </div>
       )}

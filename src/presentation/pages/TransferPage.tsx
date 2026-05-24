@@ -1,12 +1,14 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, Navigate } from 'react-router-dom'
-import { Send, Loader2, CheckCircle2, XCircle, Clock, Trash2, RotateCcw, Home } from 'lucide-react'
+import { Send, Loader2, CheckCircle2, XCircle, Clock, Trash2, RotateCcw, Home, Layers } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { useTransferStore } from '@/infrastructure/stores/transferStore'
+import { useTransferTierStore, findTierForCp } from '@/infrastructure/stores/transferTierStore'
 import type { TransferStatus } from '@/domain/entities/Transfer'
 import { Input } from '@/presentation/components/ui/input'
 import { Button } from '@/presentation/components/ui/button'
+import { parseCp } from '@/lib/cp'
 import { cn } from '@/lib/utils'
 
 const STATUS_META: Record<TransferStatus, { icon: typeof Clock; color: string; bg: string }> = {
@@ -28,6 +30,7 @@ export const TransferPage = () => {
   const isAdmin = user?.role === 'ROLE_ADMIN'
 
   const { apps, loading, submit, loadAll, updateStatus, remove } = useTransferStore()
+  const { tiers, loadAll: loadTiers } = useTransferTierStore()
 
   const [inGameName, setInGameName] = useState('')
   const [currentServer, setCurrentServer] = useState('')
@@ -39,8 +42,11 @@ export const TransferPage = () => {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
 
   useEffect(() => {
-    if (isAdmin) loadAll()
-  }, [isAdmin, loadAll])
+    if (isAdmin) {
+      loadAll()
+      loadTiers()
+    }
+  }, [isAdmin, loadAll, loadTiers])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -66,6 +72,19 @@ export const TransferPage = () => {
     APPROVED: apps.filter((a) => a.status === 'APPROVED').length,
     REJECTED: apps.filter((a) => a.status === 'REJECTED').length,
   }
+
+  // 승인된 신청자들의 등급별 집계 (capacity 진행률 표시용)
+  const approvedByTier = useMemo(() => {
+    const map = new Map<string, number>()
+    let unmatched = 0
+    for (const a of apps) {
+      if (a.status !== 'APPROVED') continue
+      const tier = findTierForCp(tiers, parseCp(a.cp))
+      if (tier) map.set(tier.id, (map.get(tier.id) ?? 0) + 1)
+      else unmatched += 1
+    }
+    return { map, unmatched }
+  }, [apps, tiers])
 
   // 게스트도 관리자도 아닌 일반 회원이 직접 URL로 접근하면 홈으로
   if (!isGuest && !isAdmin) {
@@ -168,6 +187,59 @@ export const TransferPage = () => {
             </button>
           </div>
 
+          {/* 등급별 정원 대시보드 (승인된 신청자 기준) */}
+          {tiers.length > 0 && (
+            <div className="bg-[var(--color-bg-surface)] border border-[var(--color-border-subtle)] rounded-xl p-4">
+              <div className="flex items-center justify-between mb-3 flex-wrap gap-1">
+                <h3 className="text-sm font-bold text-[var(--color-text-primary)] flex items-center gap-1.5">
+                  <Layers className="w-4 h-4 text-[var(--color-brand)]" />
+                  {t('transfer.dashboard_title')}
+                </h3>
+                <span className="text-[11px] text-[var(--color-text-muted)]">{t('transfer.dashboard_hint')}</span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                {tiers.map((tier) => {
+                  const cur = approvedByTier.map.get(tier.id) ?? 0
+                  const cap = tier.capacity
+                  const pct = cap > 0 ? Math.min(100, (cur / cap) * 100) : 0
+                  const over = cap > 0 && cur > cap
+                  const full = cap > 0 && cur >= cap && !over
+                  return (
+                    <div key={tier.id} className="bg-[var(--color-bg-base)] rounded-lg p-2.5">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-semibold text-[var(--color-text-primary)] truncate">{tier.name}</span>
+                        <span className={cn(
+                          'text-[11px] font-bold',
+                          over ? 'text-[var(--color-danger)]' : full ? 'text-yellow-400' : 'text-[var(--color-text-secondary)]',
+                        )}>
+                          {cur}/{cap}
+                        </span>
+                      </div>
+                      <div className="h-1.5 rounded-full bg-[var(--color-bg-elevated)] overflow-hidden">
+                        <div
+                          className={cn(
+                            'h-full transition-all',
+                            over ? 'bg-[var(--color-danger)]' : full ? 'bg-yellow-400' : 'bg-[var(--color-brand)]',
+                          )}
+                          style={{ width: `${over ? 100 : pct}%` }}
+                        />
+                      </div>
+                    </div>
+                  )
+                })}
+                {approvedByTier.unmatched > 0 && (
+                  <div className="bg-[var(--color-bg-base)] rounded-lg p-2.5">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-semibold text-[var(--color-text-muted)]">{t('transfer.dashboard_unmatched')}</span>
+                      <span className="text-[11px] font-bold text-[var(--color-text-muted)]">{approvedByTier.unmatched}</span>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-[var(--color-bg-elevated)]" />
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* 탭 */}
           <div className="flex gap-1 p-1 bg-[var(--color-bg-surface)] rounded-lg border border-[var(--color-border-subtle)] w-fit">
             {(['PENDING', 'APPROVED', 'REJECTED'] as const).map((s) => (
@@ -233,7 +305,15 @@ export const TransferPage = () => {
                       </div>
                       <div className="flex gap-2">
                         <span className="text-[var(--color-text-muted)] w-16 flex-shrink-0">{t('transfer.field_cp')}</span>
-                        <span className="text-[var(--color-text-primary)]">{a.cp || '—'}</span>
+                        <span className="text-[var(--color-text-primary)] flex items-center gap-1.5">
+                          {a.cp || '—'}
+                          {(() => {
+                            const tier = findTierForCp(tiers, parseCp(a.cp))
+                            return tier
+                              ? <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[var(--color-brand)]/15 text-[var(--color-brand)]">{tier.name}</span>
+                              : null
+                          })()}
+                        </span>
                       </div>
                     </div>
 

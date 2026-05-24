@@ -9,6 +9,7 @@ const toAnswer = (r: any): GuestAnswer => ({
   questionId: r.question_id,
   authorId: r.author_id,
   authorName: r.author_name,
+  isAdmin: !!r.is_admin,
   content: r.content,
   createdAt: r.created_at,
 })
@@ -28,7 +29,7 @@ interface GuestQuestionStore {
   loading: boolean
   loadAll: () => Promise<void>
   submit: (draft: GuestQuestionDraft) => Promise<boolean>
-  addAnswer: (questionId: string, content: string, authorId: string, authorName: string) => Promise<boolean>
+  addAnswer: (questionId: string, content: string, authorName: string, opts?: { authorId?: string; isAdmin?: boolean }) => Promise<boolean>
   deleteQuestion: (id: string) => Promise<void>
   deleteAnswer: (answerId: string, questionId: string) => Promise<void>
 }
@@ -86,15 +87,20 @@ export const useGuestQuestionStore = create<GuestQuestionStore>((set, get) => ({
     return true
   },
 
-  addAnswer: async (questionId, content, authorId, authorName) => {
+  addAnswer: async (questionId, content, authorName, opts) => {
     const trimmed = content.trim()
-    if (!trimmed) return false
+    const name = authorName.trim()
+    if (!trimmed || !name) {
+      toast.error('이름과 내용을 입력해주세요.')
+      return false
+    }
     const { data, error } = await supabase
       .from('guest_answers')
       .insert({
         question_id: questionId,
-        author_id: authorId,
-        author_name: authorName,
+        author_id: opts?.authorId ?? null,
+        author_name: name,
+        is_admin: !!opts?.isAdmin,
         content: trimmed,
       })
       .select()
