@@ -2,7 +2,7 @@ export default {
   nav: {
     home: '首頁',
     members: '成員管理',
-    war: '戰爭出陣',
+    war: 'BLACK GOLD',
     events: '活動出席',
     contribution: '貢獻度',
     excel: 'Excel 管理',

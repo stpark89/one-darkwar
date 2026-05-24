@@ -2,7 +2,7 @@ export default {
   nav: {
     home: 'Home',
     members: 'Members',
-    war: 'War Roster',
+    war: 'BLACK GOLD',
     events: 'Event Attendance',
     contribution: 'Contribution',
     excel: 'Excel',

@@ -2,7 +2,7 @@ export default {
   nav: {
     home: 'Trang chủ',
     members: 'Quản lý thành viên',
-    war: 'Tham chiến',
+    war: 'BLACK GOLD',
     events: 'Điểm danh sự kiện',
     contribution: 'Đóng góp',
     excel: 'Quản lý Excel',

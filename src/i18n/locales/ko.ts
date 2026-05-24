@@ -2,7 +2,7 @@ export default {
   nav: {
     home: '홈',
     members: '멤버 관리',
-    war: '전쟁 참가',
+    war: 'BLACK GOLD',
     events: '이벤트 출석',
     contribution: '기여도 현황',
     excel: '엑셀 관리',
