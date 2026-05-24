@@ -23,8 +23,9 @@ import { useAuthStore } from "@/infrastructure/stores/authStore";
 const HEARTBEAT_MS = 2 * 60 * 1000; // 2분마다 갱신
 
 const HomeRouter = () => {
-  const { isGuest } = useAuthStore();
-  return isGuest ? <GuestHomePage /> : <HomePage />;
+  const { isGuest, isTourMode } = useAuthStore();
+  // 게스트 + 둘러보기 모드면 실제 HomePage 노출 (read-only)
+  return isGuest && !isTourMode ? <GuestHomePage /> : <HomePage />;
 };
 
 function App() {
