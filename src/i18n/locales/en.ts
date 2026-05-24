@@ -86,6 +86,8 @@ export default {
     form_hint: 'Anyone can submit without logging in.',
     field_name: 'In-game Name',
     field_name_placeholder: 'Your in-game nickname',
+    field_uid: 'UID',
+    field_uid_placeholder: 'In-game unique ID',
     field_server: 'Current Server',
     field_server_placeholder: 'e.g. S312, S205',
     field_country: 'Country',

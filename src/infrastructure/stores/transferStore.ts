@@ -7,6 +7,7 @@ import type { TransferApplication, TransferDraft, TransferStatus } from '@/domai
 const toApp = (r: any): TransferApplication => ({
   id: r.id,
   inGameName: r.in_game_name,
+  uid: r.uid ?? '',
   currentServer: r.current_server ?? '',
   country: r.country ?? '',
   cp: r.cp ?? '',
@@ -37,6 +38,7 @@ export const useTransferStore = create<TransferStore>((set) => ({
     }
     const { error } = await supabase.from('transfer_applications').insert({
       in_game_name: inGameName,
+      uid: draft.uid.trim(),
       current_server: draft.currentServer.trim(),
       country: draft.country.trim(),
       cp: draft.cp.trim(),

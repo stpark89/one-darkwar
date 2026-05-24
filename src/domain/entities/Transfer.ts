@@ -3,6 +3,7 @@ export type TransferStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
 export interface TransferApplication {
   id: string
   inGameName: string
+  uid: string
   currentServer: string
   country: string
   cp: string
@@ -14,6 +15,7 @@ export interface TransferApplication {
 
 export interface TransferDraft {
   inGameName: string
+  uid: string
   currentServer: string
   country: string
   cp: string

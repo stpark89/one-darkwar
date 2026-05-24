@@ -86,6 +86,8 @@ export default {
     form_hint: '無需登入即可提交。',
     field_name: '遊戲名稱',
     field_name_placeholder: '遊戲內暱稱',
+    field_uid: 'UID',
+    field_uid_placeholder: '遊戲內唯一 ID',
     field_server: '目前伺服器',
     field_server_placeholder: '例：S312、S205',
     field_country: '國家',

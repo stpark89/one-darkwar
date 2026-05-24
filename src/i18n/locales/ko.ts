@@ -86,6 +86,8 @@ export default {
     form_hint: '로그인 없이 누구나 작성할 수 있습니다.',
     field_name: '인게임명',
     field_name_placeholder: '게임 내 닉네임',
+    field_uid: 'UID',
+    field_uid_placeholder: '게임 내 고유 ID',
     field_server: '현재 서버',
     field_server_placeholder: '예: S312, S205',
     field_country: '국가',

@@ -61,6 +61,7 @@ export const TransferPage = () => {
   const { tiers, loadAll: loadTiers, upsert: upsertTier, remove: removeTier } = useTransferTierStore()
 
   const [inGameName, setInGameName] = useState('')
+  const [uid, setUid] = useState('')
   const [currentServer, setCurrentServer] = useState('')
   const [country, setCountry] = useState('')
   const [cp, setCp] = useState('')
@@ -89,11 +90,12 @@ export const TransferPage = () => {
     e.preventDefault()
     if (!inGameName.trim() || submitting) return
     setSubmitting(true)
-    const ok = await submit({ inGameName, currentServer, country, cp })
+    const ok = await submit({ inGameName, uid, currentServer, country, cp })
     setSubmitting(false)
     if (ok) {
       setSubmitted(true)
       setInGameName('')
+      setUid('')
       setCurrentServer('')
       setCountry('')
       setCp('')
@@ -206,6 +208,15 @@ export const TransferPage = () => {
                 onChange={(e) => setInGameName(e.target.value)}
                 placeholder={t('transfer.field_name_placeholder')}
                 required
+              />
+            </div>
+
+            <div>
+              <label className="text-xs text-[var(--color-text-muted)] mb-1 block">{t('transfer.field_uid')}</label>
+              <Input
+                value={uid}
+                onChange={(e) => setUid(e.target.value)}
+                placeholder={t('transfer.field_uid_placeholder')}
               />
             </div>
 
@@ -442,6 +453,10 @@ export const TransferPage = () => {
                     </div>
 
                     <div className="space-y-1.5 text-xs text-[var(--color-text-secondary)] mb-3">
+                      <div className="flex gap-2">
+                        <span className="text-[var(--color-text-muted)] w-16 flex-shrink-0">{t('transfer.field_uid')}</span>
+                        <span className="text-[var(--color-text-primary)] font-mono">{a.uid || '—'}</span>
+                      </div>
                       <div className="flex gap-2">
                         <span className="text-[var(--color-text-muted)] w-16 flex-shrink-0">{t('transfer.field_server')}</span>
                         <span className="text-[var(--color-text-primary)]">{a.currentServer || '—'}</span>

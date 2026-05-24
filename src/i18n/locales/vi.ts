@@ -86,6 +86,8 @@ export default {
     form_hint: 'Mọi người đều có thể gửi mà không cần đăng nhập.',
     field_name: 'Tên In-game',
     field_name_placeholder: 'Tên nhân vật trong game',
+    field_uid: 'UID',
+    field_uid_placeholder: 'ID duy nhất trong game',
     field_server: 'Server hiện tại',
     field_server_placeholder: 'VD: S312, S205',
     field_country: 'Quốc gia',
