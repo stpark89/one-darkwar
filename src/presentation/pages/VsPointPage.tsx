@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Search, Loader2, Save, RotateCcw, Plus, X } from 'lucide-react'
+import { Search, Loader2, Save, RotateCcw, Plus, X, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useWarStore } from '@/infrastructure/stores/warStore'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { Input } from '@/presentation/components/ui/input'
 import { Button } from '@/presentation/components/ui/button'
+import { SortIcon, nextSortDir } from '@/presentation/components/ui/sort-icon'
+import type { SortDir } from '@/presentation/components/ui/sort-icon'
 import { cn } from '@/lib/utils'
 
 type VsPopoverState = {
@@ -23,7 +25,7 @@ export const VsPointPage = () => {
   const {
     activeSeason, rounds, vsPoints, members, loading,
     searchQuery, setSearchQuery,
-    loadData, batchSaveVs, addRound,
+    loadData, batchSaveVs, addRound, deleteRound,
   } = useWarStore()
 
   const [pendingVs, setPendingVs] = useState<Map<string, string>>(new Map())
@@ -32,22 +34,44 @@ export const VsPointPage = () => {
   const vsPopoverRef = useRef<HTMLDivElement>(null)
   const [showAddRound, setShowAddRound] = useState(false)
   const [newRoundDate, setNewRoundDate] = useState(() => new Date().toISOString().slice(0, 10))
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
+  const [sortKey, setSortKey] = useState<string>('total')
+  const [sortDir, setSortDir] = useState<SortDir>('desc')
+
+  const handleSort = (key: string) => {
+    if (key !== sortKey) { setSortKey(key); setSortDir('desc'); return }
+    const next = nextSortDir(sortDir, true)
+    setSortDir(next)
+    if (next === null) { setSortKey('total'); setSortDir('desc') }
+  }
 
   useEffect(() => { loadData() }, [loadData])
 
   const parseVsNum = (v: string) => { const n = parseFloat(v.replace(/,/g, '')); return isNaN(n) ? 0 : n }
 
   const vsRows = useMemo(() => {
-    return members.map(m => {
-      const totalVs = rounds.reduce((sum, r) => {
+    const rows = members.map(m => {
+      const pointsMap: Record<string, string> = {}
+      let totalVs = 0
+      rounds.forEach(r => {
         const key = `${m.id}::${r.id}`
         const pending = pendingVs.get(key)
         const val = pending !== undefined ? pending : (vsPoints.find(v => v.roundId === r.id && v.memberId === m.id)?.points ?? '')
-        return sum + parseVsNum(val)
-      }, 0)
-      return { memberId: m.id, inGameName: m.inGameName, totalVs }
-    }).sort((a, b) => b.totalVs - a.totalVs)
-  }, [members, rounds, vsPoints, pendingVs])
+        pointsMap[r.id] = val
+        totalVs += parseVsNum(val)
+      })
+      return { memberId: m.id, inGameName: m.inGameName, pointsMap, totalVs }
+    })
+
+    return rows.sort((a, b) => {
+      if (!sortDir) return 0
+      let cmp = 0
+      if (sortKey === 'inGameName') cmp = a.inGameName.localeCompare(b.inGameName)
+      else if (sortKey === 'total') cmp = a.totalVs - b.totalVs
+      else cmp = parseVsNum(a.pointsMap[sortKey] ?? '') - parseVsNum(b.pointsMap[sortKey] ?? '')
+      return sortDir === 'asc' ? cmp : -cmp
+    })
+  }, [members, rounds, vsPoints, pendingVs, sortKey, sortDir])
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -167,16 +191,28 @@ export const VsPointPage = () => {
         <table className="text-xs">
           <thead className="sticky top-0 z-10">
             <tr className="bg-[var(--color-bg-surface)] border-b border-[var(--color-border-subtle)]">
-              <th className="px-3 py-3 text-left text-[var(--color-text-muted)] sticky left-0 bg-[var(--color-bg-surface)] min-w-[140px] whitespace-nowrap">
-                {t('war.col_name')}
+              <th onClick={() => handleSort('inGameName')}
+                className="px-3 py-3 text-left text-[var(--color-text-muted)] sticky left-0 bg-[var(--color-bg-surface)] min-w-[140px] whitespace-nowrap cursor-pointer select-none hover:text-[var(--color-text-primary)] transition-colors">
+                {t('war.col_name')}<SortIcon dir={sortKey === 'inGameName' ? sortDir : null} />
               </th>
-              <th className="px-3 py-3 text-center text-[var(--color-text-muted)] min-w-[64px] whitespace-nowrap">
-                {t('vsPoint.col_total')}
+              <th onClick={() => handleSort('total')}
+                className="px-3 py-3 text-center text-[var(--color-text-muted)] min-w-[64px] whitespace-nowrap cursor-pointer select-none hover:text-[var(--color-text-primary)] transition-colors">
+                {t('vsPoint.col_total')}<SortIcon dir={sortKey === 'total' ? sortDir : null} />
               </th>
               {rounds.map(r => (
-                <th key={r.id} className="px-3 py-3 text-center text-[var(--color-text-muted)] min-w-[64px] whitespace-nowrap">
+                <th key={r.id} onClick={() => handleSort(r.id)}
+                  className="px-3 py-3 text-center text-[var(--color-text-muted)] min-w-[64px] group cursor-pointer select-none hover:text-[var(--color-text-primary)] transition-colors">
                   <div className="text-[10px] font-normal">{r.date?.slice(5) ?? ''}</div>
-                  <div className="font-semibold">{t('war.round', { n: r.sortOrder })}</div>
+                  <div className="font-semibold flex items-center justify-center gap-1">
+                    {t('war.round', { n: r.sortOrder })}
+                    <SortIcon dir={sortKey === r.id ? sortDir : null} />
+                    {canEdit && (
+                      <button onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(r.id) }}
+                        className="opacity-0 group-hover:opacity-100 text-[var(--color-danger)] hover:text-red-400 transition-opacity">
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
                 </th>
               ))}
             </tr>
@@ -241,6 +277,34 @@ export const VsPointPage = () => {
           </div>
         </div>
       )}
+
+      {/* DELETE ROUND MODAL */}
+      {deleteConfirmId && (() => {
+        const round = rounds.find(r => r.id === deleteConfirmId)
+        return (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+            <div className="bg-[var(--color-bg-surface)] rounded-xl border border-[var(--color-border)] w-full max-w-sm p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-[var(--color-danger)]/15 flex items-center justify-center flex-shrink-0">
+                  <Trash2 className="w-5 h-5 text-[var(--color-danger)]" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-[var(--color-text-primary)]">{t('war.delete_round_title')}</h2>
+                  <p className="text-sm text-[var(--color-text-muted)] mt-0.5">{t('war.round', { n: round?.sortOrder })} · {round?.date}</p>
+                </div>
+              </div>
+              <p className="text-sm text-[var(--color-text-secondary)] mb-5">{t('war.delete_round_confirm')}</p>
+              <div className="flex gap-2">
+                <Button variant="outline" size="full" onClick={() => setDeleteConfirmId(null)}>{t('common.cancel')}</Button>
+                <Button size="full" className="bg-[var(--color-danger)] hover:bg-red-700 text-white"
+                  onClick={async () => { await deleteRound(deleteConfirmId); setDeleteConfirmId(null) }}>
+                  {t('common.delete')}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
 
       {/* VS POPOVER */}
       {vsPopover && (
