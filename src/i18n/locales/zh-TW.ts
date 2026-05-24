@@ -318,6 +318,7 @@ export default {
     pending_go: '前往審核',
     war_rounds: '共 {{n}} 回',
     board_title: '最新貼文',
+    install_btn: '安裝應用程式',
   },
   notice: {
     nav: '公告',

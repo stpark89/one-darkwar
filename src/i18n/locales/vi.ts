@@ -318,6 +318,7 @@ export default {
     pending_go: 'Xem xét',
     war_rounds: 'Tổng {{n}} đợt',
     board_title: 'Bài viết mới nhất',
+    install_btn: 'Cài đặt ứng dụng',
   },
   notice: {
     nav: 'Thông báo',

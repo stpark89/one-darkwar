@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Users, Wifi, Swords, CalendarDays, Loader2, AlertCircle, Megaphone, Pin, ChevronRight, MessageSquare, MessageCircle } from 'lucide-react'
+import { Users, Wifi, Swords, CalendarDays, Loader2, AlertCircle, Megaphone, Pin, ChevronRight, MessageSquare, MessageCircle, Download } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useMemberStore } from '@/infrastructure/stores/memberStore'
 import { useWarStore } from '@/infrastructure/stores/warStore'
@@ -28,6 +28,43 @@ export const HomePage = () => {
 
   const [onlineCount, setOnlineCount] = useState<number>(0)
   const [loading, setLoading] = useState(true)
+
+  // ── PWA 설치 프롬프트 ─────────────────────────────────────────────────────
+  type BeforeInstallPromptEvent = Event & {
+    prompt: () => Promise<void>
+    userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
+  }
+  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null)
+  const [isInstalled, setIsInstalled] = useState(false)
+
+  useEffect(() => {
+    const standalone =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      (window.navigator as Navigator & { standalone?: boolean }).standalone === true
+    if (standalone) setIsInstalled(true)
+
+    const onBeforeInstall = (e: Event) => {
+      e.preventDefault()
+      setInstallPrompt(e as BeforeInstallPromptEvent)
+    }
+    const onInstalled = () => {
+      setIsInstalled(true)
+      setInstallPrompt(null)
+    }
+    window.addEventListener('beforeinstallprompt', onBeforeInstall)
+    window.addEventListener('appinstalled', onInstalled)
+    return () => {
+      window.removeEventListener('beforeinstallprompt', onBeforeInstall)
+      window.removeEventListener('appinstalled', onInstalled)
+    }
+  }, [])
+
+  const handleInstall = async () => {
+    if (!installPrompt) return
+    await installPrompt.prompt()
+    const { outcome } = await installPrompt.userChoice
+    if (outcome === 'accepted') setInstallPrompt(null)
+  }
 
   // Load all data on mount
   useEffect(() => {
@@ -139,14 +176,25 @@ export const HomePage = () => {
   return (
     <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-lg sm:text-xl font-bold text-[var(--color-text-primary)]">
-          {t('home.title')}
-        </h1>
-        {user && (
-          <p className="text-xs sm:text-sm text-[var(--color-text-muted)] mt-0.5">
-            {t('home.greeting', { name: user.inGameName })}
-          </p>
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <h1 className="text-lg sm:text-xl font-bold text-[var(--color-text-primary)]">
+            {t('home.title')}
+          </h1>
+          {user && (
+            <p className="text-xs sm:text-sm text-[var(--color-text-muted)] mt-0.5">
+              {t('home.greeting', { name: user.inGameName })}
+            </p>
+          )}
+        </div>
+        {!isInstalled && installPrompt && (
+          <button
+            onClick={handleInstall}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[var(--color-brand)] text-white text-xs sm:text-sm font-semibold hover:opacity-90 transition-opacity shadow-md"
+          >
+            <Download className="w-4 h-4" />
+            {t('home.install_btn')}
+          </button>
         )}
       </div>
 

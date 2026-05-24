@@ -318,6 +318,7 @@ export default {
     pending_go: 'Review',
     war_rounds: '{{n}} rounds total',
     board_title: 'Latest Posts',
+    install_btn: 'Install App',
   },
   notice: {
     nav: 'Notice',

@@ -318,6 +318,7 @@ export default {
     pending_go: '검토하기',
     war_rounds: '총 {{n}}회차 진행',
     board_title: '게시판 최신 글',
+    install_btn: '앱 설치',
   },
   notice: {
     nav: '공지사항',
