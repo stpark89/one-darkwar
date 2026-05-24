@@ -25,6 +25,19 @@ export const Layout = () => {
 
   useEffect(() => { loadNotices() }, [loadNotices])
 
+  // authStore.loading 이 어떤 이유로 5초 이상 stuck 되면 spinner 를 강제로
+  // 풀어 화면 진입을 보장. 진짜 hang 이어도 사용자가 sign-in 페이지로라도
+  // 갈 수 있게 — '아무것도 안 보이는 검은 화면 무한 spinner' 방지.
+  const [forceUnblock, setForceUnblock] = useState(false)
+  useEffect(() => {
+    if (!loading) {
+      setForceUnblock(false)
+      return
+    }
+    const t = setTimeout(() => setForceUnblock(true), 5000)
+    return () => clearTimeout(t)
+  }, [loading])
+
   // 핀 공지 우선, 없으면 최신 공지
   const prominentNotice = notices.find(n => n.pinned) ?? notices[0] ?? null
   const showBanner =
@@ -59,7 +72,7 @@ export const Layout = () => {
     navigate('/sign-in', { replace: true })
   }
 
-  if (loading) return (
+  if (loading && !forceUnblock) return (
     <div className="min-h-screen bg-[var(--color-bg-base)] flex items-center justify-center">
       <Loader2 className="w-6 h-6 animate-spin text-[var(--color-brand)]" />
     </div>
