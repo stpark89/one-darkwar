@@ -63,21 +63,26 @@ export const useAuthStore = create<AuthStore>((set) => ({
   loadSession: async () => {
     set({ loading: true })
     try {
-      // ※ 여기에 timeout 을 걸지 않는다. fetch 가 느려도 user/세션은
-      //   기다리는 게 낫고, timeout 으로 reject 되면 user=null 처리되어
-      //   사용자가 의도치 않게 로그아웃당하는 부작용이 발생함.
       const { data: { session } } = await supabase.auth.getSession()
       if (session?.user) {
-        const profile = await fetchProfile(session.user.id)
-        localStorage.removeItem(GUEST_FLAG_KEY)
-        set({ user: profile, isGuest: false })
+        // fetchProfile 이 PWA 환경에서 hang 되는 케이스가 보고됨.
+        // 5초 timeout 으로 race — 시간 안에 못 오면 null 반환(throw 아님)
+        // user 상태는 건드리지 않고 loading 만 풀어서 Layout 5초 안전망과
+        // 합쳐져 사용자가 sign-in 으로 자연스럽게 이동 가능.
+        const profile = await Promise.race([
+          fetchProfile(session.user.id),
+          new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
+        ])
+        if (profile) {
+          localStorage.removeItem(GUEST_FLAG_KEY)
+          set({ user: profile, isGuest: false })
+        }
+        // profile null (timeout) 이면 user 상태 변경 없음 — 강제 로그아웃 부작용 방지
       } else {
         const guest = localStorage.getItem(GUEST_FLAG_KEY) === '1'
         set({ user: null, isGuest: guest })
       }
     } catch (err) {
-      // 에러가 나도 user 상태는 건드리지 않는다(강제 로그아웃 부작용 방지).
-      // 로딩만 풀어서 화면이 spinner 로 막히지 않게 함.
       console.error('[authStore] loadSession exception:', err)
     } finally {
       set({ loading: false })
@@ -87,9 +92,16 @@ export const useAuthStore = create<AuthStore>((set) => ({
     supabase.auth.onAuthStateChange(async (_event, session) => {
       try {
         if (session?.user) {
-          const profile = await fetchProfile(session.user.id)
-          localStorage.removeItem(GUEST_FLAG_KEY)
-          set({ user: profile, isGuest: false, loading: false })
+          const profile = await Promise.race([
+            fetchProfile(session.user.id),
+            new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
+          ])
+          if (profile) {
+            localStorage.removeItem(GUEST_FLAG_KEY)
+            set({ user: profile, isGuest: false, loading: false })
+          } else {
+            set({ loading: false })
+          }
         } else {
           const guest = localStorage.getItem(GUEST_FLAG_KEY) === '1'
           set({ user: null, isGuest: guest, loading: false })
