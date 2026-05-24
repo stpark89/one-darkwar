@@ -341,7 +341,7 @@ export const WarPage = () => {
             <tbody className="divide-y divide-[var(--color-border-subtle)]">
               {memberRows.map(row => (
                 <tr key={row.memberId} className="hover:bg-[var(--color-bg-surface)] transition-colors">
-                  <td className="px-3 py-2.5 font-medium text-[var(--color-text-primary)] whitespace-nowrap sticky left-0 z-10 bg-[var(--color-bg-base)] hover:bg-[var(--color-bg-surface)]">
+                  <td className="px-3 py-2.5 font-medium text-[var(--color-text-primary)] whitespace-nowrap sticky left-0 z-10 bg-[var(--color-bg-base)] hover:bg-[var(--color-bg-surface)] min-w-[140px] max-w-[140px] truncate border-r border-[var(--color-border-subtle)]">
                     {row.inGameName}
                   </td>
                   <td className="px-3 py-2.5 text-center">
