@@ -50,7 +50,6 @@ export const SignInPage = () => {
             <img src={getSessionAvatar()} alt="ONE" className="w-full h-full object-cover" />
           </div>
           <h1 className="text-2xl font-black text-[var(--color-text-primary)]">ONE DARK WAR</h1>
-          <p className="text-sm text-[var(--color-text-muted)] mt-1">{t('auth.sign_in_subtitle')}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-[var(--color-bg-surface)] rounded-2xl border border-[var(--color-border-subtle)] p-6 space-y-4">
