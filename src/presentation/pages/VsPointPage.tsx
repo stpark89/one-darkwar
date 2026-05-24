@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Search, Loader2, Save, RotateCcw } from 'lucide-react'
+import { Search, Loader2, Save, RotateCcw, Plus, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useWarStore } from '@/infrastructure/stores/warStore'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { Input } from '@/presentation/components/ui/input'
+import { Button } from '@/presentation/components/ui/button'
 import { cn } from '@/lib/utils'
 
 type VsPopoverState = {
@@ -22,13 +23,15 @@ export const VsPointPage = () => {
   const {
     activeSeason, rounds, vsPoints, members, loading,
     searchQuery, setSearchQuery,
-    loadData, batchSaveVs,
+    loadData, batchSaveVs, addRound,
   } = useWarStore()
 
   const [pendingVs, setPendingVs] = useState<Map<string, string>>(new Map())
   const [isSavingVs, setIsSavingVs] = useState(false)
   const [vsPopover, setVsPopover] = useState<VsPopoverState>(null)
   const vsPopoverRef = useRef<HTMLDivElement>(null)
+  const [showAddRound, setShowAddRound] = useState(false)
+  const [newRoundDate, setNewRoundDate] = useState(() => new Date().toISOString().slice(0, 10))
 
   useEffect(() => { loadData() }, [loadData])
 
@@ -94,6 +97,12 @@ export const VsPointPage = () => {
 
   const handleDiscardVs = () => { setPendingVs(new Map()); setVsPopover(null) }
 
+  const handleAddRound = async () => {
+    await addRound(newRoundDate)
+    setShowAddRound(false)
+    setNewRoundDate(new Date().toISOString().slice(0, 10))
+  }
+
   if (loading && rounds.length === 0) return (
     <div className="flex items-center justify-center h-64 text-[var(--color-text-muted)]">
       <Loader2 className="w-5 h-5 animate-spin mr-2" /> {t('common.loading')}
@@ -111,6 +120,11 @@ export const VsPointPage = () => {
             {activeSeason && <> · {t('vsPoint.subtitle', { n: rounds.length })}</>}
           </p>
         </div>
+        {canEdit && activeSeason && (
+          <Button size="sm" onClick={() => setShowAddRound(true)}>
+            <Plus className="w-4 h-4" /> <span className="hidden sm:inline">{t('war.add_round_btn')}</span>
+          </Button>
+        )}
       </div>
 
       {/* Search */}
@@ -207,6 +221,26 @@ export const VsPointPage = () => {
           </tbody>
         </table>
       </div>
+
+      {/* ADD ROUND MODAL */}
+      {showAddRound && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-[var(--color-bg-surface)] rounded-xl border border-[var(--color-border)] w-full max-w-sm p-6">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-base font-bold">{t('war.add_round_title')}</h2>
+              <button onClick={() => setShowAddRound(false)} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"><X className="w-5 h-5" /></button>
+            </div>
+            <div>
+              <label className="text-xs text-[var(--color-text-muted)] mb-1 block">{t('war.round_date_label')}</label>
+              <Input type="date" value={newRoundDate} onChange={e => setNewRoundDate(e.target.value)} />
+            </div>
+            <div className="flex gap-2 mt-5">
+              <Button variant="outline" size="full" onClick={() => setShowAddRound(false)}>{t('common.cancel')}</Button>
+              <Button size="full" onClick={handleAddRound}>{t('common.add')}</Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* VS POPOVER */}
       {vsPopover && (
