@@ -41,18 +41,33 @@ export const useGuestQuestionStore = create<GuestQuestionStore>((set) => ({
   loadAll: async () => {
     set({ loading: true })
     try {
-      const [{ data: qs }, { data: as }] = await Promise.all([
-        supabase.from('guest_questions').select('*').order('created_at', { ascending: false }),
-        supabase.from('guest_answers').select('*').order('created_at', { ascending: true }),
+      // 두 쿼리 중 한쪽 hang 되어도 다른 쪽 결과 사용 + 15초 timeout 안전망
+      const withTimeout = <T>(p: Promise<T>, ms = 15000): Promise<T> =>
+        Promise.race([
+          p,
+          new Promise<T>((_, reject) => setTimeout(() => reject(new Error('timeout')), ms)),
+        ])
+      const fetchQuestions = async () =>
+        supabase.from('guest_questions').select('*').order('created_at', { ascending: false })
+      const fetchAnswers = async () =>
+        supabase.from('guest_answers').select('*').order('created_at', { ascending: true })
+      const [qRes, aRes] = await Promise.allSettled([
+        withTimeout(fetchQuestions()),
+        withTimeout(fetchAnswers()),
       ])
-      const answers = (as ?? []).map(toAnswer)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const qs = qRes.status === 'fulfilled' ? ((qRes.value as any).data ?? []) : []
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const as = aRes.status === 'fulfilled' ? ((aRes.value as any).data ?? []) : []
+      const answers = as.map(toAnswer)
       const byQ = new Map<string, GuestAnswer[]>()
       for (const a of answers) {
         const arr = byQ.get(a.questionId) ?? []
         arr.push(a)
         byQ.set(a.questionId, arr)
       }
-      const questions = (qs ?? []).map((r) => toQuestion(r, byQ.get(r.id) ?? []))
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const questions = (qs as any[]).map((r) => toQuestion(r, byQ.get(r.id) ?? []))
       set({ questions })
     } catch (err) {
       console.error('guest questions load error', err)

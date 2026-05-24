@@ -31,6 +31,19 @@ export const PENDING_APPROVAL_ERROR = 'PENDING_APPROVAL'
 // 게스트 상태를 새로고침 후에도 유지하기 위한 localStorage 키
 const GUEST_FLAG_KEY = 'odw_guest'
 
+// supabase 가 localStorage 에 저장하는 auth 토큰 키를 강제로 정리하는 헬퍼.
+// 일부 환경에서 supabase.auth.signOut() 이 토큰을 완전히 지우지 못해 새로고침
+// 후 세션이 부활하는 경우를 막기 위함.
+function purgeSupabaseAuthStorage() {
+  try {
+    Object.keys(localStorage).forEach((k) => {
+      if (k.startsWith('sb-') && k.includes('-auth-token')) {
+        localStorage.removeItem(k)
+      }
+    })
+  } catch { /* ignore */ }
+}
+
 async function fetchProfile(userId: string): Promise<AuthUser | null> {
   const { data } = await supabase
     .from('profiles')
@@ -131,11 +144,16 @@ export const useAuthStore = create<AuthStore>((set) => ({
     } catch (err) {
       console.error('[authStore] signOut exception:', err)
     }
+    // signOut 이 토큰을 완전히 못 지운 경우 대비 — 직접 청소
+    purgeSupabaseAuthStorage()
     localStorage.removeItem(GUEST_FLAG_KEY)
     set({ user: null, isGuest: false })
   },
 
   guestLogin: () => {
+    // 직전에 회원 세션이 남아있으면 새로고침 시 그게 부활하여 게스트 모드를
+    // 덮어쓰는 문제를 막기 위해 sb-*-auth-token 토큰도 함께 청소.
+    purgeSupabaseAuthStorage()
     localStorage.setItem(GUEST_FLAG_KEY, '1')
     set({ isGuest: true, user: null, loading: false })
   },
