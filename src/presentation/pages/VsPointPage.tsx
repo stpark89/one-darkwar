@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Search, Loader2, Save, RotateCcw, Plus, X, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { useWarStore } from '@/infrastructure/stores/warStore'
+import { useVsPointStore } from '@/infrastructure/stores/vsPointStore'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { Input } from '@/presentation/components/ui/input'
 import { Button } from '@/presentation/components/ui/button'
@@ -24,9 +24,11 @@ export const VsPointPage = () => {
 
   const {
     activeSeason, rounds, vsPoints, members, loading,
-    searchQuery, setSearchQuery,
-    loadData, batchSaveVs, addRound, deleteVsPointsForRound,
-  } = useWarStore()
+    loadData, batchSaveVs, addRound, deleteRound,
+  } = useVsPointStore()
+
+  // VS 페이지 내 인게임명 검색 — BG 와 독립이라 local state 로 관리
+  const [searchQuery, setSearchQuery] = useState('')
 
   const [pendingVs, setPendingVs] = useState<Map<string, string>>(new Map())
   const [isSavingVs, setIsSavingVs] = useState(false)
@@ -297,7 +299,7 @@ export const VsPointPage = () => {
               <div className="flex gap-2">
                 <Button variant="outline" size="full" onClick={() => setDeleteConfirmId(null)}>{t('common.cancel')}</Button>
                 <Button size="full" className="bg-[var(--color-danger)] hover:bg-red-700 text-white"
-                  onClick={async () => { await deleteVsPointsForRound(deleteConfirmId); setDeleteConfirmId(null) }}>
+                  onClick={async () => { await deleteRound(deleteConfirmId); setDeleteConfirmId(null) }}>
                   {t('common.delete')}
                 </Button>
               </div>

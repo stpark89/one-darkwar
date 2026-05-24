@@ -142,8 +142,8 @@ export default {
     subtitle: '{{n}}회차',
     no_season: '등록된 시즌이 없습니다.',
     col_total: 'VS 합계',
-    delete_round_title: '이 회차의 VS 포인트 삭제',
-    delete_round_confirm: '이 회차에 입력된 VS 포인트만 삭제됩니다. BLACK GOLD 참여 기록과 회차 자체는 그대로 유지됩니다.',
+    delete_round_title: '이 회차 삭제',
+    delete_round_confirm: '이 VS 회차와 입력된 점수가 모두 삭제됩니다. BLACK GOLD 회차·참여 기록은 영향받지 않습니다.',
   },
   common: {
     search: '검색',

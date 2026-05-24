@@ -142,8 +142,8 @@ export default {
     subtitle: '{{n}} đợt',
     no_season: 'Chưa có mùa giải.',
     col_total: 'Tổng VS',
-    delete_round_title: 'Xóa điểm VS của đợt này',
-    delete_round_confirm: 'Chỉ điểm VS của đợt này bị xóa. Đợt và bản ghi tham chiến BLACK GOLD vẫn được giữ nguyên.',
+    delete_round_title: 'Xóa đợt này',
+    delete_round_confirm: 'Đợt VS này và tất cả điểm đã nhập sẽ bị xóa. Đợt và bản ghi tham chiến BLACK GOLD không bị ảnh hưởng.',
   },
   common: {
     search: 'Tìm kiếm',

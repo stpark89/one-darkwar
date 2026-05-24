@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
-import type { Season, WarRound, WarEntry, WarTeam, WarRole, MemberWarRow, VsPointEntry } from '@/domain/entities/War'
+import type { Season, WarRound, WarEntry, WarTeam, WarRole, MemberWarRow } from '@/domain/entities/War'
 
 interface SummaryRow {
   memberId: string
@@ -18,7 +18,6 @@ interface WarStore {
   activeSeason: Season | null
   rounds: WarRound[]
   entries: WarEntry[]
-  vsPoints: VsPointEntry[]
   members: { id: string; inGameName: string }[]
   loading: boolean
   searchQuery: string
@@ -27,7 +26,6 @@ interface WarStore {
   loadData: () => Promise<void>
   addRound: (date: string) => Promise<void>
   deleteRound: (roundId: string) => Promise<void>
-  deleteVsPointsForRound: (roundId: string) => Promise<void>
   updateRoundDate: (roundId: string, date: string) => Promise<void>
   syncMemberName: (memberId: string, newName: string) => void
   setSearchQuery: (q: string) => void
@@ -35,7 +33,6 @@ interface WarStore {
   getMemberRows: () => MemberWarRow[]
   getSummary: () => SummaryRow[]
   batchSave: (changes: { roundId: string; memberId: string; team: WarTeam; role: WarRole; note: string }[]) => Promise<boolean>
-  batchSaveVs: (changes: { roundId: string; memberId: string; points: string }[]) => Promise<boolean>
 }
 
 function sortRoundsByDate(rounds: WarRound[]): WarRound[] {
@@ -53,7 +50,6 @@ export const useWarStore = create<WarStore>((set, get) => ({
   activeSeason: null,
   rounds: [],
   entries: [],
-  vsPoints: [],
   members: [],
   loading: false,
   searchQuery: '',
@@ -74,7 +70,7 @@ export const useWarStore = create<WarStore>((set, get) => ({
       const members = (memberRows ?? []).map(r => ({ id: r.id, inGameName: r.in_game_name }))
 
       if (!activeSeason) {
-        set({ seasons, activeSeason: null, rounds: [], entries: [], vsPoints: [], members })
+        set({ seasons, activeSeason: null, rounds: [], entries: [], members })
         return
       }
 
@@ -100,22 +96,7 @@ export const useWarStore = create<WarStore>((set, get) => ({
         note: r.note ?? '',
       }))
 
-      let vsPoints: VsPointEntry[] = []
-      try {
-        if (roundIds.length > 0) {
-          const { data: vsRows } = await supabase
-            .from('war_vs_points').select('*').in('round_id', roundIds)
-          vsPoints = (vsRows ?? []).map(r => ({
-            roundId: r.round_id,
-            memberId: r.member_id,
-            points: r.points != null ? String(r.points) : '',
-          }))
-        }
-      } catch {
-        // table may not exist yet — graceful fallback
-      }
-
-      set({ seasons, activeSeason, rounds, entries, vsPoints, members })
+      set({ seasons, activeSeason, rounds, entries, members })
     } catch (err) {
       console.error('[warStore] loadData exception:', err)
     } finally {
@@ -141,16 +122,6 @@ export const useWarStore = create<WarStore>((set, get) => ({
     set(s => ({
       rounds: s.rounds.filter(r => r.id !== roundId).map((r, idx) => ({ ...r, sortOrder: idx + 1 })),
       entries: s.entries.filter(e => e.roundId !== roundId),
-      vsPoints: s.vsPoints.filter(v => v.roundId !== roundId),
-    }))
-  },
-
-  // VS 포인트 페이지 전용 — 회차의 VS 포인트 데이터만 삭제.
-  // war_rounds / war_entries(BLACK GOLD 참여 기록) 는 그대로 유지.
-  deleteVsPointsForRound: async (roundId) => {
-    await supabase.from('war_vs_points').delete().eq('round_id', roundId)
-    set(s => ({
-      vsPoints: s.vsPoints.filter(v => v.roundId !== roundId),
     }))
   },
 
@@ -204,49 +175,6 @@ export const useWarStore = create<WarStore>((set, get) => ({
     } catch (err) {
       console.error('batchSave error', err)
       toast.error('저장 중 오류가 발생했습니다.')
-      return false
-    }
-  },
-
-  batchSaveVs: async (changes) => {
-    try {
-      const toUpsert = changes.filter(c => c.points.trim() !== '')
-      const toDelete = changes.filter(c => c.points.trim() === '')
-
-      if (toUpsert.length > 0) {
-        const { error } = await supabase.from('war_vs_points').upsert(
-          toUpsert.map(c => ({
-            round_id: c.roundId,
-            member_id: c.memberId,
-            points: c.points,
-          })),
-          { onConflict: 'round_id,member_id' }
-        )
-        if (error) throw error
-      }
-
-      for (const c of toDelete) {
-        await supabase.from('war_vs_points')
-          .delete()
-          .eq('round_id', c.roundId)
-          .eq('member_id', c.memberId)
-      }
-
-      set(s => {
-        let vsPoints = [...s.vsPoints]
-        for (const c of changes) {
-          vsPoints = vsPoints.filter(v => !(v.roundId === c.roundId && v.memberId === c.memberId))
-          if (c.points.trim() !== '') {
-            vsPoints.push({ roundId: c.roundId, memberId: c.memberId, points: c.points })
-          }
-        }
-        return { vsPoints }
-      })
-
-      return true
-    } catch (err) {
-      console.error('batchSaveVs error', err)
-      toast.error('VS 포인트 저장 중 오류가 발생했습니다.')
       return false
     }
   },
