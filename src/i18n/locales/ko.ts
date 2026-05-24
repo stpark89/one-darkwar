@@ -441,6 +441,8 @@ export default {
     war_rounds: '총 {{n}}회차 진행',
     board_title: '게시판 최신 글',
     install_btn: '앱 설치',
+    refresh_app: '앱 새로고침',
+    refresh_app_hint: '캐시·서비스워커를 정리하고 최신 버전을 다시 받아옵니다 (로그인은 유지)',
     install_help_title: '앱 설치 방법',
     install_help_ios_1_pre: '하단의',
     install_help_ios_1_post: '공유 버튼을 눌러주세요.',

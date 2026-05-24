@@ -441,6 +441,8 @@ export default {
     war_rounds: '{{n}} rounds total',
     board_title: 'Latest Posts',
     install_btn: 'Install App',
+    refresh_app: 'Refresh App',
+    refresh_app_hint: 'Clear cache & service worker, then reload the latest build (login stays)',
     install_help_title: 'How to Install',
     install_help_ios_1_pre: 'Tap the',
     install_help_ios_1_post: 'Share button at the bottom.',

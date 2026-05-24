@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Users, Wifi, Swords, CalendarDays, Loader2, AlertCircle, Megaphone, Pin, ChevronRight, MessageSquare, MessageCircle, Download, X, Share, MoreVertical } from 'lucide-react'
+import { Users, Wifi, Swords, CalendarDays, Loader2, AlertCircle, Megaphone, Pin, ChevronRight, MessageSquare, MessageCircle, Download, X, Share, MoreVertical, RefreshCw } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useMemberStore } from '@/infrastructure/stores/memberStore'
 import { useWarStore } from '@/infrastructure/stores/warStore'
@@ -98,6 +98,33 @@ export const HomePage = () => {
     }
     // beforeinstallprompt를 잡지 못한 경우(iOS이거나, 이미 dismiss됐거나 등) 안내 모달
     setShowInstallHelp(true)
+  }
+
+  // 이미 설치된 앱에서 새 빌드를 강제로 받아오기 위한 새로고침
+  // Cache Storage + ServiceWorker 모두 정리 후 페이지 새로고침
+  // localStorage / IndexedDB 는 건드리지 않음(로그인 세션·언어 설정 보존)
+  const [refreshing, setRefreshing] = useState(false)
+  const handleRefreshApp = async () => {
+    if (refreshing) return
+    setRefreshing(true)
+    try {
+      if ('caches' in window) {
+        const keys = await caches.keys()
+        await Promise.all(keys.map((k) => caches.delete(k)))
+      }
+    } catch (err) {
+      console.warn('cache cleanup 실패:', err)
+    }
+    try {
+      if ('serviceWorker' in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations()
+        await Promise.all(regs.map((r) => r.unregister()))
+      }
+    } catch (err) {
+      console.warn('SW unregister 실패:', err)
+    }
+    // 강제 hard reload — 일부 브라우저는 ?_=timestamp 같은 캐시버스터가 더 안전
+    window.location.href = `${window.location.pathname}?_t=${Date.now()}`
   }
 
   // Load all data on mount
@@ -221,13 +248,25 @@ export const HomePage = () => {
             </p>
           )}
         </div>
-        {!isInstalled && (
+        {!isInstalled ? (
           <button
             onClick={handleInstall}
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[var(--color-brand)] text-white text-xs sm:text-sm font-semibold hover:opacity-90 transition-opacity shadow-md"
           >
             <Download className="w-4 h-4" />
             {t('home.install_btn')}
+          </button>
+        ) : (
+          <button
+            onClick={handleRefreshApp}
+            disabled={refreshing}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[var(--color-border)] text-[var(--color-text-secondary)] text-xs sm:text-sm font-semibold hover:bg-[var(--color-bg-elevated)] hover:text-[var(--color-text-primary)] transition-colors disabled:opacity-40"
+            title={t('home.refresh_app_hint')}
+          >
+            {refreshing
+              ? <Loader2 className="w-4 h-4 animate-spin" />
+              : <RefreshCw className="w-4 h-4" />}
+            {t('home.refresh_app')}
           </button>
         )}
       </div>

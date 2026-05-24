@@ -441,6 +441,8 @@ export default {
     war_rounds: 'Tổng {{n}} đợt',
     board_title: 'Bài viết mới nhất',
     install_btn: 'Cài đặt ứng dụng',
+    refresh_app: 'Làm mới ứng dụng',
+    refresh_app_hint: 'Xóa cache & service worker rồi tải lại bản mới nhất (giữ nguyên đăng nhập)',
     install_help_title: 'Cách cài đặt',
     install_help_ios_1_pre: 'Nhấn nút',
     install_help_ios_1_post: 'Chia sẻ ở dưới cùng.',

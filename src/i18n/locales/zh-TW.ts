@@ -441,6 +441,8 @@ export default {
     war_rounds: '共 {{n}} 回',
     board_title: '最新貼文',
     install_btn: '安裝應用程式',
+    refresh_app: '重新整理應用程式',
+    refresh_app_hint: '清除快取與 Service Worker，重新載入最新版本（保留登入狀態）',
     install_help_title: '安裝方式',
     install_help_ios_1_pre: '點選下方的',
     install_help_ios_1_post: '分享按鈕。',
