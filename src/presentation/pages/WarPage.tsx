@@ -305,7 +305,7 @@ export const WarPage = () => {
             <thead className="sticky top-0 z-10">
               <tr className="bg-[var(--color-bg-surface)] border-b border-[var(--color-border-subtle)]">
                 <th onClick={() => handleSort('inGameName')}
-                  className="px-3 py-3 text-left text-[var(--color-text-muted)] sticky left-0 bg-[var(--color-bg-surface)] min-w-[140px] whitespace-nowrap cursor-pointer select-none hover:text-[var(--color-text-primary)] transition-colors">
+                  className="px-3 py-3 text-left text-[var(--color-text-muted)] sticky left-0 z-20 bg-[var(--color-bg-surface)] min-w-[140px] whitespace-nowrap cursor-pointer select-none hover:text-[var(--color-text-primary)] transition-colors">
                   {t('war.col_name')}<SortIcon dir={sortKey === 'inGameName' ? sortDir : null} />
                 </th>
                 <th onClick={() => handleSort('total')}
@@ -341,7 +341,7 @@ export const WarPage = () => {
             <tbody className="divide-y divide-[var(--color-border-subtle)]">
               {memberRows.map(row => (
                 <tr key={row.memberId} className="hover:bg-[var(--color-bg-surface)] transition-colors">
-                  <td className="px-3 py-2.5 font-medium text-[var(--color-text-primary)] whitespace-nowrap sticky left-0 bg-[var(--color-bg-base)] hover:bg-[var(--color-bg-surface)]">
+                  <td className="px-3 py-2.5 font-medium text-[var(--color-text-primary)] whitespace-nowrap sticky left-0 z-10 bg-[var(--color-bg-base)] hover:bg-[var(--color-bg-surface)]">
                     {row.inGameName}
                   </td>
                   <td className="px-3 py-2.5 text-center">
@@ -381,7 +381,7 @@ export const WarPage = () => {
             </tbody>
             <tfoot className="sticky bottom-0 z-10">
               <tr className="bg-[var(--color-bg-surface)] border-t-2 border-[var(--color-border)]">
-                <td className="px-3 py-2.5 font-semibold text-[var(--color-text-muted)] text-xs whitespace-nowrap sticky left-0 bg-[var(--color-bg-surface)]">
+                <td className="px-3 py-2.5 font-semibold text-[var(--color-text-muted)] text-xs whitespace-nowrap sticky left-0 z-20 bg-[var(--color-bg-surface)]">
                   {t('common.total')} / {t('common.count_people')}
                 </td>
                 <td className="px-3 py-2.5 text-center">

@@ -192,7 +192,7 @@ export const VsPointPage = () => {
           <thead className="sticky top-0 z-10">
             <tr className="bg-[var(--color-bg-surface)] border-b border-[var(--color-border-subtle)]">
               <th onClick={() => handleSort('inGameName')}
-                className="px-3 py-3 text-left text-[var(--color-text-muted)] sticky left-0 bg-[var(--color-bg-surface)] min-w-[140px] whitespace-nowrap cursor-pointer select-none hover:text-[var(--color-text-primary)] transition-colors">
+                className="px-3 py-3 text-left text-[var(--color-text-muted)] sticky left-0 z-20 bg-[var(--color-bg-surface)] min-w-[140px] whitespace-nowrap cursor-pointer select-none hover:text-[var(--color-text-primary)] transition-colors">
                 {t('war.col_name')}<SortIcon dir={sortKey === 'inGameName' ? sortDir : null} />
               </th>
               <th onClick={() => handleSort('total')}
@@ -222,7 +222,7 @@ export const VsPointPage = () => {
               .filter(row => !searchQuery || row.inGameName.toLowerCase().includes(searchQuery.toLowerCase()))
               .map(row => (
                 <tr key={row.memberId} className="hover:bg-[var(--color-bg-surface)] transition-colors">
-                  <td className="px-3 py-2.5 font-medium text-[var(--color-text-primary)] whitespace-nowrap sticky left-0 bg-[var(--color-bg-base)] hover:bg-[var(--color-bg-surface)]">
+                  <td className="px-3 py-2.5 font-medium text-[var(--color-text-primary)] whitespace-nowrap sticky left-0 z-10 bg-[var(--color-bg-base)] hover:bg-[var(--color-bg-surface)]">
                     {row.inGameName}
                   </td>
                   <td className="px-3 py-2.5 text-center">

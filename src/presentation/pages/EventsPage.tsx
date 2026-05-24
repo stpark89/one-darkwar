@@ -463,7 +463,7 @@ export const EventsPage = () => {
               <tr className="bg-[var(--color-bg-surface)] border-b border-[var(--color-border-subtle)]">
                 <th
                   onClick={() => handleSort('inGameName')}
-                  className="px-2 sm:px-3 py-2.5 sm:py-3 text-left text-[var(--color-text-muted)] whitespace-nowrap sticky left-0 bg-[var(--color-bg-surface)] min-w-[90px] sm:min-w-[140px] cursor-pointer select-none hover:text-[var(--color-text-primary)] transition-colors"
+                  className="px-2 sm:px-3 py-2.5 sm:py-3 text-left text-[var(--color-text-muted)] whitespace-nowrap sticky left-0 z-20 bg-[var(--color-bg-surface)] min-w-[90px] sm:min-w-[140px] cursor-pointer select-none hover:text-[var(--color-text-primary)] transition-colors"
                 >
                   {t('events.col_name')}<SortIcon dir={sortKey === 'inGameName' ? sortDir : null} />
                 </th>
@@ -526,7 +526,7 @@ export const EventsPage = () => {
                 const total = visibleEvents.reduce((acc, e) => acc + (isAttended((a.records[e.eventKey] ?? '') as AttendanceStatus) ? 1 : 0), 0)
                 return (
                   <tr key={a.memberId} className="hover:bg-[var(--color-bg-surface)] transition-colors">
-                    <td className="px-2 sm:px-3 py-2 sm:py-2.5 font-medium whitespace-nowrap sticky left-0 bg-[var(--color-bg-base)] hover:bg-[var(--color-bg-surface)]">
+                    <td className="px-2 sm:px-3 py-2 sm:py-2.5 font-medium whitespace-nowrap sticky left-0 z-10 bg-[var(--color-bg-base)] hover:bg-[var(--color-bg-surface)]">
                       {canEdit ? (
                         <button
                           onClick={() => setMemberModalId(a.memberId)}
@@ -568,7 +568,7 @@ export const EventsPage = () => {
             </tbody>
             <tfoot className="sticky bottom-0 z-10">
               <tr className="bg-[var(--color-bg-surface)] border-t-2 border-[var(--color-border)]">
-                <td className="px-2 sm:px-3 py-2 sm:py-2.5 font-semibold text-[var(--color-text-muted)] text-xs whitespace-nowrap sticky left-0 bg-[var(--color-bg-surface)]">
+                <td className="px-2 sm:px-3 py-2 sm:py-2.5 font-semibold text-[var(--color-text-muted)] text-xs whitespace-nowrap sticky left-0 z-20 bg-[var(--color-bg-surface)]">
                   {t('common.total')} / {t('common.count_people')}
                 </td>
                 <td className="px-1 sm:px-3 py-2 sm:py-2.5 text-center">
