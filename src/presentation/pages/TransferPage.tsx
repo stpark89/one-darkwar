@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Navigate } from 'react-router-dom'
 import { Send, Loader2, CheckCircle2, XCircle, Clock, Trash2, RotateCcw, Home } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
@@ -18,7 +18,7 @@ const STATUS_META: Record<TransferStatus, { icon: typeof Clock; color: string; b
 export const TransferPage = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { user } = useAuthStore()
+  const { user, isGuest } = useAuthStore()
   const isAdmin = user?.role === 'ROLE_ADMIN'
 
   const { apps, loading, submit, loadAll, updateStatus, remove } = useTransferStore()
@@ -59,15 +59,25 @@ export const TransferPage = () => {
     REJECTED: apps.filter((a) => a.status === 'REJECTED').length,
   }
 
+  // 게스트도 관리자도 아닌 일반 회원이 직접 URL로 접근하면 홈으로
+  if (!isGuest && !isAdmin) {
+    return <Navigate to="/" replace />
+  }
+
   return (
     <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-lg sm:text-xl font-bold text-[var(--color-text-primary)]">{t('transfer.title')}</h1>
-        <p className="text-xs sm:text-sm text-[var(--color-text-muted)] mt-0.5">{t('transfer.subtitle')}</p>
+        <h1 className="text-lg sm:text-xl font-bold text-[var(--color-text-primary)]">
+          {isAdmin ? t('transfer.admin_title') : t('transfer.title')}
+        </h1>
+        <p className="text-xs sm:text-sm text-[var(--color-text-muted)] mt-0.5">
+          {isAdmin ? t('transfer.admin_subtitle') : t('transfer.subtitle')}
+        </p>
       </div>
 
-      {/* 신청 폼 또는 완료 카드 */}
+      {/* 신청 폼 또는 완료 카드 — 게스트에게만 노출 */}
+      {isGuest && (
       <div className="bg-[var(--color-bg-surface)] border border-[var(--color-border-subtle)] rounded-xl p-4 sm:p-5 max-w-xl">
         {submitted ? (
           <div className="text-center py-6">
@@ -124,6 +134,7 @@ export const TransferPage = () => {
           </form>
         )}
       </div>
+      )}
 
       {/* 관리자 전용: 신청서 목록 */}
       {isAdmin && (

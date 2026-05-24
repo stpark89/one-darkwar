@@ -70,6 +70,8 @@ export default {
     success_desc: '管理員審核後會與您聯繫，感謝。',
     write_another: '再次填寫',
     go_home: '回首頁',
+    admin_title: '轉服申請管理',
+    admin_subtitle: '審核並回覆已收到的申請。',
     admin_list_title: '申請列表',
     tab_pending: '待審核',
     tab_approved: '已通過',

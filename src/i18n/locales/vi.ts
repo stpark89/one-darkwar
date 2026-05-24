@@ -70,6 +70,8 @@ export default {
     success_desc: 'Quản trị viên sẽ xem xét và liên hệ với bạn. Cảm ơn.',
     write_another: 'Gửi đơn khác',
     go_home: 'Về trang chủ',
+    admin_title: 'Quản lý đơn chuyển server',
+    admin_subtitle: 'Xem xét và phản hồi các đơn đã nộp.',
     admin_list_title: 'Danh sách đơn',
     tab_pending: 'Chờ',
     tab_approved: 'Đã duyệt',

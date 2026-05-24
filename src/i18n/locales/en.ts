@@ -70,6 +70,8 @@ export default {
     success_desc: 'An admin will review and contact you. Thank you.',
     write_another: 'Submit another',
     go_home: 'Home',
+    admin_title: 'Transfer Requests',
+    admin_subtitle: 'Review and respond to incoming applications.',
     admin_list_title: 'Applications',
     tab_pending: 'Pending',
     tab_approved: 'Approved',

@@ -40,7 +40,6 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
     { to: '/war', icon: Swords, label: t('nav.war'), end: false },
     { to: '/vs-point', icon: Target, label: t('nav.vs_point'), end: false },
     { to: '/events', icon: CalendarDays, label: t('nav.events'), end: false },
-    { to: '/transfer', icon: UserPlus, label: t('nav.transfer'), end: false },
   ]
 
   const NAV_GUEST = [
@@ -54,6 +53,7 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
     { to: '/excel', icon: FileSpreadsheet, label: t('nav.excel'), badge: 0 },
     { to: '/approval', icon: UserCheck, label: t('nav.join_management'), badge: pendingCount },
     { to: '/questions', icon: MessageCircleQuestion, label: t('nav.questions'), badge: 0 },
+    { to: '/transfer', icon: UserPlus, label: t('nav.transfer'), badge: 0 },
   ]
 
   const navItems = isGuest ? NAV_GUEST : NAV_GENERAL
