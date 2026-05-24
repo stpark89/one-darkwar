@@ -142,6 +142,8 @@ export default {
     subtitle: '{{n}} 輪次',
     no_season: '尚無賽季資料。',
     col_total: 'VS 合計',
+    delete_round_title: '刪除此輪次的 VS 積分',
+    delete_round_confirm: '僅刪除此輪次的 VS 積分。輪次本身與 BLACK GOLD 出陣記錄會保留。',
   },
   common: {
     search: '搜尋',

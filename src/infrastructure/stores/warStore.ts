@@ -27,6 +27,7 @@ interface WarStore {
   loadData: () => Promise<void>
   addRound: (date: string) => Promise<void>
   deleteRound: (roundId: string) => Promise<void>
+  deleteVsPointsForRound: (roundId: string) => Promise<void>
   updateRoundDate: (roundId: string, date: string) => Promise<void>
   syncMemberName: (memberId: string, newName: string) => void
   setSearchQuery: (q: string) => void
@@ -140,6 +141,15 @@ export const useWarStore = create<WarStore>((set, get) => ({
     set(s => ({
       rounds: s.rounds.filter(r => r.id !== roundId).map((r, idx) => ({ ...r, sortOrder: idx + 1 })),
       entries: s.entries.filter(e => e.roundId !== roundId),
+      vsPoints: s.vsPoints.filter(v => v.roundId !== roundId),
+    }))
+  },
+
+  // VS 포인트 페이지 전용 — 회차의 VS 포인트 데이터만 삭제.
+  // war_rounds / war_entries(BLACK GOLD 참여 기록) 는 그대로 유지.
+  deleteVsPointsForRound: async (roundId) => {
+    await supabase.from('war_vs_points').delete().eq('round_id', roundId)
+    set(s => ({
       vsPoints: s.vsPoints.filter(v => v.roundId !== roundId),
     }))
   },

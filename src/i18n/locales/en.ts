@@ -142,6 +142,8 @@ export default {
     subtitle: '{{n}} rounds',
     no_season: 'No season registered.',
     col_total: 'Total VS',
+    delete_round_title: 'Delete VS Points for this Round',
+    delete_round_confirm: 'Only the VS Point values for this round will be deleted. The round itself and BLACK GOLD attendance records are kept intact.',
   },
   common: {
     search: 'Search',

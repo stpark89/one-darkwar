@@ -25,7 +25,7 @@ export const VsPointPage = () => {
   const {
     activeSeason, rounds, vsPoints, members, loading,
     searchQuery, setSearchQuery,
-    loadData, batchSaveVs, addRound, deleteRound,
+    loadData, batchSaveVs, addRound, deleteVsPointsForRound,
   } = useWarStore()
 
   const [pendingVs, setPendingVs] = useState<Map<string, string>>(new Map())
@@ -289,15 +289,15 @@ export const VsPointPage = () => {
                   <Trash2 className="w-5 h-5 text-[var(--color-danger)]" />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-[var(--color-text-primary)]">{t('war.delete_round_title')}</h2>
+                  <h2 className="text-base font-bold text-[var(--color-text-primary)]">{t('vsPoint.delete_round_title')}</h2>
                   <p className="text-sm text-[var(--color-text-muted)] mt-0.5">{t('war.round', { n: round?.sortOrder })} · {round?.date}</p>
                 </div>
               </div>
-              <p className="text-sm text-[var(--color-text-secondary)] mb-5">{t('war.delete_round_confirm')}</p>
+              <p className="text-sm text-[var(--color-text-secondary)] mb-5">{t('vsPoint.delete_round_confirm')}</p>
               <div className="flex gap-2">
                 <Button variant="outline" size="full" onClick={() => setDeleteConfirmId(null)}>{t('common.cancel')}</Button>
                 <Button size="full" className="bg-[var(--color-danger)] hover:bg-red-700 text-white"
-                  onClick={async () => { await deleteRound(deleteConfirmId); setDeleteConfirmId(null) }}>
+                  onClick={async () => { await deleteVsPointsForRound(deleteConfirmId); setDeleteConfirmId(null) }}>
                   {t('common.delete')}
                 </Button>
               </div>
