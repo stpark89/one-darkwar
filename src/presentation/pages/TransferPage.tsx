@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, Navigate } from 'react-router-dom'
-import { Send, Loader2, CheckCircle2, XCircle, Clock, Trash2, RotateCcw, Home, Layers, Pencil, Plus, Save, X, ChevronDown } from 'lucide-react'
+import { Send, Loader2, CheckCircle2, XCircle, Clock, Trash2, RotateCcw, Home, Layers, Pencil, Plus, Save, X, ChevronDown, Search } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { useTransferStore } from '@/infrastructure/stores/transferStore'
@@ -22,6 +22,9 @@ interface TierDraftForm {
 }
 
 const EMPTY_TIER_DRAFT: TierDraftForm = { name: '', minCpStr: '', maxCpStr: '', capacityStr: '0', sortOrderStr: '0', seasonName: '' }
+
+// 게임 룰상 티켓 등급 최대치 (주황·보라·파랑·회색)
+const MAX_TIERS = 4
 
 // "3.54G" → 3540, "" → null
 const parseTierInput = (s: string): number | null => {
@@ -69,6 +72,10 @@ export const TransferPage = () => {
   const [submitted, setSubmitted] = useState(false)
   const [tab, setTab] = useState<TransferStatus>('PENDING')
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
+
+  // 검색·필터 (관리자만 사용)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [tierFilter, setTierFilter] = useState<string>('all') // 'all' | tier.id | 'unmatched'
 
   // 국가 셀렉터 드롭다운
   const [countryOpen, setCountryOpen] = useState(false)
@@ -141,7 +148,23 @@ export const TransferPage = () => {
     if (ok) setTierDraft(null)
   }
 
-  const filtered = apps.filter((a) => a.status === tab)
+  const filtered = apps.filter((a) => {
+    if (a.status !== tab) return false
+    const q = searchQuery.trim().toLowerCase()
+    if (q) {
+      const hit = a.inGameName.toLowerCase().includes(q) || (a.uid ?? '').toLowerCase().includes(q)
+      if (!hit) return false
+    }
+    if (tierFilter !== 'all') {
+      const tier = findTierForCp(tiers, parseCp(a.cp))
+      if (tierFilter === 'unmatched') {
+        if (tier) return false
+      } else if (tier?.id !== tierFilter) {
+        return false
+      }
+    }
+    return true
+  })
   const counts = {
     PENDING: apps.filter((a) => a.status === 'PENDING').length,
     APPROVED: apps.filter((a) => a.status === 'APPROVED').length,
@@ -340,24 +363,24 @@ export const TransferPage = () => {
               </div>
             </div>
 
-            {/* 종합 요약 (편집 모드 아닐 때만) */}
+            {/* 종합 요약 (편집 모드 아닐 때만) — 모바일에서도 4열 유지하여 세로 길이 단축 */}
             {!tierEditMode && tiers.length > 0 && (
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3 pb-3 border-b border-[var(--color-border-subtle)]">
-                <div className="text-center">
-                  <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider">{t('transfer.summary_capacity')}</p>
-                  <p className="text-base font-bold text-[var(--color-text-primary)]">{approvedByTier.totalCapacity}</p>
+              <div className="grid grid-cols-4 gap-1.5 sm:gap-2 mb-3 pb-3 border-b border-[var(--color-border-subtle)]">
+                <div className="text-center px-1">
+                  <p className="text-[9px] sm:text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider truncate">{t('transfer.summary_capacity')}</p>
+                  <p className="text-sm sm:text-base font-bold text-[var(--color-text-primary)]">{approvedByTier.totalCapacity}</p>
                 </div>
-                <div className="text-center">
-                  <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider">{t('transfer.summary_approved')}</p>
-                  <p className="text-base font-bold text-[var(--color-success)]">{approvedByTier.totalApproved}</p>
+                <div className="text-center px-1">
+                  <p className="text-[9px] sm:text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider truncate">{t('transfer.summary_approved')}</p>
+                  <p className="text-sm sm:text-base font-bold text-[var(--color-success)]">{approvedByTier.totalApproved}</p>
                 </div>
-                <div className="text-center">
-                  <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider">{t('transfer.summary_remaining')}</p>
-                  <p className="text-base font-bold text-[var(--color-brand)]">{approvedByTier.totalRemaining}</p>
+                <div className="text-center px-1">
+                  <p className="text-[9px] sm:text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider truncate">{t('transfer.summary_remaining')}</p>
+                  <p className="text-sm sm:text-base font-bold text-[var(--color-brand)]">{approvedByTier.totalRemaining}</p>
                 </div>
-                <div className="text-center">
-                  <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider">{t('transfer.dashboard_unmatched')}</p>
-                  <p className={cn('text-base font-bold', approvedByTier.unmatched > 0 ? 'text-yellow-400' : 'text-[var(--color-text-muted)]')}>
+                <div className="text-center px-1">
+                  <p className="text-[9px] sm:text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider truncate">{t('transfer.dashboard_unmatched')}</p>
+                  <p className={cn('text-sm sm:text-base font-bold', approvedByTier.unmatched > 0 ? 'text-yellow-400' : 'text-[var(--color-text-muted)]')}>
                     {approvedByTier.unmatched}
                   </p>
                 </div>
@@ -412,17 +435,17 @@ export const TransferPage = () => {
                   const over = cap > 0 && cur > cap
                   const full = cap > 0 && cur >= cap && !over
                   return (
-                    <div key={tier.id} className="bg-[var(--color-bg-base)] rounded-lg p-2.5">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-semibold text-[var(--color-text-primary)] truncate">{tier.name}</span>
+                    <div key={tier.id} className="bg-[var(--color-bg-base)] rounded-lg p-2 sm:p-2.5">
+                      <div className="flex items-center justify-between mb-1 gap-1">
+                        <span className="text-[11px] sm:text-xs font-semibold text-[var(--color-text-primary)] truncate">{tier.name}</span>
                         <span className={cn(
-                          'text-[11px] font-bold',
+                          'text-[10px] sm:text-[11px] font-bold flex-shrink-0',
                           over ? 'text-[var(--color-danger)]' : full ? 'text-yellow-400' : 'text-[var(--color-text-secondary)]',
                         )}>
                           {cur}/{cap}
                         </span>
                       </div>
-                      <div className="h-1.5 rounded-full bg-[var(--color-bg-elevated)] overflow-hidden mb-1.5">
+                      <div className="h-1.5 rounded-full bg-[var(--color-bg-elevated)] overflow-hidden mb-1">
                         <div
                           className={cn(
                             'h-full transition-all',
@@ -432,7 +455,7 @@ export const TransferPage = () => {
                         />
                       </div>
                       <p className={cn(
-                        'text-[10px] font-medium text-center',
+                        'text-[9px] sm:text-[10px] font-medium text-center truncate',
                         over ? 'text-[var(--color-danger)]' : full ? 'text-yellow-400' : 'text-[var(--color-text-muted)]',
                       )}>
                         {over
@@ -444,7 +467,7 @@ export const TransferPage = () => {
                     </div>
                   )
                 })}
-                {tierEditMode && (
+                {tierEditMode && tiers.length < MAX_TIERS && (
                   <button
                     onClick={startNewTier}
                     className="bg-[var(--color-bg-base)] rounded-lg p-2.5 border border-dashed border-[var(--color-border)] hover:border-[var(--color-brand)] hover:bg-[var(--color-bg-elevated)] transition-colors flex items-center justify-center gap-1 text-[var(--color-text-muted)] hover:text-[var(--color-brand)]"
@@ -453,6 +476,60 @@ export const TransferPage = () => {
                     <span className="text-xs font-semibold">{t('tiers.add_btn')}</span>
                   </button>
                 )}
+              </div>
+            )}
+          </div>
+
+          {/* 검색 + 등급 필터 */}
+          <div className="flex flex-col gap-2">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={t('transfer.search_placeholder')}
+                className="w-full pl-9 pr-3 py-2 text-sm rounded-lg bg-[var(--color-bg-surface)] border border-[var(--color-border-subtle)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] outline-none focus:border-[var(--color-brand)]"
+              />
+            </div>
+            {tiers.length > 0 && (
+              <div className="flex gap-1 flex-wrap">
+                <button
+                  onClick={() => setTierFilter('all')}
+                  className={cn(
+                    'px-2.5 py-1 rounded text-[11px] font-semibold transition-colors',
+                    tierFilter === 'all'
+                      ? 'bg-[var(--color-brand)] text-white'
+                      : 'bg-[var(--color-bg-elevated)] text-[var(--color-text-secondary)] hover:bg-[var(--color-border)]',
+                  )}
+                >
+                  {t('transfer.filter_all')}
+                </button>
+                {tiers.map((tier) => (
+                  <button
+                    key={tier.id}
+                    onClick={() => setTierFilter(tier.id)}
+                    className={cn(
+                      'px-2.5 py-1 rounded text-[11px] font-semibold transition-colors',
+                      tierFilter === tier.id
+                        ? 'bg-[var(--color-brand)] text-white'
+                        : 'bg-[var(--color-bg-elevated)] text-[var(--color-text-secondary)] hover:bg-[var(--color-border)]',
+                    )}
+                  >
+                    {tier.name}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setTierFilter('unmatched')}
+                  className={cn(
+                    'px-2.5 py-1 rounded text-[11px] font-semibold transition-colors',
+                    tierFilter === 'unmatched'
+                      ? 'bg-yellow-400 text-black'
+                      : 'bg-[var(--color-bg-elevated)] text-[var(--color-text-secondary)] hover:bg-[var(--color-border)]',
+                  )}
+                >
+                  {t('transfer.filter_unmatched')}
+                </button>
               </div>
             )}
           </div>
