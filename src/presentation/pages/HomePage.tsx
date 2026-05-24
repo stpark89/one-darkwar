@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Users, Wifi, Swords, CalendarDays, Loader2, AlertCircle, Megaphone, Pin, ChevronRight, MessageSquare, MessageCircle, Download } from 'lucide-react'
+import { Users, Wifi, Swords, CalendarDays, Loader2, AlertCircle, Megaphone, Pin, ChevronRight, MessageSquare, MessageCircle, Download, X, Share, MoreVertical } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useMemberStore } from '@/infrastructure/stores/memberStore'
 import { useWarStore } from '@/infrastructure/stores/warStore'
@@ -36,6 +36,12 @@ export const HomePage = () => {
   }
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [isInstalled, setIsInstalled] = useState(false)
+  const [showInstallHelp, setShowInstallHelp] = useState(false)
+
+  // OS 감지
+  const ua = typeof navigator !== 'undefined' ? navigator.userAgent : ''
+  const isIOS = /iPad|iPhone|iPod/.test(ua) && !('MSStream' in window)
+  const isAndroid = /Android/.test(ua)
 
   useEffect(() => {
     const standalone =
@@ -50,6 +56,7 @@ export const HomePage = () => {
     const onInstalled = () => {
       setIsInstalled(true)
       setInstallPrompt(null)
+      setShowInstallHelp(false)
     }
     window.addEventListener('beforeinstallprompt', onBeforeInstall)
     window.addEventListener('appinstalled', onInstalled)
@@ -60,10 +67,14 @@ export const HomePage = () => {
   }, [])
 
   const handleInstall = async () => {
-    if (!installPrompt) return
-    await installPrompt.prompt()
-    const { outcome } = await installPrompt.userChoice
-    if (outcome === 'accepted') setInstallPrompt(null)
+    if (installPrompt) {
+      await installPrompt.prompt()
+      const { outcome } = await installPrompt.userChoice
+      if (outcome === 'accepted') setInstallPrompt(null)
+      return
+    }
+    // beforeinstallprompt를 잡지 못한 경우(iOS이거나, 이미 dismiss됐거나 등) 안내 모달
+    setShowInstallHelp(true)
   }
 
   // Load all data on mount
@@ -187,7 +198,7 @@ export const HomePage = () => {
             </p>
           )}
         </div>
-        {!isInstalled && installPrompt && (
+        {!isInstalled && (
           <button
             onClick={handleInstall}
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[var(--color-brand)] text-white text-xs sm:text-sm font-semibold hover:opacity-90 transition-opacity shadow-md"
@@ -197,6 +208,71 @@ export const HomePage = () => {
           </button>
         )}
       </div>
+
+      {/* 설치 안내 모달 (beforeinstallprompt를 못 잡았을 때) */}
+      {showInstallHelp && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-[var(--color-bg-surface)] rounded-xl border border-[var(--color-border)] w-full max-w-sm p-5">
+            <div className="flex items-start justify-between mb-4">
+              <h2 className="text-base font-bold text-[var(--color-text-primary)]">{t('home.install_help_title')}</h2>
+              <button onClick={() => setShowInstallHelp(false)} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] -mt-1 -mr-1 p-1">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {isIOS ? (
+              <ol className="space-y-3 text-sm text-[var(--color-text-secondary)]">
+                <li className="flex gap-2">
+                  <span className="font-bold text-[var(--color-brand)]">1.</span>
+                  <span className="flex-1 flex items-center gap-1.5 flex-wrap">
+                    {t('home.install_help_ios_1_pre')}
+                    <Share className="inline w-4 h-4 text-blue-400" />
+                    {t('home.install_help_ios_1_post')}
+                  </span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="font-bold text-[var(--color-brand)]">2.</span>
+                  <span className="flex-1">{t('home.install_help_ios_2')}</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="font-bold text-[var(--color-brand)]">3.</span>
+                  <span className="flex-1">{t('home.install_help_ios_3')}</span>
+                </li>
+              </ol>
+            ) : isAndroid ? (
+              <ol className="space-y-3 text-sm text-[var(--color-text-secondary)]">
+                <li className="flex gap-2">
+                  <span className="font-bold text-[var(--color-brand)]">1.</span>
+                  <span className="flex-1 flex items-center gap-1.5 flex-wrap">
+                    {t('home.install_help_android_1_pre')}
+                    <MoreVertical className="inline w-4 h-4" />
+                    {t('home.install_help_android_1_post')}
+                  </span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="font-bold text-[var(--color-brand)]">2.</span>
+                  <span className="flex-1">{t('home.install_help_android_2')}</span>
+                </li>
+              </ol>
+            ) : (
+              <ol className="space-y-3 text-sm text-[var(--color-text-secondary)]">
+                <li className="flex gap-2">
+                  <span className="font-bold text-[var(--color-brand)]">1.</span>
+                  <span className="flex-1">{t('home.install_help_desktop_1')}</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="font-bold text-[var(--color-brand)]">2.</span>
+                  <span className="flex-1">{t('home.install_help_desktop_2')}</span>
+                </li>
+              </ol>
+            )}
+
+            <p className="text-[11px] text-[var(--color-text-muted)] mt-4 pt-3 border-t border-[var(--color-border-subtle)]">
+              {t('home.install_help_note')}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Stat Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
