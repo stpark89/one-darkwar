@@ -59,6 +59,7 @@ export default {
     success_title: '申請已收到',
     success_desc: '管理員審核後會與您聯繫，感謝。',
     write_another: '再次填寫',
+    go_home: '回首頁',
     admin_list_title: '申請列表',
     tab_pending: '待審核',
     tab_approved: '已通過',

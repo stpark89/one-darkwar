@@ -59,6 +59,7 @@ export default {
     success_title: 'Đã nhận đơn',
     success_desc: 'Quản trị viên sẽ xem xét và liên hệ với bạn. Cảm ơn.',
     write_another: 'Gửi đơn khác',
+    go_home: 'Về trang chủ',
     admin_list_title: 'Danh sách đơn',
     tab_pending: 'Chờ',
     tab_approved: 'Đã duyệt',

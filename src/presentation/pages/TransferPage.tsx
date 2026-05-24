@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Send, Loader2, CheckCircle2, XCircle, Clock, Trash2, RotateCcw } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Send, Loader2, CheckCircle2, XCircle, Clock, Trash2, RotateCcw, Home } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { useTransferStore } from '@/infrastructure/stores/transferStore'
@@ -16,6 +17,7 @@ const STATUS_META: Record<TransferStatus, { icon: typeof Clock; color: string; b
 
 export const TransferPage = () => {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const { user } = useAuthStore()
   const isAdmin = user?.role === 'ROLE_ADMIN'
 
@@ -72,9 +74,15 @@ export const TransferPage = () => {
             <CheckCircle2 className="w-12 h-12 text-[var(--color-success)] mx-auto mb-3" />
             <h2 className="text-base font-bold text-[var(--color-text-primary)] mb-1">{t('transfer.success_title')}</h2>
             <p className="text-sm text-[var(--color-text-muted)] mb-5">{t('transfer.success_desc')}</p>
-            <Button variant="outline" size="sm" onClick={handleResetForm}>
-              {t('transfer.write_another')}
-            </Button>
+            <div className="flex gap-2 justify-center flex-wrap">
+              <Button variant="outline" size="sm" onClick={handleResetForm}>
+                {t('transfer.write_another')}
+              </Button>
+              <Button size="sm" onClick={() => navigate('/')}>
+                <Home className="w-4 h-4" />
+                {t('transfer.go_home')}
+              </Button>
+            </div>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-3">

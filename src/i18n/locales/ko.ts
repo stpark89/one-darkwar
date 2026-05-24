@@ -59,6 +59,7 @@ export default {
     success_title: '신청이 접수되었습니다',
     success_desc: '관리자가 검토 후 연락드릴 예정입니다. 감사합니다.',
     write_another: '한 번 더 작성하기',
+    go_home: '홈으로',
     admin_list_title: '신청서 목록',
     tab_pending: '대기',
     tab_approved: '승인',
