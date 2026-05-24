@@ -1,7 +1,7 @@
 {
-  "name": "ONE",
+  "name": "ONE (DARK WAR)",
   "short_name": "ONE",
-  "description": "ONE - DARK WAR 길드 관리",
+  "description": "ONE 동맹 · DARK WAR 길드 관리",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
