@@ -1,11 +1,18 @@
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { UserPlus, MessageCircleQuestion, ChevronRight, Globe, Clock, Server } from 'lucide-react'
+import { UserPlus, MessageCircleQuestion, ChevronRight, Globe, Clock, Server, Eye } from 'lucide-react'
 import { getSessionAvatar } from '@/lib/avatars'
+import { useAuthStore } from '@/infrastructure/stores/authStore'
 
 export const GuestHomePage = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const { enterTourMode } = useAuthStore()
+
+  const handleStartTour = () => {
+    enterTourMode()
+    navigate('/notices')
+  }
 
   return (
     <div className="p-4 sm:p-8 max-w-2xl mx-auto space-y-6 sm:space-y-8 break-keep">
@@ -60,6 +67,21 @@ export const GuestHomePage = () => {
 
       {/* CTA 카드 */}
       <div className="space-y-3">
+        {/* ONE 둘러보기 — 실제 서비스 페이지를 read-only 로 진입 */}
+        <button
+          onClick={handleStartTour}
+          className="w-full group flex items-start gap-4 bg-gradient-to-br from-purple-600 to-fuchsia-500 text-white rounded-2xl p-5 sm:p-6 shadow-lg hover:shadow-xl transition-all"
+        >
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+            <Eye className="w-6 h-6 sm:w-7 sm:h-7" />
+          </div>
+          <div className="flex-1 text-left min-w-0">
+            <div className="text-base sm:text-lg font-bold leading-snug">{t('guest_home.cta_tour_title')}</div>
+            <div className="text-xs sm:text-sm opacity-90 mt-1 leading-relaxed">{t('guest_home.cta_tour_desc')}</div>
+          </div>
+          <ChevronRight className="w-5 h-5 flex-shrink-0 mt-1 group-hover:translate-x-1 transition-transform" />
+        </button>
+
         <button
           onClick={() => navigate('/transfer')}
           className="w-full group flex items-start gap-4 bg-gradient-to-br from-[var(--color-brand)] to-blue-600 text-white rounded-2xl p-5 sm:p-6 shadow-lg hover:shadow-xl transition-all"

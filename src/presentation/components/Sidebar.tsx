@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { Home, Users, Swords, CalendarDays, FileSpreadsheet, BarChart3, Megaphone, ChevronUp, ChevronLeft, ChevronRight, X, LogOut, ShieldCheck, User, KeyRound, UserX, UserCheck, MessageSquare, Target, UserPlus, MessageCircleQuestion } from 'lucide-react'
+import { Home, Users, Swords, CalendarDays, FileSpreadsheet, BarChart3, Megaphone, ChevronUp, ChevronLeft, ChevronRight, X, LogOut, ShieldCheck, User, KeyRound, UserX, UserCheck, MessageSquare, Target, UserPlus, MessageCircleQuestion, Eye, EyeOff } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { LANGUAGES, type LangCode } from '@/i18n'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
@@ -17,7 +17,7 @@ interface SidebarProps {
 
 export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile }: SidebarProps) => {
   const { t, i18n } = useTranslation()
-  const { user, signOut, isGuest } = useAuthStore()
+  const { user, signOut, isGuest, isTourMode, exitTourMode } = useAuthStore()
   const { pendingCount, loadPending } = useApprovalStore()
   const navigate = useNavigate()
   const [langOpen, setLangOpen] = useState(false)
@@ -57,7 +57,16 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
     { to: '/transfer', icon: UserPlus, label: t('nav.transfer'), badge: 0 },
   ]
 
-  const navItems = isGuest ? NAV_GUEST : NAV_GENERAL
+  // 게스트가 둘러보기 모드면 NAV_GENERAL 을 read-only 로 노출
+  const navItems = isGuest
+    ? (isTourMode ? NAV_GENERAL : NAV_GUEST)
+    : NAV_GENERAL
+
+  const handleExitTour = () => {
+    exitTourMode()
+    navigate('/', { replace: true })
+    onCloseMobile()
+  }
 
   return (
     <aside
@@ -213,14 +222,36 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
         {isGuest ? (
           <>
             <div className={cn('flex items-center gap-2 px-2 py-2 rounded-lg', collapsed && 'md:justify-center md:px-0')}>
-              <div className="w-7 h-7 rounded-full bg-[var(--color-bg-elevated)] flex items-center justify-center flex-shrink-0">
-                <UserX className="w-3.5 h-3.5 text-[var(--color-text-muted)]" />
+              <div className={cn(
+                'w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0',
+                isTourMode ? 'bg-[var(--color-brand)]/20' : 'bg-[var(--color-bg-elevated)]',
+              )}>
+                {isTourMode
+                  ? <Eye className="w-3.5 h-3.5 text-[var(--color-brand)]" />
+                  : <UserX className="w-3.5 h-3.5 text-[var(--color-text-muted)]" />}
               </div>
               <div className={cn('flex-1 min-w-0', collapsed && 'md:hidden')}>
-                <p className="text-xs font-semibold text-[var(--color-text-primary)]">{t('nav.guest_label')}</p>
-                <p className="text-[10px] text-[var(--color-text-muted)]">{t('nav.guest_desc')}</p>
+                <p className="text-xs font-semibold text-[var(--color-text-primary)]">
+                  {isTourMode ? t('nav.tour_mode_label') : t('nav.guest_label')}
+                </p>
+                <p className="text-[10px] text-[var(--color-text-muted)]">
+                  {isTourMode ? t('nav.tour_mode_desc') : t('nav.guest_desc')}
+                </p>
               </div>
             </div>
+            {isTourMode && (
+              <button
+                onClick={handleExitTour}
+                title={t('nav.exit_tour')}
+                className={cn(
+                  'w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-[var(--color-text-muted)] hover:bg-[var(--color-bg-elevated)] hover:text-[var(--color-text-primary)] transition-colors mt-0.5',
+                  collapsed && 'md:w-9 md:h-9 md:justify-center md:px-0',
+                )}
+              >
+                <EyeOff className="w-3.5 h-3.5 flex-shrink-0" />
+                <span className={cn(collapsed && 'md:hidden')}>{t('nav.exit_tour')}</span>
+              </button>
+            )}
             <button
               onClick={() => { handleSignOut(); onCloseMobile() }}
               title={t('nav.go_signin')}

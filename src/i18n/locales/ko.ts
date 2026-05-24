@@ -17,6 +17,9 @@ export default {
     guest_label: '게스트',
     guest_desc: '조회 전용',
     go_signin: '로그인 화면으로',
+    tour_mode_label: '둘러보기',
+    tour_mode_desc: '읽기 전용',
+    exit_tour: '둘러보기 종료',
   },
   tiers: {
     title: '티켓 등급 설정',
@@ -50,6 +53,8 @@ export default {
     intro_languages_value: '한국어 · 베트남어 · 영어 · 번체중국어',
     intro_active_label: '활동 시간대',
     intro_active_value: '24/7 · 다양한 시간대의 멤버가 모여 있어요',
+    cta_tour_title: 'ONE 둘러보기',
+    cta_tour_desc: '실제 동맹 페이지를 읽기 전용으로 미리 보세요',
     cta_transfer_title: '이주 신청하기',
     cta_transfer_desc: '인게임명·서버·전투력만 남기면 관리자가 검토 후 연락드립니다',
     cta_questions_title: '궁금한 점 질문하기',

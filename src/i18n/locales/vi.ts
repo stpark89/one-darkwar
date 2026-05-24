@@ -17,6 +17,9 @@ export default {
     guest_label: 'Khách',
     guest_desc: 'Chỉ xem',
     go_signin: 'Quay lại đăng nhập',
+    tour_mode_label: 'Tham quan',
+    tour_mode_desc: 'Chỉ xem',
+    exit_tour: 'Thoát tham quan',
   },
   tiers: {
     title: 'Hạng vé chuyển server',
@@ -50,6 +53,8 @@ export default {
     intro_languages_value: 'Tiếng Hàn · Tiếng Việt · Tiếng Anh · Tiếng Trung phồn thể',
     intro_active_label: 'Thời gian hoạt động',
     intro_active_value: '24/7 · Thành viên ở nhiều múi giờ khác nhau',
+    cta_tour_title: 'Khám phá ONE',
+    cta_tour_desc: 'Xem trước các trang của liên minh ở chế độ chỉ đọc',
     cta_transfer_title: 'Đăng ký chuyển server',
     cta_transfer_desc: 'Chỉ cần để lại tên in-game, server và lực chiến — quản trị viên sẽ liên hệ sau khi xem xét',
     cta_questions_title: 'Đặt câu hỏi',

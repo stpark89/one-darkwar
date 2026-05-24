@@ -10,7 +10,7 @@ import { getSessionAvatar } from '@/lib/avatars'
 import { cn } from '@/lib/utils'
 
 export const Layout = () => {
-  const { user, loading, signOut, isGuest } = useAuthStore()
+  const { user, loading, signOut, isGuest, isTourMode } = useAuthStore()
   const { notices, loadNotices } = useNoticeStore()
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -81,8 +81,14 @@ export const Layout = () => {
   if (!user && !isGuest) return <Navigate to="/sign-in" replace />
 
   // 게스트는 허용된 경로 외 접근 시 게스트 홈으로 돌려보냄
-  const GUEST_ALLOWED = ['/', '/home', '/transfer', '/questions']
-  if (isGuest && !GUEST_ALLOWED.includes(location.pathname)) {
+  // 둘러보기(tour) 모드 시 일반 메뉴 경로 추가 허용 (read-only)
+  const GUEST_ALLOWED_BASE = ['/', '/home', '/transfer', '/questions']
+  const GUEST_ALLOWED_TOUR = [
+    ...GUEST_ALLOWED_BASE,
+    '/notices', '/board', '/members', '/war', '/vs-point', '/events',
+  ]
+  const guestAllowed = isTourMode ? GUEST_ALLOWED_TOUR : GUEST_ALLOWED_BASE
+  if (isGuest && !guestAllowed.includes(location.pathname)) {
     return <Navigate to="/" replace />
   }
 

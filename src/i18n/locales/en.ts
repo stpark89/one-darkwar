@@ -17,6 +17,9 @@ export default {
     guest_label: 'Guest',
     guest_desc: 'View only',
     go_signin: 'Back to Sign In',
+    tour_mode_label: 'Tour',
+    tour_mode_desc: 'Read-only',
+    exit_tour: 'Exit Tour',
   },
   tiers: {
     title: 'Ticket Tiers',
@@ -50,6 +53,8 @@ export default {
     intro_languages_value: 'Korean · Vietnamese · English · Traditional Chinese',
     intro_active_label: 'Activity',
     intro_active_value: '24/7 · Members across many time zones',
+    cta_tour_title: 'Tour ONE',
+    cta_tour_desc: 'Browse the alliance pages in read-only mode',
     cta_transfer_title: 'Apply to Transfer',
     cta_transfer_desc: 'Leave your in-game name, server and CP — admin will review and contact you',
     cta_questions_title: 'Ask a Question',

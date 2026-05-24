@@ -17,6 +17,9 @@ export default {
     guest_label: '訪客',
     guest_desc: '僅瀏覽',
     go_signin: '返回登入頁',
+    tour_mode_label: '導覽',
+    tour_mode_desc: '僅供瀏覽',
+    exit_tour: '結束導覽',
   },
   tiers: {
     title: '票券等級設定',
@@ -50,6 +53,8 @@ export default {
     intro_languages_value: '韓語 · 越南語 · 英語 · 繁體中文',
     intro_active_label: '活動時段',
     intro_active_value: '24/7 · 成員分布於不同時區',
+    cta_tour_title: '參觀 ONE',
+    cta_tour_desc: '以僅供瀏覽模式預覽聯盟頁面',
     cta_transfer_title: '申請轉服',
     cta_transfer_desc: '只需留下遊戲名稱、伺服器與戰力，管理員審核後會與您聯繫',
     cta_questions_title: '提問',
