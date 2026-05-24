@@ -33,7 +33,6 @@ export const useEventStore = create<EventStore>((set, get) => ({
   showHidden: false,
 
   loadData: async () => {
-    if (get().loading) return
     set({ loading: true })
     try {
       const [{ data: eventRows }, { data: memberRows }, { data: attRows }] = await Promise.all([
@@ -62,6 +61,8 @@ export const useEventStore = create<EventStore>((set, get) => ({
       }))
 
       set({ events, attendance })
+    } catch (err) {
+      console.error('[eventStore] loadData exception:', err)
     } finally {
       set({ loading: false })
     }

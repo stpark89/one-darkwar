@@ -59,7 +59,6 @@ export const useWarStore = create<WarStore>((set, get) => ({
   filterTeam: '',
 
   loadData: async () => {
-    if (get().loading) return
     set({ loading: true })
     try {
       const [{ data: seasonRows }, { data: memberRows }] = await Promise.all([
@@ -116,6 +115,8 @@ export const useWarStore = create<WarStore>((set, get) => ({
       }
 
       set({ seasons, activeSeason, rounds, entries, vsPoints, members })
+    } catch (err) {
+      console.error('[warStore] loadData exception:', err)
     } finally {
       set({ loading: false })
     }

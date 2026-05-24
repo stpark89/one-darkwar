@@ -69,7 +69,6 @@ export const useBoardStore = create<BoardStore>((set, get) => ({
   commentsLoading: {},
 
   loadPosts: async (reset = false) => {
-    if (get().loading) return
     set({ loading: true })
     try {
       const offset = reset ? 0 : get().posts.length
@@ -84,6 +83,8 @@ export const useBoardStore = create<BoardStore>((set, get) => ({
         posts: reset ? newPosts : [...s.posts, ...newPosts],
         hasMore: newPosts.length === PAGE_SIZE,
       }))
+    } catch (err) {
+      console.error('[boardStore] loadPosts exception:', err)
     } finally {
       set({ loading: false })
     }

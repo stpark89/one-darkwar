@@ -122,7 +122,15 @@ export const useAuthStore = create<AuthStore>((set) => ({
   },
 
   signOut: async () => {
-    await supabase.auth.signOut()
+    // supabase.auth.signOut() 이 어떤 이유로 hang 되어도 UI 가 멈추지 않도록 3초 안전망
+    try {
+      await Promise.race([
+        supabase.auth.signOut(),
+        new Promise<void>((resolve) => setTimeout(resolve, 3000)),
+      ])
+    } catch (err) {
+      console.error('[authStore] signOut exception:', err)
+    }
     localStorage.removeItem(GUEST_FLAG_KEY)
     set({ user: null, isGuest: false })
   },

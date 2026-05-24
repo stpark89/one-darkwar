@@ -23,12 +23,11 @@ interface TransferTierStore {
   remove: (id: string) => Promise<void>
 }
 
-export const useTransferTierStore = create<TransferTierStore>((set, get) => ({
+export const useTransferTierStore = create<TransferTierStore>((set) => ({
   tiers: [],
   loading: false,
 
   loadAll: async () => {
-    if (get().loading) return
     set({ loading: true })
     try {
       const { data, error } = await supabase

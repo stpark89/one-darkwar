@@ -25,7 +25,7 @@ interface TransferStore {
   remove: (id: string) => Promise<void>
 }
 
-export const useTransferStore = create<TransferStore>((set, get) => ({
+export const useTransferStore = create<TransferStore>((set) => ({
   apps: [],
   loading: false,
 
@@ -50,7 +50,6 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
   },
 
   loadAll: async () => {
-    if (get().loading) return
     set({ loading: true })
     try {
       const { data, error } = await supabase

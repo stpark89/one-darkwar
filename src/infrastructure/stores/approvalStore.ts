@@ -42,7 +42,6 @@ export const useApprovalStore = create<ApprovalStore>((set, get) => ({
   approvedLoading: false,
 
   loadPending: async () => {
-    if (get().loading) return
     set({ loading: true })
     try {
       const { data, error } = await supabase
@@ -68,7 +67,6 @@ export const useApprovalStore = create<ApprovalStore>((set, get) => ({
   },
 
   loadRejected: async () => {
-    if (get().rejectedLoading) return
     set({ rejectedLoading: true })
     try {
       const { data, error } = await supabase
@@ -148,7 +146,6 @@ export const useApprovalStore = create<ApprovalStore>((set, get) => ({
   },
 
   loadApproved: async () => {
-    if (get().approvedLoading) return
     set({ approvedLoading: true })
     try {
       const { data, error } = await supabase

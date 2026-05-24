@@ -34,12 +34,11 @@ interface GuestQuestionStore {
   deleteAnswer: (answerId: string, questionId: string) => Promise<void>
 }
 
-export const useGuestQuestionStore = create<GuestQuestionStore>((set, get) => ({
+export const useGuestQuestionStore = create<GuestQuestionStore>((set) => ({
   questions: [],
   loading: false,
 
   loadAll: async () => {
-    if (get().loading) return
     set({ loading: true })
     try {
       const [{ data: qs }, { data: as }] = await Promise.all([

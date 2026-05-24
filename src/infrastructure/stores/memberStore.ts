@@ -43,11 +43,12 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
   searchQuery: '',
 
   loadMembers: async () => {
-    if (get().loading) return
     set({ loading: true })
     try {
       const { data } = await supabase.from('members').select('*')
       set({ members: (data ?? []).map(toMember).sort(sortBycp) })
+    } catch (err) {
+      console.error('[memberStore] loadMembers exception:', err)
     } finally {
       set({ loading: false })
     }
