@@ -10,6 +10,13 @@ export default {
     admin_section: '管理員',
     language: '語言',
     online: '上線狀況',
+    vs_point: 'VS 積分',
+  },
+  vsPoint: {
+    title: 'VS 積分',
+    subtitle: '{{n}} 輪次',
+    no_season: '尚無賽季資料。',
+    col_total: 'VS 合計',
   },
   common: {
     search: '搜尋',

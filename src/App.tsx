@@ -5,6 +5,7 @@ import { Layout } from "@/presentation/components/Layout";
 import { HomePage } from "@/presentation/pages/HomePage";
 import { MembersPage } from "@/presentation/pages/MembersPage";
 import { WarPage } from "@/presentation/pages/WarPage";
+import { VsPointPage } from "@/presentation/pages/VsPointPage";
 import { EventsPage } from "@/presentation/pages/EventsPage";
 import { ExcelPage } from "@/presentation/pages/ExcelPage";
 import { ContributionPage } from "@/presentation/pages/ContributionPage";
@@ -42,6 +43,7 @@ function App() {
           <Route path="/home" element={<HomePage />} />
           <Route path="/members" element={<MembersPage />} />
           <Route path="/war" element={<WarPage />} />
+          <Route path="/vs-point" element={<VsPointPage />} />
           <Route path="/events" element={<EventsPage />} />
           <Route path="/contribution" element={<ContributionPage />} />
           <Route path="/excel" element={<ExcelPage />} />

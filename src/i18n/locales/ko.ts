@@ -10,6 +10,13 @@ export default {
     admin_section: '관리자',
     language: '언어',
     online: '접속 현황',
+    vs_point: 'VS 포인트',
+  },
+  vsPoint: {
+    title: 'VS 포인트',
+    subtitle: '{{n}}회차',
+    no_season: '등록된 시즌이 없습니다.',
+    col_total: 'VS 합계',
   },
   common: {
     search: '검색',

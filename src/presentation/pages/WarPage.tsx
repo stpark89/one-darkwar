@@ -22,15 +22,6 @@ type CellPopoverState = {
   y: number
 } | null
 
-type VsPopoverState = {
-  roundId: string
-  memberId: string
-  points: number
-  inputValue: string
-  x: number
-  y: number
-} | null
-
 // ─── EntryCell: 참여(✓) / 미참여(·) 표시 ─────────────────────────────────────
 
 const EntryCell = ({
@@ -61,15 +52,15 @@ export const WarPage = () => {
   const canEdit = user?.role === 'ROLE_ADMIN'
 
   const {
-    activeSeason, rounds, entries, vsPoints, members, loading,
+    activeSeason, rounds, entries, members, loading,
     searchQuery, setSearchQuery,
     getMemberRows, getSummary,
     addRound, deleteRound, updateRoundDate, loadData,
-    batchSave, batchSaveVs,
+    batchSave,
   } = useWarStore()
 
   // ── Tab & UI state ──
-  const [activeTab, setActiveTab] = useState<'grid' | 'ranking' | 'vs'>('grid')
+  const [activeTab, setActiveTab] = useState<'grid' | 'ranking'>('grid')
   const [showAddRound, setShowAddRound] = useState(false)
   const [newRoundDate, setNewRoundDate] = useState(() => new Date().toISOString().slice(0, 10))
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
@@ -82,15 +73,9 @@ export const WarPage = () => {
   const [pendingEntries, setPendingEntries] = useState<Map<string, PendingEntry>>(new Map())
   const [isSaving, setIsSaving] = useState(false)
 
-  // ── Pending VS points ──
-  const [pendingVs, setPendingVs] = useState<Map<string, string>>(new Map())
-  const [isSavingVs, setIsSavingVs] = useState(false)
-
   // ── Popovers ──
   const [cellPopover, setCellPopover] = useState<CellPopoverState>(null)
-  const [vsPopover, setVsPopover] = useState<VsPopoverState>(null)
   const popoverRef = useRef<HTMLDivElement>(null)
-  const vsPopoverRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => { loadData() }, [loadData])
 
@@ -121,20 +106,6 @@ export const WarPage = () => {
       return sortDir === 'asc' ? cmp : -cmp
     })
   }, [baseMemberRows, sortKey, sortDir])
-
-  // ── VS rows (sorted by total desc, 숫자 파싱 가능한 값만 합산) ──
-  const parseVsNum = (v: string) => { const n = parseFloat(v.replace(/,/g, '')); return isNaN(n) ? 0 : n }
-  const vsRows = useMemo(() => {
-    return members.map(m => {
-      const totalVs = rounds.reduce((sum, r) => {
-        const key = `${m.id}::${r.id}`
-        const pending = pendingVs.get(key)
-        const val = pending !== undefined ? pending : (vsPoints.find(v => v.roundId === r.id && v.memberId === m.id)?.points ?? '')
-        return sum + parseVsNum(val)
-      }, 0)
-      return { memberId: m.id, inGameName: m.inGameName, totalVs }
-    }).sort((a, b) => b.totalVs - a.totalVs)
-  }, [members, rounds, vsPoints, pendingVs])
 
   // ── Cell popover helpers ──
   const getEffectiveEntry = useCallback((roundId: string, memberId: string): PendingEntry => {
@@ -174,13 +145,10 @@ export const WarPage = () => {
       if (cellPopover && popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
         closePopoverWithSave()
       }
-      if (vsPopover && vsPopoverRef.current && !vsPopoverRef.current.contains(e.target as Node)) {
-        setVsPopover(null)
-      }
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
-  }, [cellPopover, vsPopover, closePopoverWithSave])
+  }, [cellPopover, closePopoverWithSave])
 
   const openCellPopover = (e: React.MouseEvent, roundId: string, memberId: string) => {
     if (!canEdit) return
@@ -188,30 +156,6 @@ export const WarPage = () => {
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
     const entry = getEffectiveEntry(roundId, memberId)
     setCellPopover({ roundId, memberId, entry, x: rect.left + rect.width / 2, y: rect.bottom + 4 })
-  }
-
-  const openVsPopover = (e: React.MouseEvent, roundId: string, memberId: string) => {
-    if (!canEdit) return
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-    const key = `${memberId}::${roundId}`
-    const pending = pendingVs.get(key)
-    const stored = vsPoints.find(v => v.roundId === roundId && v.memberId === memberId)
-    const current = pending !== undefined ? pending : (stored?.points ?? '')
-    setVsPopover({ roundId, memberId, points: 0, inputValue: current, x: rect.left + rect.width / 2, y: rect.bottom + 4 })
-  }
-
-  const commitVsPopover = (roundId: string, memberId: string, value: string) => {
-    const key = `${memberId}::${roundId}`
-    const stored = vsPoints.find(v => v.roundId === roundId && v.memberId === memberId)
-    const original = stored?.points ?? ''
-    const resolved = value.trim()
-    setPendingVs(prev => {
-      const next = new Map(prev)
-      if (resolved !== original) next.set(key, resolved)
-      else next.delete(key)
-      return next
-    })
-    setVsPopover(null)
   }
 
   // ── Save handlers ──
@@ -228,20 +172,6 @@ export const WarPage = () => {
   }
 
   const handleDiscardEntries = () => { setPendingEntries(new Map()); setCellPopover(null) }
-
-  const handleSaveVs = async () => {
-    if (pendingVs.size === 0) return
-    setIsSavingVs(true)
-    const changes = Array.from(pendingVs.entries()).map(([key, points]) => {
-      const [memberId, roundId] = key.split('::')
-      return { roundId, memberId, points } // points is string
-    })
-    const ok = await batchSaveVs(changes)
-    if (ok) setPendingVs(new Map())
-    setIsSavingVs(false)
-  }
-
-  const handleDiscardVs = () => { setPendingVs(new Map()); setVsPopover(null) }
 
   // ── Round actions ──
   const handleAddRound = async () => {
@@ -266,7 +196,7 @@ export const WarPage = () => {
     </div>
   )
 
-  // Save bar component (reused for grid and vs tabs)
+  // Save bar component
   const SaveBar = ({
     count, saving, onSave, onDiscard,
   }: { count: number; saving: boolean; onSave: () => void; onDiscard: () => void }) => (
@@ -307,12 +237,12 @@ export const WarPage = () => {
         </div>
         <div className="flex items-center gap-2">
           <div className="flex gap-1 p-1 bg-[var(--color-bg-surface)] rounded-lg border border-[var(--color-border-subtle)]">
-            {(['grid', 'ranking', 'vs'] as const).map(tab => (
+            {(['grid', 'ranking'] as const).map(tab => (
               <button key={tab} onClick={() => setActiveTab(tab)}
                 className={cn('px-2.5 sm:px-3 py-1.5 rounded text-xs font-medium transition-colors',
                   activeTab === tab ? 'bg-[var(--color-brand)] text-white' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]')}
               >
-                {tab === 'grid' ? t('war.tab_grid') : tab === 'ranking' ? t('war.tab_ranking') : t('war.tab_vs')}
+                {tab === 'grid' ? t('war.tab_grid') : t('war.tab_ranking')}
               </button>
             ))}
           </div>
@@ -324,25 +254,20 @@ export const WarPage = () => {
         </div>
       </div>
 
-      {/* Search (grid / vs tabs) */}
-      {activeTab !== 'ranking' && (
+      {/* Search (grid tab) */}
+      {activeTab === 'grid' && (
         <div className="flex items-center gap-2 mb-2 sm:mb-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" />
             <Input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder={t('war.search_placeholder')} className="pl-9" />
           </div>
-          {activeTab === 'grid' && (
-            <span className="text-xs text-[var(--color-text-muted)] whitespace-nowrap">{memberRows.length}{t('common.count_people')}</span>
-          )}
+          <span className="text-xs text-[var(--color-text-muted)] whitespace-nowrap">{memberRows.length}{t('common.count_people')}</span>
         </div>
       )}
 
       {/* Save bar */}
       {canEdit && activeTab === 'grid' && (
         <SaveBar count={pendingEntries.size} saving={isSaving} onSave={handleSaveEntries} onDiscard={handleDiscardEntries} />
-      )}
-      {canEdit && activeTab === 'vs' && (
-        <SaveBar count={pendingVs.size} saving={isSavingVs} onSave={handleSaveVs} onDiscard={handleDiscardVs} />
       )}
 
       {/* ── GRID TAB ── */}
@@ -462,68 +387,6 @@ export const WarPage = () => {
         </div>
       )}
 
-      {/* ── VS TAB ── */}
-      {activeTab === 'vs' && (
-        <div className="rounded-lg border border-[var(--color-border-subtle)] overflow-auto w-full max-h-[calc(100vh-260px)] sm:max-h-[calc(100vh-320px)]">
-          <table className="text-xs">
-            <thead className="sticky top-0 z-10">
-              <tr className="bg-[var(--color-bg-surface)] border-b border-[var(--color-border-subtle)]">
-                <th className="px-3 py-3 text-left text-[var(--color-text-muted)] sticky left-0 bg-[var(--color-bg-surface)] min-w-[140px] whitespace-nowrap">
-                  {t('war.col_name')}
-                </th>
-                <th className="px-3 py-3 text-center text-[var(--color-text-muted)] min-w-[64px] whitespace-nowrap">
-                  {t('war.col_vs_total')}
-                </th>
-                {rounds.map(r => (
-                  <th key={r.id} className="px-3 py-3 text-center text-[var(--color-text-muted)] min-w-[64px] whitespace-nowrap">
-                    <div className="text-[10px] font-normal">{r.date?.slice(5) ?? ''}</div>
-                    <div className="font-semibold">{t('war.round', { n: r.sortOrder })}</div>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[var(--color-border-subtle)]">
-              {vsRows
-                .filter(row => !searchQuery || row.inGameName.toLowerCase().includes(searchQuery.toLowerCase()))
-                .map(row => (
-                  <tr key={row.memberId} className="hover:bg-[var(--color-bg-surface)] transition-colors">
-                    <td className="px-3 py-2.5 font-medium text-[var(--color-text-primary)] whitespace-nowrap sticky left-0 bg-[var(--color-bg-base)] hover:bg-[var(--color-bg-surface)]">
-                      {row.inGameName}
-                    </td>
-                    <td className="px-3 py-2.5 text-center">
-                      <span className={cn('font-bold', row.totalVs > 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-text-muted)]')}>
-                        {row.totalVs || '·'}
-                      </span>
-                    </td>
-                    {rounds.map(r => {
-                      const key = `${row.memberId}::${r.id}`
-                      const pending = pendingVs.get(key)
-                      const stored = vsPoints.find(v => v.roundId === r.id && v.memberId === row.memberId)
-                      const pts = pending !== undefined ? pending : (stored?.points ?? '')
-                      const isPending = pending !== undefined
-                      const isVsOpen = vsPopover?.roundId === r.id && vsPopover?.memberId === row.memberId
-                      return (
-                        <td key={r.id}
-                          onClick={(e) => openVsPopover(e, r.id, row.memberId)}
-                          className={cn(
-                            'px-3 py-2.5 text-center select-none transition-colors hover:bg-[var(--color-bg-elevated)]',
-                            canEdit && 'cursor-pointer',
-                            isVsOpen && 'bg-[var(--color-bg-elevated)]',
-                          )}>
-                          <span className={cn('relative inline-block', pts ? 'text-[var(--color-text-primary)] font-medium' : 'text-[var(--color-text-muted)]')}>
-                            {pts || '·'}
-                            {isPending && <span className="absolute -top-1 -right-2 w-1.5 h-1.5 rounded-full bg-yellow-400" />}
-                          </span>
-                        </td>
-                      )
-                    })}
-                  </tr>
-                ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
       {/* ── CELL POPOVER ── */}
       {cellPopover && (
         <div ref={popoverRef}
@@ -563,27 +426,6 @@ export const WarPage = () => {
             onChange={e => setCellPopover(prev => prev ? { ...prev, entry: { ...prev.entry, note: e.target.value } } : null)}
             placeholder={t('war.note_placeholder')}
             className="w-full px-2 py-1.5 text-xs rounded-lg bg-[var(--color-bg-elevated)] border border-[var(--color-border-subtle)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-brand)]"
-          />
-        </div>
-      )}
-
-      {/* ── VS POPOVER ── */}
-      {vsPopover && (
-        <div ref={vsPopoverRef}
-          style={{ position: 'fixed', left: vsPopover.x, top: vsPopover.y, transform: 'translateX(-50%)', zIndex: 9999 }}
-          className="bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-xl shadow-2xl p-2 w-36"
-          onMouseDown={e => e.stopPropagation()}
-        >
-          <input type="text" autoFocus
-            value={vsPopover.inputValue}
-            onChange={e => setVsPopover(prev => prev ? { ...prev, inputValue: e.target.value } : null)}
-            onKeyDown={e => {
-              if (e.key === 'Enter') commitVsPopover(vsPopover.roundId, vsPopover.memberId, vsPopover.inputValue)
-              if (e.key === 'Escape') setVsPopover(null)
-            }}
-            onBlur={() => commitVsPopover(vsPopover.roundId, vsPopover.memberId, vsPopover.inputValue)}
-            placeholder="0"
-            className="w-full px-2 py-1.5 text-sm rounded bg-[var(--color-bg-elevated)] border border-[var(--color-border-subtle)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-brand)] text-center"
           />
         </div>
       )}

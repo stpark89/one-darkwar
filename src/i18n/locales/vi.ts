@@ -10,6 +10,13 @@ export default {
     admin_section: 'Quản trị',
     language: 'Ngôn ngữ',
     online: 'Trực tuyến',
+    vs_point: 'Điểm VS',
+  },
+  vsPoint: {
+    title: 'Điểm VS',
+    subtitle: '{{n}} đợt',
+    no_season: 'Chưa có mùa giải.',
+    col_total: 'Tổng VS',
   },
   common: {
     search: 'Tìm kiếm',

@@ -10,6 +10,13 @@ export default {
     admin_section: 'Admin',
     language: 'Language',
     online: 'Online Users',
+    vs_point: 'VS Points',
+  },
+  vsPoint: {
+    title: 'VS Points',
+    subtitle: '{{n}} rounds',
+    no_season: 'No season registered.',
+    col_total: 'Total VS',
   },
   common: {
     search: 'Search',
