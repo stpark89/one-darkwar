@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { Swords, Eye, EyeOff, Loader2, UserX } from 'lucide-react'
+import { Eye, EyeOff, Loader2, UserX } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore, PENDING_APPROVAL_ERROR } from '@/infrastructure/stores/authStore'
 import { Input } from '@/presentation/components/ui/input'
 import { Button } from '@/presentation/components/ui/button'
 import { LangSelector } from '@/presentation/components/ui/lang-selector'
+import { getSessionAvatar } from '@/lib/avatars'
 
 export const SignInPage = () => {
   const { t } = useTranslation()
@@ -45,8 +46,8 @@ export const SignInPage = () => {
       <div className="w-full max-w-sm">
         {/* 로고 */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-[var(--color-brand)] flex items-center justify-center mb-3 shadow-lg shadow-[var(--color-brand)]/30">
-            <Swords className="w-7 h-7 text-white" />
+          <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl overflow-hidden mb-4 shadow-xl shadow-[var(--color-brand)]/30 bg-[var(--color-bg-elevated)]">
+            <img src={getSessionAvatar()} alt="ONE" className="w-full h-full object-cover" />
           </div>
           <h1 className="text-2xl font-black text-[var(--color-text-primary)]">ONE DARK WAR</h1>
           <p className="text-sm text-[var(--color-text-muted)] mt-1">{t('auth.sign_in_subtitle')}</p>
