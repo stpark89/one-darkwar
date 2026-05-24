@@ -15,12 +15,9 @@ self.addEventListener('activate', (event) => {
     const keys = await caches.keys()
     await Promise.all(keys.map((k) => caches.delete(k)))
     await self.clients.claim()
-    // 새 SW 활성화 — 열려있는 모든 PWA 창을 강제로 새로고침하여
-    // 옛 HTML/JS 가 메모리에 남아있는 경우에도 즉시 최신 빌드로 전환.
-    const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
-    for (const w of wins) {
-      try { w.navigate(w.url) } catch { /* navigate 미지원 환경 — 무시 */ }
-    }
+    // ※ client.navigate(url) 은 main.tsx 의 updatefound reload 와 충돌하여
+    //   페이지가 절반 로드된 상태에서 멈추는 케이스가 있어 제거. reload 는
+    //   client(main.tsx) 한 군데에서만 트리거.
   })())
 })
 

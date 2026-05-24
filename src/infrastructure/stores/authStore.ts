@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { supabase } from '@/lib/supabase'
+import { withTimeout } from '@/lib/timeout'
 
 export type UserRole = 'ROLE_USER' | 'ROLE_ADMIN'
 
@@ -62,27 +63,42 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
   loadSession: async () => {
     set({ loading: true })
-    const { data: { session } } = await supabase.auth.getSession()
-    if (session?.user) {
-      const profile = await fetchProfile(session.user.id)
-      // 로그인 성공했으면 게스트 플래그 정리
-      localStorage.removeItem(GUEST_FLAG_KEY)
-      set({ user: profile, isGuest: false, loading: false })
-    } else {
-      // 유저 세션이 없을 때는 게스트 플래그 복원 (새로고침 직후 보존용)
+    try {
+      // getSession 이 hang 되어도 8초 안에 강제 종료 — Layout 전체가
+      // spinner 로 막혀 무한 로딩이 되던 케이스의 핵심 fix.
+      const sessionResult = await withTimeout(supabase.auth.getSession(), 8000)
+      const session = sessionResult?.data?.session
+      if (session?.user) {
+        const profile = await withTimeout(fetchProfile(session.user.id), 8000).catch(() => null)
+        localStorage.removeItem(GUEST_FLAG_KEY)
+        set({ user: profile, isGuest: false })
+      } else {
+        const guest = localStorage.getItem(GUEST_FLAG_KEY) === '1'
+        set({ user: null, isGuest: guest })
+      }
+    } catch (err) {
+      console.error('[authStore] loadSession exception:', err)
+      // 실패 시 게스트 플래그라도 복원해서 화면 진입은 가능하게
       const guest = localStorage.getItem(GUEST_FLAG_KEY) === '1'
-      set({ user: null, isGuest: guest, loading: false })
+      set({ user: null, isGuest: guest })
+    } finally {
+      set({ loading: false })
     }
 
     // 세션 변경 감지 (탭 간 동기화, 비밀번호 변경 후 USER_UPDATED 포함)
     supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session?.user) {
-        const profile = await fetchProfile(session.user.id)
-        localStorage.removeItem(GUEST_FLAG_KEY)
-        set({ user: profile, isGuest: false, loading: false })
-      } else {
-        const guest = localStorage.getItem(GUEST_FLAG_KEY) === '1'
-        set({ user: null, isGuest: guest, loading: false })
+      try {
+        if (session?.user) {
+          const profile = await withTimeout(fetchProfile(session.user.id), 8000).catch(() => null)
+          localStorage.removeItem(GUEST_FLAG_KEY)
+          set({ user: profile, isGuest: false, loading: false })
+        } else {
+          const guest = localStorage.getItem(GUEST_FLAG_KEY) === '1'
+          set({ user: null, isGuest: guest, loading: false })
+        }
+      } catch (err) {
+        console.error('[authStore] onAuthStateChange exception:', err)
+        set({ loading: false })
       }
     })
   },
