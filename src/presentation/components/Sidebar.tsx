@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { Home, Users, Swords, CalendarDays, FileSpreadsheet, BarChart3, Megaphone, ChevronUp, ChevronLeft, ChevronRight, X, LogOut, ShieldCheck, User, KeyRound, UserX, UserCheck, MessageSquare, Target, UserPlus } from 'lucide-react'
+import { Home, Users, Swords, CalendarDays, FileSpreadsheet, BarChart3, Megaphone, ChevronUp, ChevronLeft, ChevronRight, X, LogOut, ShieldCheck, User, KeyRound, UserX, UserCheck, MessageSquare, Target, UserPlus, MessageCircleQuestion } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { LANGUAGES, type LangCode } from '@/i18n'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
@@ -43,11 +43,20 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
     { to: '/transfer', icon: UserPlus, label: t('nav.transfer'), end: false },
   ]
 
+  const NAV_GUEST = [
+    { to: '/', icon: Home, label: t('nav.home'), end: true },
+    { to: '/questions', icon: MessageCircleQuestion, label: t('nav.questions'), end: false },
+    { to: '/transfer', icon: UserPlus, label: t('nav.transfer'), end: false },
+  ]
+
   const NAV_ADMIN = [
     { to: '/contribution', icon: BarChart3, label: t('nav.contribution'), badge: 0 },
     { to: '/excel', icon: FileSpreadsheet, label: t('nav.excel'), badge: 0 },
     { to: '/approval', icon: UserCheck, label: t('nav.join_management'), badge: pendingCount },
+    { to: '/questions', icon: MessageCircleQuestion, label: t('nav.questions'), badge: 0 },
   ]
+
+  const navItems = isGuest ? NAV_GUEST : NAV_GENERAL
 
   return (
     <aside
@@ -84,8 +93,8 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
 
       {/* 네비게이션 */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        {/* 일반 메뉴 */}
-        {NAV_GENERAL.map(({ to, icon: Icon, label, end }) => (
+        {/* 일반 메뉴 (게스트면 NAV_GUEST, 아니면 NAV_GENERAL) */}
+        {navItems.map(({ to, icon: Icon, label, end }) => (
           <NavLink
             key={to}
             to={to}
@@ -107,8 +116,8 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
           </NavLink>
         ))}
 
-        {/* 관리자 전용 섹션 */}
-        {user?.role === 'ROLE_ADMIN' && (
+        {/* 관리자 전용 섹션 (게스트는 표시 안 함) */}
+        {!isGuest && user?.role === 'ROLE_ADMIN' && (
           <>
             <div className={cn('pt-3 pb-1', collapsed && 'md:hidden')}>
               <p className="px-3 text-[10px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">{t('nav.admin_section')}</p>

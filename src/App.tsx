@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "sonner";
 import { Layout } from "@/presentation/components/Layout";
 import { HomePage } from "@/presentation/pages/HomePage";
+import { GuestHomePage } from "@/presentation/pages/GuestHomePage";
+import { GuestQuestionsPage } from "@/presentation/pages/GuestQuestionsPage";
 import { MembersPage } from "@/presentation/pages/MembersPage";
 import { WarPage } from "@/presentation/pages/WarPage";
 import { VsPointPage } from "@/presentation/pages/VsPointPage";
@@ -19,6 +21,11 @@ import { ChangePasswordPage } from "@/presentation/pages/ChangePasswordPage";
 import { useAuthStore } from "@/infrastructure/stores/authStore";
 
 const HEARTBEAT_MS = 2 * 60 * 1000; // 2분마다 갱신
+
+const HomeRouter = () => {
+  const { isGuest } = useAuthStore();
+  return isGuest ? <GuestHomePage /> : <HomePage />;
+};
 
 function App() {
   const { loadSession, updateLastSeen } = useAuthStore();
@@ -40,8 +47,8 @@ function App() {
         <Route path="/sign-in" element={<SignInPage />} />
         <Route path="/sign-up" element={<SignUpPage />} />
         <Route element={<Layout />}>
-          <Route index element={<HomePage />} />
-          <Route path="/home" element={<HomePage />} />
+          <Route index element={<HomeRouter />} />
+          <Route path="/home" element={<HomeRouter />} />
           <Route path="/members" element={<MembersPage />} />
           <Route path="/war" element={<WarPage />} />
           <Route path="/vs-point" element={<VsPointPage />} />
@@ -53,6 +60,7 @@ function App() {
           <Route path="/notices" element={<NoticePage />} />
           <Route path="/board" element={<BoardPage />} />
           <Route path="/transfer" element={<TransferPage />} />
+          <Route path="/questions" element={<GuestQuestionsPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
