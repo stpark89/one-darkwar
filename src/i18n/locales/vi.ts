@@ -63,6 +63,8 @@ export default {
     field_name_placeholder: 'Tên nhân vật trong game',
     field_server: 'Server hiện tại',
     field_server_placeholder: 'VD: S312, S205',
+    field_country: 'Quốc gia',
+    field_country_placeholder: 'VD: Việt Nam, Hàn Quốc, Đài Loan',
     field_cp: 'Lực chiến (CP)',
     field_cp_placeholder: 'VD: 3.54G',
     submit_btn: 'Gửi đơn',

@@ -63,6 +63,8 @@ export default {
     field_name_placeholder: '게임 내 닉네임',
     field_server: '현재 서버',
     field_server_placeholder: '예: S312, S205',
+    field_country: '국가',
+    field_country_placeholder: '예: 한국, 베트남, 대만',
     field_cp: '전투력 (CP)',
     field_cp_placeholder: '예: 3.54G',
     submit_btn: '신청 제출',

@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { UserPlus, MessageCircleQuestion, ChevronRight, Swords, Globe, Clock, Server } from 'lucide-react'
+import { UserPlus, MessageCircleQuestion, ChevronRight, Globe, Clock, Server } from 'lucide-react'
+import { getSessionAvatar } from '@/lib/avatars'
 
 export const GuestHomePage = () => {
   const { t } = useTranslation()
@@ -10,8 +11,8 @@ export const GuestHomePage = () => {
     <div className="p-4 sm:p-8 max-w-3xl mx-auto space-y-6 sm:space-y-8">
       {/* Hero */}
       <div className="text-center pt-4 sm:pt-8">
-        <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-[var(--color-brand)] mb-4 shadow-xl">
-          <Swords className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+        <div className="inline-block w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden mb-4 shadow-xl bg-[var(--color-bg-elevated)]">
+          <img src={getSessionAvatar()} alt="ONE" className="w-full h-full object-cover" />
         </div>
         <h1 className="text-2xl sm:text-3xl font-black text-[var(--color-text-primary)] mb-2">
           {t('guest_home.hero_title')}

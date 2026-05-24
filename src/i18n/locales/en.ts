@@ -63,6 +63,8 @@ export default {
     field_name_placeholder: 'Your in-game nickname',
     field_server: 'Current Server',
     field_server_placeholder: 'e.g. S312, S205',
+    field_country: 'Country',
+    field_country_placeholder: 'e.g. Korea, Vietnam, Taiwan',
     field_cp: 'Combat Power (CP)',
     field_cp_placeholder: 'e.g. 3.54G',
     submit_btn: 'Submit Application',

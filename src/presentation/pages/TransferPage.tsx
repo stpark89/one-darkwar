@@ -25,6 +25,7 @@ export const TransferPage = () => {
 
   const [inGameName, setInGameName] = useState('')
   const [currentServer, setCurrentServer] = useState('')
+  const [country, setCountry] = useState('')
   const [cp, setCp] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -39,12 +40,13 @@ export const TransferPage = () => {
     e.preventDefault()
     if (!inGameName.trim() || submitting) return
     setSubmitting(true)
-    const ok = await submit({ inGameName, currentServer, cp })
+    const ok = await submit({ inGameName, currentServer, country, cp })
     setSubmitting(false)
     if (ok) {
       setSubmitted(true)
       setInGameName('')
       setCurrentServer('')
+      setCountry('')
       setCp('')
       if (isAdmin) loadAll()
     }
@@ -115,6 +117,15 @@ export const TransferPage = () => {
                 value={currentServer}
                 onChange={(e) => setCurrentServer(e.target.value)}
                 placeholder={t('transfer.field_server_placeholder')}
+              />
+            </div>
+
+            <div>
+              <label className="text-xs text-[var(--color-text-muted)] mb-1 block">{t('transfer.field_country')}</label>
+              <Input
+                value={country}
+                onChange={(e) => setCountry(e.target.value)}
+                placeholder={t('transfer.field_country_placeholder')}
               />
             </div>
 
@@ -198,6 +209,10 @@ export const TransferPage = () => {
                       <div className="flex gap-2">
                         <span className="text-[var(--color-text-muted)] w-16 flex-shrink-0">{t('transfer.field_server')}</span>
                         <span className="text-[var(--color-text-primary)]">{a.currentServer || '—'}</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <span className="text-[var(--color-text-muted)] w-16 flex-shrink-0">{t('transfer.field_country')}</span>
+                        <span className="text-[var(--color-text-primary)]">{a.country || '—'}</span>
                       </div>
                       <div className="flex gap-2">
                         <span className="text-[var(--color-text-muted)] w-16 flex-shrink-0">{t('transfer.field_cp')}</span>

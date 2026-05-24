@@ -63,6 +63,8 @@ export default {
     field_name_placeholder: '遊戲內暱稱',
     field_server: '目前伺服器',
     field_server_placeholder: '例：S312、S205',
+    field_country: '國家',
+    field_country_placeholder: '例：台灣、韓國、越南',
     field_cp: '戰鬥力 (CP)',
     field_cp_placeholder: '例：3.54G',
     submit_btn: '送出申請',

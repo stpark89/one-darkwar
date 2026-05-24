@@ -4,6 +4,7 @@ export interface TransferApplication {
   id: string
   inGameName: string
   currentServer: string
+  country: string
   cp: string
   status: TransferStatus
   reviewedAt: string | null
@@ -14,5 +15,6 @@ export interface TransferApplication {
 export interface TransferDraft {
   inGameName: string
   currentServer: string
+  country: string
   cp: string
 }

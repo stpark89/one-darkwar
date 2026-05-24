@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from 'react'
 import { Outlet, Navigate, useNavigate, useLocation } from 'react-router-dom'
-import { Menu, Swords, Loader2, User, ShieldCheck, KeyRound, LogOut, UserX, Megaphone, Pin, X } from 'lucide-react'
+import { Menu, Loader2, User, ShieldCheck, KeyRound, LogOut, UserX, Megaphone, Pin, X } from 'lucide-react'
 import { Sidebar } from './Sidebar'
 import { ChatWidget } from './ChatWidget'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { useNoticeStore } from '@/infrastructure/stores/noticeStore'
 import { useTranslation } from 'react-i18next'
+import { getSessionAvatar } from '@/lib/avatars'
 import { cn } from '@/lib/utils'
 
 export const Layout = () => {
@@ -128,8 +129,8 @@ export const Layout = () => {
             <Menu className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-2 flex-1">
-            <div className="w-6 h-6 rounded bg-[var(--color-brand)] flex items-center justify-center">
-              <Swords className="w-3.5 h-3.5 text-white" />
+            <div className="w-6 h-6 rounded overflow-hidden bg-[var(--color-bg-elevated)]">
+              <img src={getSessionAvatar()} alt="ONE" className="w-full h-full object-cover" />
             </div>
             <span className="text-sm font-bold text-[var(--color-text-primary)]">ONE DARK WAR</span>
           </div>

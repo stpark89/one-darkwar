@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { LANGUAGES, type LangCode } from '@/i18n'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { useApprovalStore } from '@/infrastructure/stores/approvalStore'
+import { getSessionAvatar } from '@/lib/avatars'
 import { cn } from '@/lib/utils'
 
 interface SidebarProps {
@@ -74,8 +75,8 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
           onClick={onCloseMobile}
           className={cn('flex items-center gap-3 flex-1 min-w-0', collapsed && 'md:justify-center')}
         >
-          <div className="w-8 h-8 rounded-lg bg-[var(--color-brand)] flex items-center justify-center flex-shrink-0">
-            <Swords className="w-4 h-4 text-white" />
+          <div className="w-8 h-8 rounded-lg overflow-hidden bg-[var(--color-bg-elevated)] flex-shrink-0">
+            <img src={getSessionAvatar()} alt="ONE" className="w-full h-full object-cover" />
           </div>
           <div className={cn('transition-all', collapsed && 'md:hidden')}>
             <p className="text-xs font-bold text-[var(--color-text-primary)] leading-tight">ONE</p>
