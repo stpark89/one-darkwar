@@ -26,8 +26,11 @@ if (existsSync(PNG_SRC)) {
 }
 console.log(`📷 원본: ${label}`)
 
-const BG = { r: 255, g: 255, b: 255, alpha: 1 } // 일반 아이콘: 흰색 패딩
-const MASKABLE_BG = { r: 15, g: 17, b: 21, alpha: 1 } // maskable: 앱 다크 테마 (#0f1115)
+// 모든 아이콘 패딩을 앱 다크 테마(#0f1115)로 통일.
+// splash screen 배경(manifest.background_color)과 같은 색이라 아이콘
+// 외곽이 splash 와 자연스럽게 융합됨.
+const BG = { r: 15, g: 17, b: 21, alpha: 1 }
+const MASKABLE_BG = { r: 15, g: 17, b: 21, alpha: 1 }
 
 // 일반 아이콘 (purpose: any) — 정사각형에 흰색 배경, 토끼 풀로 차게
 const targets = [
