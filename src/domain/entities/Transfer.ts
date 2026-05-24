@@ -1,0 +1,18 @@
+export type TransferStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
+
+export interface TransferApplication {
+  id: string
+  inGameName: string
+  currentServer: string
+  cp: string
+  status: TransferStatus
+  reviewedAt: string | null
+  reviewedBy: string | null
+  createdAt: string
+}
+
+export interface TransferDraft {
+  inGameName: string
+  currentServer: string
+  cp: string
+}
