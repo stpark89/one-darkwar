@@ -27,6 +27,7 @@ export const Layout = () => {
   // 핀 공지 우선, 없으면 최신 공지
   const prominentNotice = notices.find(n => n.pinned) ?? notices[0] ?? null
   const showBanner =
+    !isGuest &&
     prominentNotice !== null &&
     prominentNotice.id !== dismissedNoticeId &&
     location.pathname !== '/notices'
@@ -182,7 +183,7 @@ export const Layout = () => {
 
         <Outlet />
       </main>
-      <ChatWidget />
+      {!isGuest && <ChatWidget />}
     </div>
   )
 }
