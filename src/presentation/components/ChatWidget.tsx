@@ -283,6 +283,67 @@ export const ChatWidget = () => {
   const isAdmin = user?.role === 'ROLE_ADMIN'
   const t = i18n.t.bind(i18n)
   const [open, setOpen] = useState(false)
+
+  // ── 플로팅 버튼 위치 (드래그로 이동 + localStorage 영속) ──
+  const [chatPos, setChatPos] = useState<{ right: number; bottom: number }>(() => {
+    try {
+      const saved = localStorage.getItem('odw_chat_pos')
+      if (saved) {
+        const p = JSON.parse(saved) as { right?: number; bottom?: number }
+        if (typeof p.right === 'number' && typeof p.bottom === 'number') {
+          return { right: p.right, bottom: p.bottom }
+        }
+      }
+    } catch { /* ignore */ }
+    return { right: 12, bottom: 16 }
+  })
+  const dragRef = useRef<{
+    startX: number
+    startY: number
+    startRight: number
+    startBottom: number
+    moved: boolean
+  } | null>(null)
+
+  const handleDragStart = (e: React.PointerEvent<HTMLButtonElement>) => {
+    dragRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      startRight: chatPos.right,
+      startBottom: chatPos.bottom,
+      moved: false,
+    }
+    e.currentTarget.setPointerCapture(e.pointerId)
+  }
+
+  const handleDragMove = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (!dragRef.current) return
+    const dx = e.clientX - dragRef.current.startX
+    const dy = e.clientY - dragRef.current.startY
+    if (!dragRef.current.moved && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) {
+      dragRef.current.moved = true
+    }
+    if (!dragRef.current.moved) return
+    const nextRight = Math.max(4, Math.min(window.innerWidth - 64, dragRef.current.startRight - dx))
+    const nextBottom = Math.max(4, Math.min(window.innerHeight - 64, dragRef.current.startBottom - dy))
+    setChatPos({ right: nextRight, bottom: nextBottom })
+  }
+
+  const handleDragEnd = (e: React.PointerEvent<HTMLButtonElement>) => {
+    const moved = dragRef.current?.moved ?? false
+    try { e.currentTarget.releasePointerCapture(e.pointerId) } catch { /* ignore */ }
+    dragRef.current = null
+    if (moved) {
+      // 드래그 종료 — 새 위치 저장
+      setChatPos((p) => {
+        try { localStorage.setItem('odw_chat_pos', JSON.stringify(p)) } catch { /* ignore */ }
+        return p
+      })
+    } else {
+      // 드래그 안 했으면 클릭으로 처리 — 채팅 열기/닫기
+      setOpen((v) => !v)
+    }
+  }
   const [tab, setTab] = useState<'chat' | 'online'>('chat')
   const [messages, setMessages] = useState<Message[]>([])
   const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([])
@@ -473,7 +534,10 @@ export const ChatWidget = () => {
   if (!user || isGuest) return null
 
   return (
-    <div className="fixed bottom-4 right-3 sm:bottom-5 sm:right-5 z-50 flex flex-col items-end gap-2">
+    <div
+      className="fixed z-50 flex flex-col items-end gap-2"
+      style={{ right: chatPos.right, bottom: chatPos.bottom }}
+    >
       {open && (
         <div className="w-[calc(100vw-24px)] sm:w-80 h-[70vh] sm:h-[480px] rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] shadow-2xl flex flex-col overflow-hidden">
           {/* 헤더 */}
@@ -706,10 +770,13 @@ export const ChatWidget = () => {
         </div>
       )}
 
-      {/* 플로팅 버튼 */}
+      {/* 플로팅 버튼 (드래그로 위치 이동 가능 — 5px 이상 움직이면 드래그, 그 외엔 클릭) */}
       <button
-        onClick={() => setOpen((v) => !v)}
-        className="w-14 h-14 rounded-full bg-[var(--color-brand)] shadow-lg shadow-[var(--color-brand)]/30 flex items-center justify-center text-white hover:opacity-90 transition-opacity relative"
+        onPointerDown={handleDragStart}
+        onPointerMove={handleDragMove}
+        onPointerUp={handleDragEnd}
+        onPointerCancel={handleDragEnd}
+        className="w-14 h-14 rounded-full bg-[var(--color-brand)] shadow-lg shadow-[var(--color-brand)]/30 flex items-center justify-center text-white hover:opacity-90 transition-opacity relative touch-none select-none cursor-grab active:cursor-grabbing"
       >
         {open ? <X className="w-6 h-6" /> : <MessageCircle className="w-6 h-6" />}
         {!open && unread > 0 && (
