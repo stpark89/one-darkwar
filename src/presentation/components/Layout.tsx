@@ -140,7 +140,7 @@ export const Layout = () => {
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--color-border-subtle)] text-xs text-[var(--color-text-muted)] hover:bg-[var(--color-bg-elevated)] transition-colors"
             >
               <UserX className="w-3.5 h-3.5" />
-              로그인
+              {t('auth.sign_in_btn')}
             </button>
           ) : user && (
             <div className="relative" ref={userMenuRef}>

@@ -216,20 +216,20 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
                 <UserX className="w-3.5 h-3.5 text-[var(--color-text-muted)]" />
               </div>
               <div className={cn('flex-1 min-w-0', collapsed && 'md:hidden')}>
-                <p className="text-xs font-semibold text-[var(--color-text-primary)]">게스트</p>
-                <p className="text-[10px] text-[var(--color-text-muted)]">조회 전용</p>
+                <p className="text-xs font-semibold text-[var(--color-text-primary)]">{t('nav.guest_label')}</p>
+                <p className="text-[10px] text-[var(--color-text-muted)]">{t('nav.guest_desc')}</p>
               </div>
             </div>
             <button
               onClick={() => { handleSignOut(); onCloseMobile() }}
-              title="로그인 화면으로"
+              title={t('nav.go_signin')}
               className={cn(
                 'w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-[var(--color-brand)] hover:bg-[var(--color-brand)]/10 transition-colors mt-0.5',
                 collapsed && 'md:w-9 md:h-9 md:justify-center md:px-0',
               )}
             >
               <LogOut className="w-3.5 h-3.5 flex-shrink-0" />
-              <span className={cn(collapsed && 'md:hidden')}>로그인 화면으로</span>
+              <span className={cn(collapsed && 'md:hidden')}>{t('nav.go_signin')}</span>
             </button>
           </>
         ) : user && (
