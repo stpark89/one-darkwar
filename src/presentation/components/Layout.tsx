@@ -65,6 +65,12 @@ export const Layout = () => {
 
   if (!user && !isGuest) return <Navigate to="/sign-in" replace />
 
+  // 게스트는 허용된 경로 외 접근 시 게스트 홈으로 돌려보냄
+  const GUEST_ALLOWED = ['/', '/home', '/transfer', '/questions']
+  if (isGuest && !GUEST_ALLOWED.includes(location.pathname)) {
+    return <Navigate to="/" replace />
+  }
+
   return (
     <div className="flex min-h-screen w-full" style={{ maxWidth: '100vw', overflowX: 'clip' }}>
       {mobileOpen && (

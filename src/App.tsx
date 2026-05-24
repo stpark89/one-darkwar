@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "sonner";
 import { Layout } from "@/presentation/components/Layout";
 import { HomePage } from "@/presentation/pages/HomePage";
@@ -61,6 +61,8 @@ function App() {
           <Route path="/board" element={<BoardPage />} />
           <Route path="/transfer" element={<TransferPage />} />
           <Route path="/questions" element={<GuestQuestionsPage />} />
+          {/* 존재하지 않는 경로는 홈으로 (오타 등) */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
     </BrowserRouter>
