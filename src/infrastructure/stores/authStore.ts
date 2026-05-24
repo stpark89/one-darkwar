@@ -28,6 +28,9 @@ const toEmail = (name: string) =>
 // 승인 대기 사용자임을 알리는 특수 에러 코드
 export const PENDING_APPROVAL_ERROR = 'PENDING_APPROVAL'
 
+// 게스트 상태를 새로고침 후에도 유지하기 위한 localStorage 키
+const GUEST_FLAG_KEY = 'odw_guest'
+
 async function fetchProfile(userId: string): Promise<AuthUser | null> {
   const { data } = await supabase
     .from('profiles')
@@ -49,18 +52,24 @@ export const useAuthStore = create<AuthStore>((set) => ({
     const { data: { session } } = await supabase.auth.getSession()
     if (session?.user) {
       const profile = await fetchProfile(session.user.id)
-      set({ user: profile, loading: false })
+      // 로그인 성공했으면 게스트 플래그 정리
+      localStorage.removeItem(GUEST_FLAG_KEY)
+      set({ user: profile, isGuest: false, loading: false })
     } else {
-      set({ user: null, loading: false })
+      // 유저 세션이 없을 때는 게스트 플래그 복원 (새로고침 직후 보존용)
+      const guest = localStorage.getItem(GUEST_FLAG_KEY) === '1'
+      set({ user: null, isGuest: guest, loading: false })
     }
 
     // 세션 변경 감지 (탭 간 동기화, 비밀번호 변경 후 USER_UPDATED 포함)
     supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
         const profile = await fetchProfile(session.user.id)
-        set({ user: profile, loading: false })
+        localStorage.removeItem(GUEST_FLAG_KEY)
+        set({ user: profile, isGuest: false, loading: false })
       } else {
-        set({ user: null, loading: false })
+        const guest = localStorage.getItem(GUEST_FLAG_KEY) === '1'
+        set({ user: null, isGuest: guest, loading: false })
       }
     })
   },
@@ -114,10 +123,12 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
   signOut: async () => {
     await supabase.auth.signOut()
+    localStorage.removeItem(GUEST_FLAG_KEY)
     set({ user: null, isGuest: false })
   },
 
   guestLogin: () => {
+    localStorage.setItem(GUEST_FLAG_KEY, '1')
     set({ isGuest: true, user: null, loading: false })
   },
 
