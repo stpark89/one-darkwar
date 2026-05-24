@@ -1,6 +1,5 @@
 import { create } from 'zustand'
 import { supabase } from '@/lib/supabase'
-import { withTimeout } from '@/lib/timeout'
 
 export type UserRole = 'ROLE_USER' | 'ROLE_ADMIN'
 
@@ -64,12 +63,12 @@ export const useAuthStore = create<AuthStore>((set) => ({
   loadSession: async () => {
     set({ loading: true })
     try {
-      // getSession 이 hang 되어도 8초 안에 강제 종료 — Layout 전체가
-      // spinner 로 막혀 무한 로딩이 되던 케이스의 핵심 fix.
-      const sessionResult = await withTimeout(supabase.auth.getSession(), 8000)
-      const session = sessionResult?.data?.session
+      // ※ 여기에 timeout 을 걸지 않는다. fetch 가 느려도 user/세션은
+      //   기다리는 게 낫고, timeout 으로 reject 되면 user=null 처리되어
+      //   사용자가 의도치 않게 로그아웃당하는 부작용이 발생함.
+      const { data: { session } } = await supabase.auth.getSession()
       if (session?.user) {
-        const profile = await withTimeout(fetchProfile(session.user.id), 8000).catch(() => null)
+        const profile = await fetchProfile(session.user.id)
         localStorage.removeItem(GUEST_FLAG_KEY)
         set({ user: profile, isGuest: false })
       } else {
@@ -77,10 +76,9 @@ export const useAuthStore = create<AuthStore>((set) => ({
         set({ user: null, isGuest: guest })
       }
     } catch (err) {
+      // 에러가 나도 user 상태는 건드리지 않는다(강제 로그아웃 부작용 방지).
+      // 로딩만 풀어서 화면이 spinner 로 막히지 않게 함.
       console.error('[authStore] loadSession exception:', err)
-      // 실패 시 게스트 플래그라도 복원해서 화면 진입은 가능하게
-      const guest = localStorage.getItem(GUEST_FLAG_KEY) === '1'
-      set({ user: null, isGuest: guest })
     } finally {
       set({ loading: false })
     }
@@ -89,7 +87,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
     supabase.auth.onAuthStateChange(async (_event, session) => {
       try {
         if (session?.user) {
-          const profile = await withTimeout(fetchProfile(session.user.id), 8000).catch(() => null)
+          const profile = await fetchProfile(session.user.id)
           localStorage.removeItem(GUEST_FLAG_KEY)
           set({ user: profile, isGuest: false, loading: false })
         } else {
