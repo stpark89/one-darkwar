@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, Navigate } from 'react-router-dom'
-import { Send, Loader2, CheckCircle2, XCircle, Clock, Trash2, RotateCcw, Home, Layers, Pencil, Plus, Save, X } from 'lucide-react'
+import { Send, Loader2, CheckCircle2, XCircle, Clock, Trash2, RotateCcw, Home, Layers, Pencil, Plus, Save, X, ChevronDown } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { useTransferStore } from '@/infrastructure/stores/transferStore'
@@ -68,6 +68,9 @@ export const TransferPage = () => {
   const [submitted, setSubmitted] = useState(false)
   const [tab, setTab] = useState<TransferStatus>('PENDING')
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
+
+  // 국가 셀렉터 드롭다운
+  const [countryOpen, setCountryOpen] = useState(false)
 
   // 등급 편집 (관리자만)
   const [tierEditMode, setTierEditMode] = useState(false)
@@ -216,33 +219,50 @@ export const TransferPage = () => {
             </div>
 
             <div>
-              <label className="text-xs text-[var(--color-text-muted)] mb-1.5 block">{t('transfer.field_country')}</label>
-              <div className="grid grid-cols-4 sm:grid-cols-7 gap-1.5">
-                {COUNTRY_OPTIONS.map((code) => {
-                  const selected = country === code
-                  return (
-                    <button
-                      key={code}
-                      type="button"
-                      onClick={() => setCountry(selected ? '' : code)}
-                      title={t(`transfer.country_${code.toLowerCase()}`)}
-                      className={cn(
-                        'aspect-square flex items-center justify-center rounded-lg border text-2xl transition-all',
-                        selected
-                          ? 'border-[var(--color-brand)] bg-[var(--color-brand)]/15 scale-105 shadow-md'
-                          : 'border-[var(--color-border-subtle)] bg-[var(--color-bg-elevated)] hover:border-[var(--color-brand)]/40 hover:bg-[var(--color-bg-base)] opacity-70 hover:opacity-100',
-                      )}
-                    >
-                      <span className="leading-none">{COUNTRY_FLAGS[code]}</span>
-                    </button>
-                  )
-                })}
+              <label className="text-xs text-[var(--color-text-muted)] mb-1 block">{t('transfer.field_country')}</label>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setCountryOpen((v) => !v)}
+                  className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-[var(--color-bg-elevated)] border border-[var(--color-border-subtle)] hover:border-[var(--color-brand)]/40 transition-colors"
+                >
+                  {country ? (
+                    <span className="flex items-center gap-2 text-sm text-[var(--color-text-primary)]">
+                      <span className="text-base leading-none">{COUNTRY_FLAGS[country]}</span>
+                      <span>{t(`transfer.country_${country.toLowerCase()}`)}</span>
+                    </span>
+                  ) : (
+                    <span className="text-sm text-[var(--color-text-muted)]">
+                      {t('transfer.field_country_placeholder')}
+                    </span>
+                  )}
+                  <ChevronDown className={cn('w-4 h-4 text-[var(--color-text-muted)] transition-transform flex-shrink-0', countryOpen && 'rotate-180')} />
+                </button>
+                {countryOpen && (
+                  <>
+                    <div className="fixed inset-0 z-10" onClick={() => setCountryOpen(false)} />
+                    <div className="absolute left-0 right-0 mt-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-surface)] shadow-xl overflow-hidden z-20">
+                      {COUNTRY_OPTIONS.map((code) => (
+                        <button
+                          key={code}
+                          type="button"
+                          onClick={() => { setCountry(code); setCountryOpen(false) }}
+                          className={cn(
+                            'w-full flex items-center gap-2.5 px-3 py-2.5 text-sm transition-colors text-left',
+                            country === code
+                              ? 'bg-[var(--color-brand)]/15 text-[var(--color-brand)] font-semibold'
+                              : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-elevated)]',
+                          )}
+                        >
+                          <span className="text-base leading-none">{COUNTRY_FLAGS[code]}</span>
+                          {t(`transfer.country_${code.toLowerCase()}`)}
+                          {country === code && <span className="ml-auto text-[10px]">✓</span>}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
-              {country && (
-                <p className="text-[11px] text-[var(--color-text-muted)] mt-1.5">
-                  {t('transfer.field_country_selected', { name: t(`transfer.country_${country.toLowerCase()}`) })}
-                </p>
-              )}
             </div>
 
             <div>
