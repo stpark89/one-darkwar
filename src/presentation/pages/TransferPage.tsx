@@ -137,8 +137,15 @@ export const TransferPage = () => {
     e.preventDefault()
     if (!inGameName.trim() || submitting) return
     setSubmitting(true)
-    const ok = await submit({ inGameName, uid, currentServer, country, cp, tierId: selectedTierId })
-    setSubmitting(false)
+    let ok = false
+    try {
+      ok = await submit({ inGameName, uid, currentServer, country, cp, tierId: selectedTierId })
+    } catch (err) {
+      console.error('[TransferPage] submit exception:', err)
+    } finally {
+      // 어떤 경로로 끝나도 spinner 풀림 (무한 로딩 방지)
+      setSubmitting(false)
+    }
     if (ok) {
       setSubmitted(true)
       setInGameName('')

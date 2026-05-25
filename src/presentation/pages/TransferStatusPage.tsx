@@ -52,7 +52,7 @@ export const TransferStatusPage = () => {
   }
 
   return (
-    <div className="p-4 sm:p-8 max-w-xl mx-auto space-y-5">
+    <div className="p-4 sm:p-8 max-w-xl mx-auto space-y-5 break-keep">
       {/* Header */}
       <div className="flex items-center gap-2 mb-2">
         <button
@@ -143,7 +143,7 @@ export const TransferStatusPage = () => {
                         <MessageSquare className="w-3.5 h-3.5 text-[var(--color-brand)]" />
                         <p className="text-[11px] font-semibold text-[var(--color-brand)]">{t('transfer_status.admin_message_label')}</p>
                       </div>
-                      <p className="text-sm text-[var(--color-text-primary)] whitespace-pre-wrap leading-relaxed">
+                      <p className="text-sm text-[var(--color-text-primary)] whitespace-pre-wrap leading-relaxed break-words">
                         {a.adminMessage}
                       </p>
                     </div>

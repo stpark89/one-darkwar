@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
+import { withTimeout } from '@/lib/timeout'
 import type { TransferApplication, TransferDraft, TransferStatus } from '@/domain/entities/Transfer'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -124,15 +125,28 @@ export const useTransferStore = create<TransferStore>((set) => ({
     const trimmedName = inGameName.trim()
     const trimmedUid = uid.trim()
     if (!trimmedName || !trimmedUid) return []
-    const { data, error } = await supabase.rpc('get_my_transfer', {
-      p_name: trimmedName,
-      p_uid: trimmedUid,
-    })
-    if (error) {
-      console.error('transfer lookup error', error)
+    try {
+      // RPC 가 hang 되어도 8초 안에 반드시 풀리도록 race
+      const res = await withTimeout(
+        Promise.resolve(
+          supabase.rpc('get_my_transfer', {
+            p_name: trimmedName,
+            p_uid: trimmedUid,
+          }),
+        ),
+        8000,
+      )
+      if (res.error) {
+        console.error('transfer lookup error', res.error)
+        toast.error('조회 중 오류가 발생했습니다.')
+        return []
+      }
+      return ((res.data ?? []) as unknown[]).map(toApp)
+    } catch (err) {
+      console.error('transfer lookup timeout/exception', err)
+      toast.error('조회 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.')
       return []
     }
-    return ((data ?? []) as unknown[]).map(toApp)
   },
 
   updateTier: async (id, tierId) => {
