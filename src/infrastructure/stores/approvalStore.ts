@@ -30,7 +30,7 @@ interface ApprovalStore {
   loadRejected: (force?: boolean) => Promise<void>
   loadApproved: (force?: boolean) => Promise<void>
   approveUser: (userId: string) => Promise<void>
-  rejectUser: (userId: string) => Promise<void>
+  rejectUser: (userId: string, adminMessage?: string) => Promise<void>
   restoreUser: (userId: string) => Promise<void>
   purgeUser: (userId: string) => Promise<void>
   changeRole: (userId: string, role: 'ROLE_ADMIN' | 'ROLE_USER') => Promise<void>
@@ -124,9 +124,11 @@ export const useApprovalStore = create<ApprovalStore>((set, get) => ({
     set({ pendingUsers: users, pendingCount: users.length })
   },
 
-  rejectUser: async (userId) => {
+  rejectUser: async (userId, adminMessage) => {
     const target = get().pendingUsers.find((u) => u.id === userId)
-    await supabase.from('profiles').update({ status: 'REJECTED' }).eq('id', userId)
+    const payload: Record<string, string> = { status: 'REJECTED' }
+    if (typeof adminMessage === 'string') payload.admin_message = adminMessage
+    await supabase.from('profiles').update(payload).eq('id', userId)
     const pending = get().pendingUsers.filter((u) => u.id !== userId)
     const rejected = target ? [target, ...get().rejectedUsers] : get().rejectedUsers
     set({ pendingUsers: pending, pendingCount: pending.length, rejectedUsers: rejected })

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { Eye, EyeOff, Loader2, UserX } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { useAuthStore, PENDING_APPROVAL_ERROR } from '@/infrastructure/stores/authStore'
+import { useAuthStore, PENDING_APPROVAL_ERROR, REJECTED_ERROR } from '@/infrastructure/stores/authStore'
 import { Input } from '@/presentation/components/ui/input'
 import { Button } from '@/presentation/components/ui/button'
 import { LangSelector } from '@/presentation/components/ui/lang-selector'
@@ -10,7 +10,7 @@ import { getSessionAvatar } from '@/lib/avatars'
 
 export const SignInPage = () => {
   const { t } = useTranslation()
-  const { signIn, guestLogin } = useAuthStore()
+  const { signIn, guestLogin, rejectMessage, clearRejectMessage } = useAuthStore()
   const navigate = useNavigate()
 
   const handleGuestLogin = () => {
@@ -29,10 +29,18 @@ export const SignInPage = () => {
     if (!name.trim() || !password) return
     setLoading(true)
     setError(null)
+    clearRejectMessage()
     try {
       const err = await signIn(name, password)
       if (err) {
-        setError(err === PENDING_APPROVAL_ERROR ? t('auth.pending_login_error') : t('auth.sign_in_error'))
+        if (err === PENDING_APPROVAL_ERROR) {
+          setError(t('auth.pending_login_error'))
+        } else if (err === REJECTED_ERROR) {
+          // 거절 메시지는 별도 영역에 표시 (rejectMessage 스토어 상태 사용)
+          setError(t('auth.rejected_login_error'))
+        } else {
+          setError(t('auth.sign_in_error'))
+        }
         return
       }
       navigate('/', { replace: true })
@@ -92,7 +100,17 @@ export const SignInPage = () => {
           </div>
 
           {error && (
-            <p className="text-xs text-[var(--color-danger)] bg-[var(--color-danger)]/10 px-3 py-2 rounded-lg">{error}</p>
+            <p className="text-xs text-[var(--color-danger)] bg-[var(--color-danger)]/10 px-3 py-2 rounded-lg break-keep">{error}</p>
+          )}
+
+          {/* 거절 메시지 — 관리자가 거절 시 적은 안내문 */}
+          {rejectMessage && (
+            <div className="bg-yellow-400/10 border border-yellow-400/30 px-3 py-2.5 rounded-lg">
+              <p className="text-[11px] font-semibold text-yellow-300 mb-1">{t('auth.admin_message_label')}</p>
+              <p className="text-xs text-[var(--color-text-primary)] whitespace-pre-wrap leading-relaxed break-keep break-words">
+                {rejectMessage}
+              </p>
+            </div>
           )}
 
           <Button type="submit" size="full" disabled={loading || !name.trim() || !password}>

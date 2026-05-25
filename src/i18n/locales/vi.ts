@@ -325,6 +325,8 @@ export default {
     pending_title: 'Đã gửi đơn đăng ký',
     pending_desc: 'Bạn có thể đăng nhập sau khi quản trị viên phê duyệt tài khoản.',
     pending_login_error: 'Tài khoản đang chờ phê duyệt. Vui lòng liên hệ quản trị viên.',
+    rejected_login_error: 'Đơn đăng ký đã bị từ chối. Vui lòng xem ghi chú bên dưới.',
+    admin_message_label: 'Ghi chú từ quản trị viên',
   },
   contribution: {
     title: 'Đóng góp',
@@ -382,6 +384,9 @@ export default {
     reject: 'Từ chối',
     reject_title: 'Từ chối đơn',
     reject_desc: 'Thành viên bị từ chối có thể được xem lại trong tab Đã từ chối.',
+    reject_message_label: 'Lý do / lời nhắn cho người đăng ký (tùy chọn)',
+    reject_message_placeholder: 'VD: Bạn đã có tài khoản với tên \'Thỏ Cùi Chỏ\'. Hãy đăng nhập bằng tài khoản đó.',
+    reject_message_hint: 'Người đăng ký sẽ thấy lời nhắn này khi cố gắng đăng nhập.',
     restore: 'Duyệt lại',
     purge: 'Xóa',
     purge_title: 'Xóa vĩnh viễn',

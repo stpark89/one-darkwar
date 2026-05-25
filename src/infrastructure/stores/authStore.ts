@@ -16,6 +16,8 @@ interface AuthStore {
   isGuest: boolean
   /** 게스트가 일반 메뉴를 read-only 로 둘러볼 수 있는 모드 (게스트 한정) */
   isTourMode: boolean
+  /** 거절된 사용자 로그인 시 표시할 관리자 메시지 */
+  rejectMessage: string | null
   loadSession: () => Promise<void>
   signIn: (inGameName: string, password: string) => Promise<string | null>
   signUp: (inGameName: string, password: string) => Promise<string | null>
@@ -23,6 +25,7 @@ interface AuthStore {
   guestLogin: () => void
   enterTourMode: () => void
   exitTourMode: () => void
+  clearRejectMessage: () => void
   updateLastSeen: () => Promise<void>
 }
 
@@ -32,6 +35,8 @@ const toEmail = (name: string) =>
 
 // 승인 대기 사용자임을 알리는 특수 에러 코드
 export const PENDING_APPROVAL_ERROR = 'PENDING_APPROVAL'
+// 거절된 사용자임을 알리는 특수 에러 코드 (관리자 메시지는 authStore.rejectMessage 에 저장)
+export const REJECTED_ERROR = 'REJECTED'
 
 // 게스트 상태를 새로고침 후에도 유지하기 위한 localStorage 키
 const GUEST_FLAG_KEY = 'odw_guest'
@@ -58,7 +63,8 @@ async function fetchProfile(userId: string): Promise<AuthUser | null> {
     .eq('id', userId)
     .single()
   if (!data) return null
-  if (data.status === 'PENDING') return null  // 미승인 → 로그인 불가
+  // PENDING / REJECTED 는 로그인 불가
+  if (data.status === 'PENDING' || data.status === 'REJECTED') return null
   return { id: data.id, inGameName: data.in_game_name, role: data.role as UserRole }
 }
 
@@ -67,6 +73,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
   loading: true,
   isGuest: false,
   isTourMode: typeof window !== 'undefined' && localStorage.getItem(TOUR_FLAG_KEY) === '1',
+  rejectMessage: null,
 
   loadSession: async () => {
     set({ loading: true })
@@ -152,7 +159,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
             Promise.resolve(
               supabase
                 .from('profiles')
-                .select('id, in_game_name, role, status')
+                .select('id, in_game_name, role, status, admin_message')
                 .eq('id', data.user.id)
                 .single(),
             ),
@@ -165,6 +172,15 @@ export const useAuthStore = create<AuthStore>((set) => ({
               new Promise<void>((resolve) => setTimeout(resolve, 2000)),
             ])
             return PENDING_APPROVAL_ERROR
+          }
+          if (profile?.status === 'REJECTED') {
+            // 거절된 계정 — 관리자 메시지를 store 에 저장해서 SignInPage 가 보여주게 함
+            set({ rejectMessage: profile.admin_message ?? '' })
+            await Promise.race([
+              supabase.auth.signOut(),
+              new Promise<void>((resolve) => setTimeout(resolve, 2000)),
+            ])
+            return REJECTED_ERROR
           }
           if (profile) {
             set({ user: { id: profile.id, inGameName: profile.in_game_name, role: profile.role as UserRole } })
@@ -242,6 +258,8 @@ export const useAuthStore = create<AuthStore>((set) => ({
     localStorage.removeItem(TOUR_FLAG_KEY)
     set({ isTourMode: false })
   },
+
+  clearRejectMessage: () => set({ rejectMessage: null }),
 
   updateLastSeen: async () => {
     const { user } = useAuthStore.getState()

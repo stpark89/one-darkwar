@@ -20,6 +20,7 @@ export const MemberApprovalPage = () => {
   const [processingId, setProcessingId] = useState<string | null>(null)
   const [confirmId, setConfirmId] = useState<string | null>(null)
   const [confirmType, setConfirmType] = useState<'reject' | 'purge' | null>(null)
+  const [rejectMessage, setRejectMessage] = useState<string>('')  // 거절 시 사용자에게 보낼 메시지
   const [roleChangingId, setRoleChangingId] = useState<string | null>(null)
 
   useEffect(() => { loadPending() }, [loadPending])
@@ -36,10 +37,11 @@ export const MemberApprovalPage = () => {
 
   const handleReject = async (userId: string) => {
     setProcessingId(userId)
-    await rejectUser(userId)
+    await rejectUser(userId, rejectMessage.trim())
     setProcessingId(null)
     setConfirmId(null)
     setConfirmType(null)
+    setRejectMessage('')
   }
 
   const handleRestore = async (userId: string) => {
@@ -64,6 +66,7 @@ export const MemberApprovalPage = () => {
   const closeConfirm = () => {
     setConfirmId(null)
     setConfirmType(null)
+    setRejectMessage('')
   }
 
   const handleRoleChange = async (userId: string, currentRole: 'ROLE_ADMIN' | 'ROLE_USER') => {
@@ -318,9 +321,29 @@ export const MemberApprovalPage = () => {
                 <p className="text-sm text-[var(--color-text-muted)] mt-0.5">{confirmTarget?.inGameName}</p>
               </div>
             </div>
-            <p className="text-sm text-[var(--color-text-secondary)] mb-5">
+            <p className="text-sm text-[var(--color-text-secondary)] mb-4 break-keep">
               {confirmType === 'reject' ? t('approval.reject_desc') : t('approval.purge_desc')}
             </p>
+
+            {/* 거절 메시지 입력 — 거절 시에만 노출 */}
+            {confirmType === 'reject' && (
+              <div className="mb-5">
+                <label className="text-xs font-semibold text-[var(--color-text-muted)] mb-1.5 block">
+                  {t('approval.reject_message_label')}
+                </label>
+                <textarea
+                  value={rejectMessage}
+                  onChange={(e) => setRejectMessage(e.target.value)}
+                  placeholder={t('approval.reject_message_placeholder')}
+                  rows={3}
+                  className="w-full px-3 py-2 text-sm rounded-lg bg-[var(--color-bg-elevated)] border border-[var(--color-border-subtle)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] outline-none focus:border-[var(--color-brand)] resize-none"
+                />
+                <p className="text-[10px] text-[var(--color-text-muted)] mt-1 break-keep">
+                  {t('approval.reject_message_hint')}
+                </p>
+              </div>
+            )}
+
             <div className="flex gap-2">
               <button
                 onClick={closeConfirm}

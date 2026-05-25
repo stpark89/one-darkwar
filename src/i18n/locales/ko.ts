@@ -325,6 +325,8 @@ export default {
     pending_title: '가입 신청 완료',
     pending_desc: '관리자가 승인하면 로그인할 수 있습니다. 승인까지 잠시 기다려 주세요.',
     pending_login_error: '승인 대기 중입니다. 관리자에게 문의하세요.',
+    rejected_login_error: '가입이 거절되었습니다. 아래 안내를 확인해주세요.',
+    admin_message_label: '관리자 안내',
   },
   contribution: {
     title: '기여도 현황',
@@ -382,6 +384,9 @@ export default {
     reject: '거절',
     reject_title: '가입 거절',
     reject_desc: '가입 신청을 거절합니다. 거절된 회원은 가입 관리 탭에서 다시 확인할 수 있습니다.',
+    reject_message_label: '거절 사유 / 안내 메시지 (선택)',
+    reject_message_placeholder: '예) 이미 \'Thỏ Cùi Chỏ\' 계정으로 가입되어 있습니다. 그 계정으로 로그인하세요.',
+    reject_message_hint: '신청자가 로그인 시도하면 위 메시지를 볼 수 있습니다.',
     restore: '다시 승인',
     purge: '완전 삭제',
     purge_title: '완전 삭제',

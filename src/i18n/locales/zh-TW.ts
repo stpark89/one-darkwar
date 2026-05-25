@@ -325,6 +325,8 @@ export default {
     pending_title: '申請已提交',
     pending_desc: '管理員審核通過後即可登入，請稍候。',
     pending_login_error: '帳號待審核中，請聯繫管理員。',
+    rejected_login_error: '您的申請已被拒絕。請查看下方說明。',
+    admin_message_label: '管理員說明',
   },
   contribution: {
     title: '貢獻度',
@@ -382,6 +384,9 @@ export default {
     reject: '拒絕',
     reject_title: '拒絕申請',
     reject_desc: '被拒絕的會員可在已拒絕標籤中再次查看。',
+    reject_message_label: '拒絕原因 / 給申請者的訊息（選填）',
+    reject_message_placeholder: '例：您已用「Thỏ Cùi Chỏ」帳號註冊，請使用該帳號登入。',
+    reject_message_hint: '申請者嘗試登入時將看到此訊息。',
     restore: '重新通過',
     purge: '永久刪除',
     purge_title: '永久刪除',

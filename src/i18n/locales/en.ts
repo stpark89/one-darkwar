@@ -325,6 +325,8 @@ export default {
     pending_title: 'Application Submitted',
     pending_desc: 'You can log in once an admin approves your account. Please wait a moment.',
     pending_login_error: 'Your account is pending approval. Please contact an admin.',
+    rejected_login_error: 'Your application was rejected. Please see the note below.',
+    admin_message_label: 'Note from admin',
   },
   contribution: {
     title: 'Contribution',
@@ -382,6 +384,9 @@ export default {
     reject: 'Reject',
     reject_title: 'Reject Application',
     reject_desc: 'Rejected members can be reviewed again in the Rejected tab.',
+    reject_message_label: 'Reason / message to applicant (optional)',
+    reject_message_placeholder: 'e.g. You already have an account as \'Thỏ Cùi Chỏ\'. Please log in with that account.',
+    reject_message_hint: 'The applicant will see this message when they try to sign in.',
     restore: 'Re-approve',
     purge: 'Delete',
     purge_title: 'Permanent Delete',
