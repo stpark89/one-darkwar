@@ -156,8 +156,13 @@ export const HomePage = () => {
         promises.push(loadNotices())
         promises.push(loadPosts(true))
 
-        // Promise.allSettled 로 일부 실패해도 다른 fetch 완료 보장
-        await Promise.allSettled(promises)
+        // Promise.allSettled 로 일부 실패해도 다른 fetch 완료 보장.
+        // 추가로 15초 race timeout — PWA 휴면 후 일부 fetch 가 영원히
+        // hang 되는 경우에도 spinner 가 풀리도록 강제 안전망.
+        await Promise.race([
+          Promise.allSettled(promises),
+          new Promise<void>((resolve) => setTimeout(resolve, 15000)),
+        ])
       } catch (err) {
         console.error('[HomePage] init exception:', err)
       } finally {
