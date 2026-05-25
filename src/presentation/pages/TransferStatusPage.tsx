@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, Loader2, CheckCircle2, XCircle, Clock, ArrowLeft, MessageSquare } from 'lucide-react'
+import { Search, Loader2, CheckCircle2, XCircle, Clock, ArrowLeft, MessageSquare, Languages } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useTransferStore } from '@/infrastructure/stores/transferStore'
 import { useTransferTierStore } from '@/infrastructure/stores/transferTierStore'
 import type { TransferApplication, TransferStatus } from '@/domain/entities/Transfer'
 import { Input } from '@/presentation/components/ui/input'
 import { Button } from '@/presentation/components/ui/button'
+import { translateText } from '@/lib/translate'
 import { cn } from '@/lib/utils'
 
 const STATUS_META: Record<TransferStatus, { icon: typeof Clock; color: string; bg: string }> = {
@@ -20,7 +21,7 @@ const COUNTRY_FLAGS: Record<string, string> = {
 }
 
 export const TransferStatusPage = () => {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const { lookupByCredentials } = useTransferStore()
   const { tiers, loadAll: loadTiers } = useTransferTierStore()
@@ -30,6 +31,36 @@ export const TransferStatusPage = () => {
   const [loading, setLoading] = useState(false)
   const [searched, setSearched] = useState(false)
   const [results, setResults] = useState<TransferApplication[]>([])
+
+  // 번역 토글 상태 — 신청 id → 번역된 텍스트
+  const [translations, setTranslations] = useState<Map<string, string>>(new Map())
+  const [translating, setTranslating] = useState<Set<string>>(new Set())
+
+  const handleTranslate = async (id: string, original: string) => {
+    // 이미 번역 표시 중이면 원문으로 복귀
+    if (translations.has(id)) {
+      setTranslations((prev) => {
+        const next = new Map(prev)
+        next.delete(id)
+        return next
+      })
+      return
+    }
+    if (!original.trim()) return
+    setTranslating((prev) => new Set(prev).add(id))
+    try {
+      const translated = await translateText(original, i18n.language)
+      setTranslations((prev) => new Map(prev).set(id, translated))
+    } catch (err) {
+      console.error('[TransferStatus] translate error', err)
+    } finally {
+      setTranslating((prev) => {
+        const next = new Set(prev)
+        next.delete(id)
+        return next
+      })
+    }
+  }
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -139,12 +170,24 @@ export const TransferStatusPage = () => {
                   {/* 관리자 메시지 */}
                   {a.adminMessage && (
                     <div className="bg-[var(--color-bg-elevated)] border border-[var(--color-border-subtle)] rounded-lg p-3">
-                      <div className="flex items-center gap-1.5 mb-1.5">
-                        <MessageSquare className="w-3.5 h-3.5 text-[var(--color-brand)]" />
-                        <p className="text-[11px] font-semibold text-[var(--color-brand)]">{t('transfer_status.admin_message_label')}</p>
+                      <div className="flex items-center justify-between gap-2 mb-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <MessageSquare className="w-3.5 h-3.5 text-[var(--color-brand)]" />
+                          <p className="text-[11px] font-semibold text-[var(--color-brand)]">{t('transfer_status.admin_message_label')}</p>
+                        </div>
+                        <button
+                          onClick={() => handleTranslate(a.id, a.adminMessage)}
+                          disabled={translating.has(a.id)}
+                          className="flex items-center gap-1 text-[10px] font-semibold text-[var(--color-text-muted)] hover:text-[var(--color-brand)] transition-colors disabled:opacity-50"
+                        >
+                          {translating.has(a.id)
+                            ? <Loader2 className="w-3 h-3 animate-spin" />
+                            : <Languages className="w-3 h-3" />}
+                          {translations.has(a.id) ? t('questions.show_original') : t('questions.translate_btn')}
+                        </button>
                       </div>
                       <p className="text-sm text-[var(--color-text-primary)] whitespace-pre-wrap leading-relaxed break-words">
-                        {a.adminMessage}
+                        {translations.get(a.id) ?? a.adminMessage}
                       </p>
                     </div>
                   )}
