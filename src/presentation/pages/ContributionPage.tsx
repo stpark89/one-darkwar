@@ -220,7 +220,7 @@ export const ContributionPage = () => {
         <Input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('contribution.search_placeholder')} className="pl-9" />
       </div>
 
-      <div className="rounded-lg border border-[var(--color-border-subtle)] overflow-auto w-full max-h-[calc(100vh-180px)] sm:max-h-[calc(100vh-240px)]">
+      <div className="rounded-lg border border-[var(--color-border-subtle)] overflow-auto w-full max-h-[calc(100dvh-180px)] sm:max-h-[calc(100dvh-240px)]">
         <table className="w-full text-sm">
           <thead className="sticky top-0 z-10">
             <tr className="bg-[var(--color-bg-surface)] border-b border-[var(--color-border-subtle)]">

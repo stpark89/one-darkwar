@@ -536,7 +536,11 @@ export const ChatWidget = () => {
   return (
     <div
       className="fixed z-50 flex flex-col items-end gap-2"
-      style={{ right: chatPos.right, bottom: chatPos.bottom }}
+      style={{
+        // iOS PWA: 노치 / 홈 인디케이터 영역 회피
+        right: `calc(${chatPos.right}px + env(safe-area-inset-right))`,
+        bottom: `calc(${chatPos.bottom}px + env(safe-area-inset-bottom))`,
+      }}
     >
       {open && (
         <div className="w-[calc(100vw-24px)] sm:w-80 h-[70vh] sm:h-[480px] rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] shadow-2xl flex flex-col overflow-hidden">

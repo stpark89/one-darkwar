@@ -76,6 +76,11 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
         collapsed && 'md:w-14',
         mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
       )}
+      style={{
+        // iOS PWA: 노치 / 홈 인디케이터 영역 회피
+        paddingTop: 'env(safe-area-inset-top)',
+        paddingBottom: 'env(safe-area-inset-bottom)',
+      }}
     >
       {/* 로고 */}
       <div className={cn('flex items-center border-b border-[var(--color-border-subtle)]', collapsed ? 'md:justify-center px-5 md:px-0 py-5' : 'gap-3 px-5 py-5')}>

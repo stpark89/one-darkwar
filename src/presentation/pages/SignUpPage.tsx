@@ -34,7 +34,7 @@ export const SignUpPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg-base)] flex items-center justify-center p-4">
+    <div className="min-h-screen min-h-dvh bg-[var(--color-bg-base)] flex items-center justify-center p-4">
       <div className="absolute top-4 right-4">
         <LangSelector />
       </div>

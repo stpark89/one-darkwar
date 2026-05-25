@@ -73,7 +73,7 @@ export const Layout = () => {
   }
 
   if (loading && !forceUnblock) return (
-    <div className="min-h-screen bg-[var(--color-bg-base)] flex items-center justify-center">
+    <div className="min-h-screen min-h-dvh bg-[var(--color-bg-base)] flex items-center justify-center">
       <Loader2 className="w-6 h-6 animate-spin text-[var(--color-brand)]" />
     </div>
   )
@@ -93,7 +93,14 @@ export const Layout = () => {
   }
 
   return (
-    <div className="flex min-h-screen w-full" style={{ maxWidth: '100vw', overflowX: 'clip' }}>
+    <div
+      className="flex min-h-screen w-full"
+      style={{
+        maxWidth: '100vw',
+        overflowX: 'clip',
+        minHeight: '100dvh',  // iOS Safari 동적 툴바 대응 (fallback: min-h-screen)
+      }}
+    >
       {mobileOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-30 md:hidden"
@@ -110,13 +117,17 @@ export const Layout = () => {
 
       <main
         className={cn(
-          'flex-1 min-h-screen bg-[var(--color-bg-base)] transition-all duration-200 min-w-0 overflow-x-clip',
+          'flex-1 min-h-screen min-h-dvh bg-[var(--color-bg-base)] transition-all duration-200 min-w-0 overflow-x-clip',
           'ml-0',
           collapsed ? 'md:ml-14' : 'md:ml-56',
         )}
       >
         {/* 공지 배너 + 모바일 헤더를 하나의 sticky 블록으로 묶음 */}
-        <div className="sticky top-0 z-20 bg-[var(--color-bg-base)]">
+        {/* iOS PWA 노치 회피: 상단 safe-area 확보 */}
+        <div
+          className="sticky top-0 z-20 bg-[var(--color-bg-base)]"
+          style={{ paddingTop: 'env(safe-area-inset-top)' }}
+        >
           {/* 공지 배너 */}
           {showBanner && prominentNotice && (
             <div className="flex items-center gap-2 px-4 py-2 bg-[var(--color-brand)]/20 border-b border-[var(--color-brand)]/30">

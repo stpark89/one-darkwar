@@ -300,7 +300,7 @@ export const WarPage = () => {
 
       {/* ── GRID TAB ── */}
       {activeTab === 'grid' && (
-        <div className="rounded-lg border border-[var(--color-border-subtle)] overflow-auto w-full max-h-[calc(100vh-260px)] sm:max-h-[calc(100vh-320px)]">
+        <div className="rounded-lg border border-[var(--color-border-subtle)] overflow-auto w-full max-h-[calc(100dvh-260px)] sm:max-h-[calc(100dvh-320px)]">
           <table className="text-xs">
             <thead className="sticky top-0 z-10">
               <tr className="bg-[var(--color-bg-surface)] border-b border-[var(--color-border-subtle)]">
@@ -416,7 +416,7 @@ export const WarPage = () => {
 
       {/* ── RANKING TAB ── */}
       {activeTab === 'ranking' && (
-        <div className="space-y-2 overflow-auto max-h-[calc(100vh-200px)] sm:max-h-[calc(100vh-280px)]">
+        <div className="space-y-2 overflow-auto max-h-[calc(100dvh-200px)] sm:max-h-[calc(100dvh-280px)]">
           {summary.filter(s => s.total > 0).map((s, i) => (
             <div key={s.memberId} className="flex items-center gap-3 px-4 py-3 rounded-lg bg-[var(--color-bg-surface)] border border-[var(--color-border-subtle)]">
               <span className={cn('text-lg font-black w-8 text-center',

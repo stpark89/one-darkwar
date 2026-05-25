@@ -189,7 +189,7 @@ export const VsPointPage = () => {
       )}
 
       {/* Table */}
-      <div className="rounded-lg border border-[var(--color-border-subtle)] overflow-auto w-full max-h-[calc(100vh-220px)] sm:max-h-[calc(100vh-280px)]">
+      <div className="rounded-lg border border-[var(--color-border-subtle)] overflow-auto w-full max-h-[calc(100dvh-220px)] sm:max-h-[calc(100dvh-280px)]">
         <table className="text-xs">
           <thead className="sticky top-0 z-10">
             <tr className="bg-[var(--color-bg-surface)] border-b border-[var(--color-border-subtle)]">
