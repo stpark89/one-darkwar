@@ -32,8 +32,21 @@ export const MembersPage = () => {
 
   const [form, setForm] = useState<Partial<Member> | null>(null)
   const [editId, setEditId] = useState<string | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<Member | null>(null)
+  const [deleting, setDeleting] = useState(false)
   const [sortKey, setSortKey] = useState<SortKey>('cp')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
+
+  const confirmDelete = async () => {
+    if (!deleteConfirm || deleting) return
+    setDeleting(true)
+    try {
+      await deleteMember(deleteConfirm.id)
+      setDeleteConfirm(null)
+    } finally {
+      setDeleting(false)
+    }
+  }
 
   useEffect(() => { loadMembers() }, [loadMembers])
 
@@ -149,7 +162,7 @@ export const MembersPage = () => {
                         <Pencil className="w-3.5 h-3.5" />
                       </button>
                       {canEdit && (
-                        <button onClick={() => deleteMember(m.id)} className="p-1.5 rounded hover:bg-[var(--color-bg-elevated)] text-(--color-danger) hover:brightness-125">
+                        <button onClick={() => setDeleteConfirm(m)} className="p-1.5 rounded hover:bg-[var(--color-bg-elevated)] text-(--color-danger) hover:brightness-125">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       )}
@@ -201,6 +214,39 @@ export const MembersPage = () => {
               <Button variant="outline" size="full" onClick={closeForm}>{t('common.cancel')}</Button>
               <Button size="full" onClick={handleSave} disabled={!form.inGameName?.trim()}>
                 {editId ? t('common.save') : t('common.add')}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 삭제 확인 모달 */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-[var(--color-bg-surface)] rounded-xl border border-[var(--color-border)] w-full max-w-sm p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-[var(--color-danger)]/15 flex items-center justify-center flex-shrink-0">
+                <Trash2 className="w-5 h-5 text-[var(--color-danger)]" />
+              </div>
+              <div className="min-w-0">
+                <h2 className="text-base font-bold text-[var(--color-text-primary)]">{t('members.delete_title')}</h2>
+                <p className="text-sm text-[var(--color-text-muted)] mt-0.5 truncate">{deleteConfirm.inGameName}</p>
+              </div>
+            </div>
+            <p className="text-sm text-[var(--color-text-secondary)] mb-2">{t('members.delete_desc')}</p>
+            <p className="text-xs text-[var(--color-danger)] mb-5 break-keep">{t('members.delete_cascade_warning')}</p>
+            <div className="flex gap-2">
+              <Button variant="outline" size="full" onClick={() => setDeleteConfirm(null)} disabled={deleting}>
+                {t('common.cancel')}
+              </Button>
+              <Button
+                size="full"
+                className="bg-[var(--color-danger)] hover:bg-red-700 text-white"
+                onClick={confirmDelete}
+                disabled={deleting}
+              >
+                {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                {t('common.delete')}
               </Button>
             </div>
           </div>
