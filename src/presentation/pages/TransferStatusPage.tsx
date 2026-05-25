@@ -26,7 +26,6 @@ export const TransferStatusPage = () => {
   const { lookupByCredentials } = useTransferStore()
   const { tiers, loadAll: loadTiers } = useTransferTierStore()
 
-  const [inGameName, setInGameName] = useState('')
   const [uid, setUid] = useState('')
   const [loading, setLoading] = useState(false)
   const [searched, setSearched] = useState(false)
@@ -64,12 +63,12 @@ export const TransferStatusPage = () => {
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!inGameName.trim() || !uid.trim() || loading) return
+    if (!uid.trim() || loading) return
     setLoading(true)
     try {
       // 등급 이름 표시용 로드 (실패해도 본 기능에 영향 없음)
       if (tiers.length === 0) loadTiers()
-      const found = await lookupByCredentials(inGameName, uid)
+      const found = await lookupByCredentials(uid)
       setResults(found)
       setSearched(true)
     } finally {
@@ -102,25 +101,17 @@ export const TransferStatusPage = () => {
       {!searched && (
         <form onSubmit={handleSearch} className="bg-[var(--color-bg-surface)] border border-[var(--color-border-subtle)] rounded-xl p-5 space-y-3">
           <div>
-            <label className="text-xs text-[var(--color-text-muted)] mb-1 block">{t('transfer.field_name')} *</label>
-            <Input
-              value={inGameName}
-              onChange={(e) => setInGameName(e.target.value)}
-              placeholder={t('transfer.field_name_placeholder')}
-              required
-            />
-          </div>
-          <div>
             <label className="text-xs text-[var(--color-text-muted)] mb-1 block">{t('transfer.field_uid')} *</label>
             <Input
               value={uid}
               onChange={(e) => setUid(e.target.value)}
               placeholder={t('transfer.field_uid_placeholder')}
               required
+              autoFocus
             />
             <p className="text-[11px] text-[var(--color-text-muted)] mt-1">{t('transfer_status.uid_hint')}</p>
           </div>
-          <Button type="submit" size="full" disabled={!inGameName.trim() || !uid.trim() || loading} className="mt-2">
+          <Button type="submit" size="full" disabled={!uid.trim() || loading} className="mt-2">
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
             {t('transfer_status.search_btn')}
           </Button>

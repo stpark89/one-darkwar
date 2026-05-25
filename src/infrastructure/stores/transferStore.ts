@@ -29,8 +29,8 @@ interface TransferStore {
   updateAdminMessage: (id: string, adminMessage: string) => Promise<void>
   updateTier: (id: string, tierId: string | null) => Promise<void>
   remove: (id: string) => Promise<void>
-  /** 게스트가 인게임명 + UID 로 본인 신청 조회 (anon RPC 호출) */
-  lookupByCredentials: (inGameName: string, uid: string) => Promise<TransferApplication[]>
+  /** 게스트가 UID 로 본인 신청 조회 (anon RPC 호출). inGameName 은 더 이상 사용 안 함 (호환용) */
+  lookupByCredentials: (uid: string) => Promise<TransferApplication[]>
 }
 
 export const useTransferStore = create<TransferStore>((set) => ({
@@ -121,16 +121,16 @@ export const useTransferStore = create<TransferStore>((set) => ({
     }))
   },
 
-  lookupByCredentials: async (inGameName, uid) => {
-    const trimmedName = inGameName.trim()
+  lookupByCredentials: async (uid) => {
     const trimmedUid = uid.trim()
-    if (!trimmedName || !trimmedUid) return []
+    if (!trimmedUid) return []
     try {
       // RPC 가 hang 되어도 8초 안에 반드시 풀리도록 race
+      // p_name 은 RPC 시그니처 호환을 위해 빈 문자열로 전달 (서버에서 무시됨)
       const res = await withTimeout(
         Promise.resolve(
           supabase.rpc('get_my_transfer', {
-            p_name: trimmedName,
+            p_name: '',
             p_uid: trimmedUid,
           }),
         ),
