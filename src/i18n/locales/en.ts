@@ -228,7 +228,7 @@ export default {
     delete_desc: 'This member will be permanently deleted. This cannot be undone.',
     delete_cascade_warning: '⚠️ Their BG participation, event attendance, and VS points will also be deleted.',
     rename_sync_hint: 'Changing the in-game name also updates the matching login account name and email automatically.',
-    self_edit_hint: 'You can edit your own info via the "Edit My Info" button on your highlighted row below.',
+    self_edit_hint: 'Tap the ✏️ icon on your highlighted row below to edit your info.',
     my_row_badge: 'YOU',
     edit_my_info: 'Edit My Info',
     col_no: '#',

@@ -228,7 +228,7 @@ export default {
     delete_desc: 'Thành viên này sẽ bị xóa vĩnh viễn. Không thể khôi phục.',
     delete_cascade_warning: '⚠️ Hồ sơ tham gia BG, điểm danh sự kiện và điểm VS của thành viên cũng sẽ bị xóa.',
     rename_sync_hint: 'Đổi tên in-game sẽ tự động cập nhật tên đăng nhập và email của tài khoản tương ứng.',
-    self_edit_hint: 'Bạn có thể chỉnh sửa thông tin của mình qua nút "Sửa thông tin" trên dòng được tô sáng bên dưới.',
+    self_edit_hint: 'Nhấn biểu tượng ✏️ trên dòng được tô sáng bên dưới để chỉnh sửa thông tin của bạn.',
     my_row_badge: 'TÔI',
     edit_my_info: 'Sửa thông tin',
     col_no: '#',

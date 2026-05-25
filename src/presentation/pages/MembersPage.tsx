@@ -201,15 +201,14 @@ export const MembersPage = () => {
                     }`}>
                       <button
                         onClick={() => openEdit(m)}
-                        className={`flex items-center gap-1 rounded transition-colors ${
-                          isMine
-                            ? 'px-2 py-1 bg-[var(--color-brand)] text-white hover:bg-[var(--color-brand)]/90 text-[11px] font-semibold'
-                            : 'p-1.5 hover:bg-[var(--color-bg-elevated)] text-(--color-brand) hover:brightness-125'
-                        }`}
                         title={isMine ? t('members.edit_my_info') : undefined}
+                        className={`p-1.5 rounded transition-colors ${
+                          isMine
+                            ? 'bg-[var(--color-brand)] text-white hover:bg-[var(--color-brand)]/90 ring-2 ring-[var(--color-brand)]/40'
+                            : 'hover:bg-[var(--color-bg-elevated)] text-(--color-brand) hover:brightness-125'
+                        }`}
                       >
                         <Pencil className="w-3.5 h-3.5" />
-                        {isMine && <span>{t('members.edit_my_info')}</span>}
                       </button>
                       {canEdit && (
                         <button onClick={() => setDeleteConfirm(m)} className="p-1.5 rounded hover:bg-[var(--color-bg-elevated)] text-(--color-danger) hover:brightness-125">
