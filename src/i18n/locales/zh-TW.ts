@@ -226,7 +226,7 @@ export default {
     confirm_delete: '確定刪除「{{name}}」？',
     delete_title: '刪除成員',
     delete_desc: '此成員將永久刪除，無法復原。',
-    delete_cascade_warning: '⚠️ 該成員的 BG 參與紀錄、活動出席、VS 積分 也會一併刪除。',
+    delete_cascade_warning: '該成員的 BG 參與紀錄、活動出席、VS 積分也會一併刪除。',
     rename_sync_hint: '更改遊戲名稱時，對應的登入帳號名稱與電子郵件也會自動同步。',
     self_edit_hint: '請點選下方標示行的 ✏️ 圖示來編輯您的資訊。',
     my_row_badge: '我的',

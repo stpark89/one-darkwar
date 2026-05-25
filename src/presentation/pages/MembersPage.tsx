@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Search, Plus, Pencil, Trash2, X, Loader2 } from 'lucide-react'
+import { Search, Plus, Pencil, Trash2, X, Loader2, AlertTriangle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useMemberStore } from '@/infrastructure/stores/memberStore'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
@@ -289,8 +289,15 @@ export const MembersPage = () => {
                 <p className="text-sm text-[var(--color-text-muted)] mt-0.5 truncate">{deleteConfirm.inGameName}</p>
               </div>
             </div>
-            <p className="text-sm text-[var(--color-text-secondary)] mb-2">{t('members.delete_desc')}</p>
-            <p className="text-xs text-[var(--color-danger)] mb-5 break-keep">{t('members.delete_cascade_warning')}</p>
+            <p className="text-sm text-[var(--color-text-secondary)] mb-3 leading-relaxed break-keep">
+              {t('members.delete_desc')}
+            </p>
+            <div className="mb-5 flex items-start gap-2 p-3 rounded-lg bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/30">
+              <AlertTriangle className="w-4 h-4 text-[var(--color-danger)] flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-[var(--color-danger)] leading-relaxed break-keep flex-1">
+                {t('members.delete_cascade_warning')}
+              </p>
+            </div>
             <div className="flex gap-2">
               <Button variant="outline" size="full" onClick={() => setDeleteConfirm(null)} disabled={deleting}>
                 {t('common.cancel')}
