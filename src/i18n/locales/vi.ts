@@ -227,6 +227,7 @@ export default {
     delete_title: 'Xóa thành viên',
     delete_desc: 'Thành viên này sẽ bị xóa vĩnh viễn. Không thể khôi phục.',
     delete_cascade_warning: '⚠️ Hồ sơ tham gia BG, điểm danh sự kiện và điểm VS của thành viên cũng sẽ bị xóa.',
+    rename_sync_hint: 'Đổi tên in-game sẽ tự động cập nhật tên đăng nhập và email của tài khoản tương ứng.',
     col_no: '#',
     col_actions: '',
   },

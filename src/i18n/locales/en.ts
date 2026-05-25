@@ -227,6 +227,7 @@ export default {
     delete_title: 'Delete Member',
     delete_desc: 'This member will be permanently deleted. This cannot be undone.',
     delete_cascade_warning: '⚠️ Their BG participation, event attendance, and VS points will also be deleted.',
+    rename_sync_hint: 'Changing the in-game name also updates the matching login account name and email automatically.',
     col_no: '#',
     col_actions: '',
   },

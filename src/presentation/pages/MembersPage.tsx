@@ -206,6 +206,12 @@ export const MembersPage = () => {
                       disabled={disabled}
                       className={disabled ? 'opacity-50 cursor-not-allowed' : ''}
                     />
+                    {/* 인게임명 변경 시 로그인 계정도 함께 바뀐다는 안내 */}
+                    {isNameField && editId && canEdit && (
+                      <p className="text-[10px] text-[var(--color-text-muted)] mt-1 break-keep">
+                        {t('members.rename_sync_hint')}
+                      </p>
+                    )}
                   </div>
                 )
               })}

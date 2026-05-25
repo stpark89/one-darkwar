@@ -1,8 +1,13 @@
 import { create } from 'zustand'
+import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import type { Member, CreateMemberInput } from '@/domain/entities/Member'
 import { useWarStore } from './warStore'
 import { useEventStore } from './eventStore'
+
+// authStore 의 toEmail 과 동일 규칙 (signIn 시 사용)
+const toLoginEmail = (name: string) =>
+  `${encodeURIComponent(name.trim().toLowerCase())}@onedarkwar.app`
 
 interface MemberStore {
   members: Member[]
@@ -75,14 +80,52 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
   },
 
   updateMember: async (id, input) => {
+    // 이름 변경 여부 감지
+    const current = get().members.find((m) => m.id === id)
+    const nameChanged =
+      input.inGameName !== undefined && current !== undefined && current.inGameName !== input.inGameName
+
+    if (nameChanged) {
+      // 이름 변경은 RPC 로 처리 — members + profiles + auth.users 동기화
+      const newEmail = toLoginEmail(input.inGameName!)
+      const { data, error } = await supabase.rpc('rename_member_with_profile', {
+        p_member_id: id,
+        p_new_name: input.inGameName,
+        p_new_email: newEmail,
+      })
+      if (error) {
+        console.error('[memberStore] rename RPC error:', error)
+        toast.error('이름 변경 중 오류가 발생했습니다.')
+        return
+      }
+      const result = (data ?? {}) as { ok: boolean; reason?: string; profile_updated?: boolean }
+      if (!result.ok) {
+        if (result.reason === 'email_conflict') {
+          toast.error('해당 인게임명의 로그인 계정이 이미 존재합니다. 다른 이름을 사용하세요.')
+        } else if (result.reason === 'member_not_found') {
+          toast.error('멤버를 찾을 수 없습니다.')
+        } else {
+          toast.error('이름 변경에 실패했습니다.')
+        }
+        return
+      }
+      // 멤버는 이미 RPC 안에서 update 됨 → 추가 update 는 다른 필드만
+      if (result.profile_updated) {
+        toast.success('이름이 멤버 명단 + 로그인 계정에 함께 반영되었습니다.')
+      }
+    }
+
+    // 이름 외 나머지 필드 (혹은 이름이 안 바뀐 경우 모든 필드) 업데이트
     const updates: Record<string, string> = {}
-    if (input.inGameName !== undefined) updates.in_game_name = input.inGameName
+    if (!nameChanged && input.inGameName !== undefined) updates.in_game_name = input.inGameName
     if (input.zaloName !== undefined) updates.zalo_name = input.zaloName
     if (input.cp !== undefined) updates.cp = input.cp
     if (input.houseLevel !== undefined) updates.house_level = input.houseLevel
     if (input.note !== undefined) updates.note = input.note
+    if (Object.keys(updates).length > 0) {
+      await supabase.from('members').update(updates).eq('id', id)
+    }
 
-    await supabase.from('members').update(updates).eq('id', id)
     set((s) => ({
       members: s.members.map((m) => (m.id === id ? { ...m, ...input } : m)).sort(sortBycp),
     }))

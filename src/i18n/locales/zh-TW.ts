@@ -227,6 +227,7 @@ export default {
     delete_title: '刪除成員',
     delete_desc: '此成員將永久刪除，無法復原。',
     delete_cascade_warning: '⚠️ 該成員的 BG 參與紀錄、活動出席、VS 積分 也會一併刪除。',
+    rename_sync_hint: '更改遊戲名稱時，對應的登入帳號名稱與電子郵件也會自動同步。',
     col_no: '#',
     col_actions: '',
   },

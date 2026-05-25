@@ -227,6 +227,7 @@ export default {
     delete_title: '멤버 삭제',
     delete_desc: '이 멤버를 영구 삭제합니다. 되돌릴 수 없습니다.',
     delete_cascade_warning: '⚠️ 이 멤버의 BG 참여 기록 · 이벤트 출석 · VS 포인트 도 함께 삭제됩니다.',
+    rename_sync_hint: '인게임명을 바꾸면 그 멤버의 로그인 계정 이름·이메일도 자동으로 함께 바뀝니다.',
     col_no: '#',
     col_actions: '',
   },
