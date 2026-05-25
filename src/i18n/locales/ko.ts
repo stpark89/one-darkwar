@@ -319,6 +319,8 @@ export default {
     new_password_label: '새 비밀번호',
     change_password_btn: '변경 저장',
     change_password_success: '비밀번호가 성공적으로 변경되었습니다.',
+    change_password_timeout: '응답이 지연되고 있습니다. 잠시 후 다시 시도해주세요. (변경되지 않았을 수 있음)',
+    change_password_error: '비밀번호 변경 중 오류가 발생했습니다. 다시 시도해주세요.',
     guest_login: '게스트로 입장하기',
     pending_title: '가입 신청 완료',
     pending_desc: '관리자가 승인하면 로그인할 수 있습니다. 승인까지 잠시 기다려 주세요.',

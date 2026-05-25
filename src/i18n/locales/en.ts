@@ -319,6 +319,8 @@ export default {
     new_password_label: 'New Password',
     change_password_btn: 'Save Password',
     change_password_success: 'Password changed successfully.',
+    change_password_timeout: 'The request is taking too long. Please try again. (Password may not have been changed.)',
+    change_password_error: 'Failed to change password. Please try again.',
     guest_login: 'Enter as Guest',
     pending_title: 'Application Submitted',
     pending_desc: 'You can log in once an admin approves your account. Please wait a moment.',

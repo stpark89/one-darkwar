@@ -319,6 +319,8 @@ export default {
     new_password_label: 'Mật khẩu mới',
     change_password_btn: 'Lưu mật khẩu',
     change_password_success: 'Đổi mật khẩu thành công.',
+    change_password_timeout: 'Phản hồi đang bị trễ. Vui lòng thử lại sau. (Mật khẩu có thể chưa được thay đổi.)',
+    change_password_error: 'Đổi mật khẩu thất bại. Vui lòng thử lại.',
     guest_login: 'Vào với tư cách Khách',
     pending_title: 'Đã gửi đơn đăng ký',
     pending_desc: 'Bạn có thể đăng nhập sau khi quản trị viên phê duyệt tài khoản.',

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { KeyRound, Eye, EyeOff, Loader2, ArrowLeft } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
+import { withTimeout } from '@/lib/timeout'
 import { Input } from '@/presentation/components/ui/input'
 import { Button } from '@/presentation/components/ui/button'
 
@@ -26,29 +27,31 @@ export const ChangePasswordPage = () => {
     setError(null)
 
     try {
-      const timeout = new Promise<{ error: { message: string } }>(resolve =>
-        setTimeout(() => resolve({ error: { message: 'timeout' } }), 8000)
+      // PWA 휴면 후 hang 방지용 8초 timeout. 단 timeout 은 reject 로 처리해서
+      // catch 로 빠지게 함 → success 로 오인되는 false-positive 방지.
+      const result = await withTimeout(
+        Promise.resolve(supabase.auth.updateUser({ password })),
+        8000,
       )
-      const result = await Promise.race([
-        supabase.auth.updateUser({ password }),
-        timeout,
-      ])
-
-      const err = (result as { error: { message: string } | null }).error
-
-      // timeout 이거나 오류가 없으면 성공 처리
-      if (err && err.message !== 'timeout') {
-        setError(err.message)
-        setLoading(false)
+      if (result.error) {
+        setError(result.error.message)
         return
       }
-    } catch {
-      // 예외도 무시하고 성공 처리
+      // 정상 응답이고 error 없음 → 진짜 성공
+      setSuccess(true)
+      setTimeout(() => navigate(-1), 1500)
+    } catch (err) {
+      // withTimeout reject 또는 fetch 예외
+      const msg = (err as Error).message
+      if (msg === 'timeout') {
+        setError(t('auth.change_password_timeout'))
+      } else {
+        console.error('[ChangePassword] exception:', err)
+        setError(t('auth.change_password_error'))
+      }
+    } finally {
+      setLoading(false)
     }
-
-    setLoading(false)
-    setSuccess(true)
-    setTimeout(() => navigate(-1), 1500)
   }
 
   return (

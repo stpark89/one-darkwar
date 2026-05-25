@@ -319,6 +319,8 @@ export default {
     new_password_label: '新密碼',
     change_password_btn: '儲存密碼',
     change_password_success: '密碼已成功變更。',
+    change_password_timeout: '回應延遲中，請稍後再試。（密碼可能尚未變更。）',
+    change_password_error: '密碼變更時發生錯誤，請再試一次。',
     guest_login: '以訪客身份進入',
     pending_title: '申請已提交',
     pending_desc: '管理員審核通過後即可登入，請稍候。',
