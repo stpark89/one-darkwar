@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { supabase } from '@/lib/supabase'
+import { withTimeout } from '@/lib/timeout'
 
 export type UserRole = 'ROLE_USER' | 'ROLE_ADMIN'
 
@@ -70,7 +71,13 @@ export const useAuthStore = create<AuthStore>((set) => ({
   loadSession: async () => {
     set({ loading: true })
     try {
-      const { data: { session } } = await supabase.auth.getSession()
+      // PWA 휴면 후 getSession 자체가 hang 되는 케이스 대비 5초 race
+      const sessionResult = await Promise.race([
+        supabase.auth.getSession(),
+        new Promise<{ data: { session: null } }>((resolve) =>
+          setTimeout(() => resolve({ data: { session: null } }), 5000)),
+      ])
+      const session = sessionResult.data.session
       if (session?.user) {
         // fetchProfile 이 PWA 환경에서 hang 되는 케이스가 보고됨.
         // 5초 timeout 으로 race — 시간 안에 못 오면 null 반환(throw 아님)
@@ -122,25 +129,52 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
   signIn: async (inGameName, password) => {
     try {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: toEmail(inGameName),
-      password,
-    })
-    if (error) return error.message
-    if (data.user) {
-      // status 직접 조회하여 PENDING 판별
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id, in_game_name, role, status')
-        .eq('id', data.user.id)
-        .single()
-      if (profile?.status === 'PENDING') {
-        await supabase.auth.signOut()
-        return PENDING_APPROVAL_ERROR
+      // PWA 가 백그라운드에 오래 있다가 깨어났을 때, 옛 (만료된) 세션 토큰이
+      // localStorage 에 남아있으면 그 다음 호출들이 hang 되는 케이스가 있음.
+      // 새 로그인 시도 전에 깨끗이 청소.
+      purgeSupabaseAuthStorage()
+
+      // signInWithPassword 자체가 hang 되는 경우 대비 10초 timeout
+      const signInResult = await withTimeout(
+        Promise.resolve(supabase.auth.signInWithPassword({ email: toEmail(inGameName), password })),
+        10000,
+      )
+      const { data, error } = signInResult
+      if (error) return error.message
+
+      // 여기 도달했다 = auth 는 성공.
+      // PENDING 체크는 best-effort — 실패해도 signIn 자체는 통과시킨다.
+      // (실패 시 onAuthStateChange 가 fetchProfile 로 user 세팅, 그 과정에서
+      //  PENDING 이면 user 가 null 로 유지되어 /sign-in 으로 자연스럽게 회귀)
+      if (data.user) {
+        try {
+          const profileRes = await withTimeout(
+            Promise.resolve(
+              supabase
+                .from('profiles')
+                .select('id, in_game_name, role, status')
+                .eq('id', data.user.id)
+                .single(),
+            ),
+            3000,
+          )
+          const profile = profileRes.data
+          if (profile?.status === 'PENDING') {
+            await Promise.race([
+              supabase.auth.signOut(),
+              new Promise<void>((resolve) => setTimeout(resolve, 2000)),
+            ])
+            return PENDING_APPROVAL_ERROR
+          }
+          if (profile) {
+            set({ user: { id: profile.id, inGameName: profile.in_game_name, role: profile.role as UserRole } })
+          }
+        } catch (e) {
+          // profile 체크 timeout/실패 — signIn 통과시키고 onAuthStateChange 에 맡김
+          console.warn('[authStore] signIn profile check skipped:', e)
+        }
       }
-      set({ user: profile ? { id: profile.id, inGameName: profile.in_game_name, role: profile.role as UserRole } : null })
-    }
-    return null
+      return null
     } catch (err) {
       console.error('[authStore] signIn exception:', err)
       return '로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
