@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { UserPlus, MessageCircleQuestion, ChevronRight, Globe, Clock, Server, Eye } from 'lucide-react'
+import { UserPlus, MessageCircleQuestion, ChevronRight, Globe, Clock, Server, Eye, Search } from 'lucide-react'
 import { getSessionAvatar } from '@/lib/avatars'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 
@@ -106,6 +106,21 @@ export const GuestHomePage = () => {
           <div className="flex-1 text-left min-w-0">
             <div className="text-base sm:text-lg font-bold leading-snug">{t('guest_home.cta_questions_title')}</div>
             <div className="text-xs sm:text-sm text-[var(--color-text-muted)] mt-1 leading-relaxed">{t('guest_home.cta_questions_desc')}</div>
+          </div>
+          <ChevronRight className="w-5 h-5 text-[var(--color-text-muted)] flex-shrink-0 mt-1 group-hover:translate-x-1 transition-transform" />
+        </button>
+
+        {/* 내 신청 조회 — 이주 신청한 사람이 본인 상태 확인 */}
+        <button
+          onClick={() => navigate('/transfer/status')}
+          className="w-full group flex items-start gap-4 bg-[var(--color-bg-surface)] border border-[var(--color-border-subtle)] text-[var(--color-text-primary)] rounded-2xl p-5 sm:p-6 hover:border-[var(--color-brand)]/40 hover:bg-[var(--color-bg-elevated)] transition-all"
+        >
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-[var(--color-text-muted)]/15 flex items-center justify-center flex-shrink-0">
+            <Search className="w-6 h-6 sm:w-7 sm:h-7 text-[var(--color-text-secondary)]" />
+          </div>
+          <div className="flex-1 text-left min-w-0">
+            <div className="text-base sm:text-lg font-bold leading-snug">{t('guest_home.cta_status_title')}</div>
+            <div className="text-xs sm:text-sm text-[var(--color-text-muted)] mt-1 leading-relaxed">{t('guest_home.cta_status_desc')}</div>
           </div>
           <ChevronRight className="w-5 h-5 text-[var(--color-text-muted)] flex-shrink-0 mt-1 group-hover:translate-x-1 transition-transform" />
         </button>

@@ -9,6 +9,7 @@ export interface TransferApplication {
   cp: string
   tierId: string | null
   status: TransferStatus
+  adminMessage: string
   reviewedAt: string | null
   reviewedBy: string | null
   createdAt: string

@@ -13,6 +13,7 @@ const toApp = (r: any): TransferApplication => ({
   cp: r.cp ?? '',
   tierId: r.tier_id ?? null,
   status: r.status,
+  adminMessage: r.admin_message ?? '',
   reviewedAt: r.reviewed_at,
   reviewedBy: r.reviewed_by,
   createdAt: r.created_at,
@@ -23,9 +24,12 @@ interface TransferStore {
   loading: boolean
   submit: (draft: TransferDraft) => Promise<boolean>
   loadAll: () => Promise<void>
-  updateStatus: (id: string, status: TransferStatus, reviewerId: string) => Promise<void>
+  updateStatus: (id: string, status: TransferStatus, reviewerId: string, adminMessage?: string) => Promise<void>
+  updateAdminMessage: (id: string, adminMessage: string) => Promise<void>
   updateTier: (id: string, tierId: string | null) => Promise<void>
   remove: (id: string) => Promise<void>
+  /** 게스트가 인게임명 + UID 로 본인 신청 조회 (anon RPC 호출) */
+  lookupByCredentials: (inGameName: string, uid: string) => Promise<TransferApplication[]>
 }
 
 export const useTransferStore = create<TransferStore>((set) => ({
@@ -70,14 +74,16 @@ export const useTransferStore = create<TransferStore>((set) => ({
     }
   },
 
-  updateStatus: async (id, status, reviewerId) => {
+  updateStatus: async (id, status, reviewerId, adminMessage) => {
+    const payload: Record<string, unknown> = {
+      status,
+      reviewed_at: new Date().toISOString(),
+      reviewed_by: reviewerId,
+    }
+    if (typeof adminMessage === 'string') payload.admin_message = adminMessage
     const { error } = await supabase
       .from('transfer_applications')
-      .update({
-        status,
-        reviewed_at: new Date().toISOString(),
-        reviewed_by: reviewerId,
-      })
+      .update(payload)
       .eq('id', id)
     if (error) {
       console.error('transfer update error', error)
@@ -87,10 +93,46 @@ export const useTransferStore = create<TransferStore>((set) => ({
     set((s) => ({
       apps: s.apps.map((a) =>
         a.id === id
-          ? { ...a, status, reviewedAt: new Date().toISOString(), reviewedBy: reviewerId }
+          ? {
+              ...a,
+              status,
+              reviewedAt: new Date().toISOString(),
+              reviewedBy: reviewerId,
+              ...(typeof adminMessage === 'string' ? { adminMessage } : {}),
+            }
           : a,
       ),
     }))
+  },
+
+  updateAdminMessage: async (id, adminMessage) => {
+    const { error } = await supabase
+      .from('transfer_applications')
+      .update({ admin_message: adminMessage })
+      .eq('id', id)
+    if (error) {
+      console.error('transfer updateAdminMessage error', error)
+      toast.error('메시지 저장 중 오류가 발생했습니다.')
+      return
+    }
+    set((s) => ({
+      apps: s.apps.map((a) => (a.id === id ? { ...a, adminMessage } : a)),
+    }))
+  },
+
+  lookupByCredentials: async (inGameName, uid) => {
+    const trimmedName = inGameName.trim()
+    const trimmedUid = uid.trim()
+    if (!trimmedName || !trimmedUid) return []
+    const { data, error } = await supabase.rpc('get_my_transfer', {
+      p_name: trimmedName,
+      p_uid: trimmedUid,
+    })
+    if (error) {
+      console.error('transfer lookup error', error)
+      return []
+    }
+    return ((data ?? []) as unknown[]).map(toApp)
   },
 
   updateTier: async (id, tierId) => {

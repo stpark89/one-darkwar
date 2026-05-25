@@ -60,7 +60,7 @@ export const TransferPage = () => {
   const { user, isGuest } = useAuthStore()
   const isAdmin = user?.role === 'ROLE_ADMIN'
 
-  const { apps, loading, submit, loadAll, updateStatus, updateTier, remove } = useTransferStore()
+  const { apps, loading, submit, loadAll, updateStatus, updateAdminMessage, updateTier, remove } = useTransferStore()
   const { tiers, loadAll: loadTiers, upsert: upsertTier, remove: removeTier } = useTransferTierStore()
 
   const [inGameName, setInGameName] = useState('')
@@ -84,6 +84,40 @@ export const TransferPage = () => {
 
   // 관리자: 신청서 카드에서 등급 변경 드롭다운 열림 상태
   const [adminTierEditId, setAdminTierEditId] = useState<string | null>(null)
+
+  // 관리자: 신청서별 admin_message 입력 드래프트 (저장 전 로컬값)
+  const [messageDrafts, setMessageDrafts] = useState<Record<string, string>>({})
+  const [savingMessageId, setSavingMessageId] = useState<string | null>(null)
+
+  const getMessageDraft = (a: { id: string; adminMessage: string }) =>
+    messageDrafts[a.id] !== undefined ? messageDrafts[a.id] : a.adminMessage
+
+  const setMessageDraft = (id: string, value: string) =>
+    setMessageDrafts((prev) => ({ ...prev, [id]: value }))
+
+  const handleSaveMessage = async (id: string) => {
+    setSavingMessageId(id)
+    await updateAdminMessage(id, messageDrafts[id] ?? '')
+    setSavingMessageId(null)
+    // 저장 후 draft 제거 (다시 a.adminMessage 가 표시되도록)
+    setMessageDrafts((prev) => {
+      const next = { ...prev }
+      delete next[id]
+      return next
+    })
+  }
+
+  const handleStatusChange = async (id: string, status: TransferStatus) => {
+    if (!user) return
+    const draft = messageDrafts[id]
+    // 메시지가 수정되었으면 함께 저장, 아니면 상태만 변경
+    await updateStatus(id, status, user.id, draft !== undefined ? draft : undefined)
+    setMessageDrafts((prev) => {
+      const next = { ...prev }
+      delete next[id]
+      return next
+    })
+  }
 
   // 등급 편집 (관리자만)
   const [tierEditMode, setTierEditMode] = useState(false)
@@ -229,6 +263,19 @@ export const TransferPage = () => {
         </p>
       </div>
 
+      {/* 이미 신청한 사람을 위한 조회 링크 — 게스트에게만 */}
+      {isGuest && (
+        <div className="max-w-xl flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-[var(--color-bg-elevated)] border border-[var(--color-border-subtle)] -mt-1">
+          <span className="text-xs text-[var(--color-text-muted)]">{t('transfer.status_link_label')}</span>
+          <button
+            onClick={() => navigate('/transfer/status')}
+            className="text-xs font-semibold text-[var(--color-brand)] hover:underline whitespace-nowrap"
+          >
+            {t('transfer.status_link_btn')}
+          </button>
+        </div>
+      )}
+
       {/* 신청 폼 또는 완료 카드 — 게스트에게만 노출 */}
       {isGuest && (
       <div className="bg-[var(--color-bg-surface)] border border-[var(--color-border-subtle)] rounded-xl p-4 sm:p-5 max-w-xl">
@@ -236,10 +283,15 @@ export const TransferPage = () => {
           <div className="text-center py-6">
             <CheckCircle2 className="w-12 h-12 text-[var(--color-success)] mx-auto mb-3" />
             <h2 className="text-base font-bold text-[var(--color-text-primary)] mb-1">{t('transfer.success_title')}</h2>
-            <p className="text-sm text-[var(--color-text-muted)] mb-5">{t('transfer.success_desc')}</p>
+            <p className="text-sm text-[var(--color-text-muted)] mb-2">{t('transfer.success_desc')}</p>
+            <p className="text-xs text-[var(--color-text-muted)] mb-5">{t('transfer.success_check_hint')}</p>
             <div className="flex gap-2 justify-center flex-wrap">
               <Button variant="outline" size="sm" onClick={handleResetForm}>
                 {t('transfer.write_another')}
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => navigate('/transfer/status')}>
+                <Search className="w-4 h-4" />
+                {t('transfer.check_status')}
               </Button>
               <Button size="sm" onClick={() => navigate('/')}>
                 <Home className="w-4 h-4" />
@@ -740,11 +792,39 @@ export const TransferPage = () => {
                       </div>
                     </div>
 
-                    {/* 액션 버튼 */}
-                    <div className="flex gap-2 pt-3 border-t border-[var(--color-border-subtle)]">
+                    {/* 신청자에게 보여줄 메시지 */}
+                    <div className="pt-3 border-t border-[var(--color-border-subtle)]">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-[11px] font-semibold text-[var(--color-text-muted)]">
+                          {t('transfer.admin_message_label')}
+                        </label>
+                        {messageDrafts[a.id] !== undefined && messageDrafts[a.id] !== a.adminMessage && (
+                          <button
+                            onClick={() => handleSaveMessage(a.id)}
+                            disabled={savingMessageId === a.id}
+                            className="text-[10px] font-semibold text-[var(--color-brand)] hover:underline disabled:opacity-50"
+                          >
+                            {savingMessageId === a.id
+                              ? <Loader2 className="w-3 h-3 animate-spin inline" />
+                              : t('common.save')}
+                          </button>
+                        )}
+                      </div>
+                      <textarea
+                        value={getMessageDraft(a)}
+                        onChange={(e) => setMessageDraft(a.id, e.target.value)}
+                        placeholder={t('transfer.admin_message_placeholder')}
+                        rows={2}
+                        className="w-full px-2 py-1.5 text-xs rounded bg-[var(--color-bg-elevated)] border border-[var(--color-border-subtle)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] outline-none focus:border-[var(--color-brand)] resize-none"
+                      />
+                      <p className="text-[10px] text-[var(--color-text-muted)] mt-1">{t('transfer.admin_message_hint')}</p>
+                    </div>
+
+                    {/* 액션 버튼 — 클릭 시 메시지도 함께 저장됨 */}
+                    <div className="flex gap-2 pt-3">
                       {a.status !== 'APPROVED' && (
                         <button
-                          onClick={() => user && updateStatus(a.id, 'APPROVED', user.id)}
+                          onClick={() => handleStatusChange(a.id, 'APPROVED')}
                           className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded text-xs font-semibold bg-[var(--color-success)]/15 text-[var(--color-success)] hover:bg-[var(--color-success)]/25 transition-colors"
                         >
                           <CheckCircle2 className="w-3 h-3" /> {t('transfer.approve_btn')}
@@ -752,7 +832,7 @@ export const TransferPage = () => {
                       )}
                       {a.status !== 'REJECTED' && (
                         <button
-                          onClick={() => user && updateStatus(a.id, 'REJECTED', user.id)}
+                          onClick={() => handleStatusChange(a.id, 'REJECTED')}
                           className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded text-xs font-semibold bg-[var(--color-danger)]/15 text-[var(--color-danger)] hover:bg-[var(--color-danger)]/25 transition-colors"
                         >
                           <XCircle className="w-3 h-3" /> {t('transfer.reject_btn')}
@@ -760,7 +840,7 @@ export const TransferPage = () => {
                       )}
                       {a.status !== 'PENDING' && (
                         <button
-                          onClick={() => user && updateStatus(a.id, 'PENDING', user.id)}
+                          onClick={() => handleStatusChange(a.id, 'PENDING')}
                           className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded text-xs font-semibold bg-yellow-400/15 text-yellow-400 hover:bg-yellow-400/25 transition-colors"
                         >
                           <Clock className="w-3 h-3" /> {t('transfer.reopen_btn')}
