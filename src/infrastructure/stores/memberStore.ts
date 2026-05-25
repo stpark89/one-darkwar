@@ -12,9 +12,10 @@ const toLoginEmail = (name: string) =>
 interface MemberStore {
   members: Member[]
   loading: boolean
+  initialized: boolean
   searchQuery: string
 
-  loadMembers: () => Promise<void>
+  loadMembers: (force?: boolean) => Promise<void>
   setMembers: (members: Member[]) => void
   addMember: (input: CreateMemberInput) => Promise<string>
   updateMember: (id: string, input: Partial<Member>) => Promise<void>
@@ -45,13 +46,15 @@ const toMember = (row: Record<string, string>): Member => ({
 export const useMemberStore = create<MemberStore>((set, get) => ({
   members: [],
   loading: false,
+  initialized: false,
   searchQuery: '',
 
-  loadMembers: async () => {
+  loadMembers: async (force = false) => {
+    if (!force && get().initialized) return
     set({ loading: true })
     try {
       const { data } = await supabase.from('members').select('*')
-      set({ members: (data ?? []).map(toMember).sort(sortBycp) })
+      set({ members: (data ?? []).map(toMember).sort(sortBycp), initialized: true })
     } catch (err) {
       console.error('[memberStore] loadMembers exception:', err)
     } finally {

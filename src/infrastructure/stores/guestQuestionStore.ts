@@ -28,18 +28,21 @@ const toQuestion = (r: any, answers: GuestAnswer[]): GuestQuestion => ({
 interface GuestQuestionStore {
   questions: GuestQuestion[]
   loading: boolean
-  loadAll: () => Promise<void>
+  initialized: boolean
+  loadAll: (force?: boolean) => Promise<void>
   submit: (draft: GuestQuestionDraft) => Promise<boolean>
   addAnswer: (questionId: string, content: string, authorName: string, opts?: { authorId?: string; isAdmin?: boolean }) => Promise<boolean>
   deleteQuestion: (id: string) => Promise<void>
   deleteAnswer: (answerId: string, questionId: string) => Promise<void>
 }
 
-export const useGuestQuestionStore = create<GuestQuestionStore>((set) => ({
+export const useGuestQuestionStore = create<GuestQuestionStore>((set, get) => ({
   questions: [],
   loading: false,
+  initialized: false,
 
-  loadAll: async () => {
+  loadAll: async (force = false) => {
+    if (!force && get().initialized) return
     set({ loading: true })
     try {
       // 두 쿼리 중 한쪽 hang 되어도 다른 쪽 결과 사용 + 15초 timeout 안전망
@@ -64,7 +67,7 @@ export const useGuestQuestionStore = create<GuestQuestionStore>((set) => ({
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const questions = (qs as any[]).map((r) => toQuestion(r, byQ.get(r.id) ?? []))
-      set({ questions })
+      set({ questions, initialized: true })
     } catch (err) {
       console.error('guest questions load error', err)
     } finally {

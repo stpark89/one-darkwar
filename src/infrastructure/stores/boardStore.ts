@@ -48,11 +48,12 @@ const toComment = (r: any): PostComment => ({
 interface BoardStore {
   posts: Post[]
   loading: boolean
+  initialized: boolean
   hasMore: boolean
   comments: Record<string, PostComment[]>
   commentsLoading: Record<string, boolean>
 
-  loadPosts: (reset?: boolean) => Promise<void>
+  loadPosts: (reset?: boolean, force?: boolean) => Promise<void>
   addPost: (title: string, content: string, authorId: string, authorName: string) => Promise<Post | null>
   updatePost: (id: string, title: string, content: string) => Promise<void>
   deletePost: (id: string) => Promise<void>
@@ -64,11 +65,15 @@ interface BoardStore {
 export const useBoardStore = create<BoardStore>((set, get) => ({
   posts: [],
   loading: false,
+  initialized: false,
   hasMore: true,
   comments: {},
   commentsLoading: {},
 
-  loadPosts: async (reset = false) => {
+  loadPosts: async (reset = false, force = false) => {
+    // 첫 로드(reset=true)이고 이미 초기화된 상태면 skip — 페이지간 중복 호출 방지
+    // 페이지네이션(reset=false)은 항상 실행, force=true 면 강제 새로고침
+    if (reset && !force && get().initialized) return
     set({ loading: true })
     try {
       const offset = reset ? 0 : get().posts.length
@@ -82,6 +87,7 @@ export const useBoardStore = create<BoardStore>((set, get) => ({
       set(s => ({
         posts: reset ? newPosts : [...s.posts, ...newPosts],
         hasMore: newPosts.length === PAGE_SIZE,
+        initialized: true,
       }))
     } catch (err) {
       console.error('[boardStore] loadPosts exception:', err)

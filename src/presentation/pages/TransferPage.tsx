@@ -187,7 +187,8 @@ export const TransferPage = () => {
       setCountry('')
       setCp('')
       setSelectedTierId(null)
-      if (isAdmin) loadAll()
+      // 새 신청 직후엔 force=true 로 강제 갱신해서 방금 등록된 항목 노출
+      if (isAdmin) loadAll(true)
     }
   }
 
@@ -516,7 +517,7 @@ export const TransferPage = () => {
                   {pushSubscribed ? t('transfer.push_on_label') : t('transfer.push_off_label')}
                 </button>
               )}
-              <button onClick={loadAll} className="flex items-center gap-1 text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors">
+              <button onClick={() => loadAll(true)} className="flex items-center gap-1 text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors">
                 <RotateCcw className="w-3 h-3" /> {t('common.search')}
               </button>
             </div>

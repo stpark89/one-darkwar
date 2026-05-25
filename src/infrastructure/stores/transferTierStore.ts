@@ -18,16 +18,19 @@ const toTier = (r: any): TransferTier => ({
 interface TransferTierStore {
   tiers: TransferTier[]
   loading: boolean
-  loadAll: () => Promise<void>
+  initialized: boolean
+  loadAll: (force?: boolean) => Promise<void>
   upsert: (draft: TransferTierDraft & { id?: string }) => Promise<boolean>
   remove: (id: string) => Promise<void>
 }
 
-export const useTransferTierStore = create<TransferTierStore>((set) => ({
+export const useTransferTierStore = create<TransferTierStore>((set, get) => ({
   tiers: [],
   loading: false,
+  initialized: false,
 
-  loadAll: async () => {
+  loadAll: async (force = false) => {
+    if (!force && get().initialized) return
     set({ loading: true })
     try {
       const { data, error } = await supabase
@@ -35,7 +38,7 @@ export const useTransferTierStore = create<TransferTierStore>((set) => ({
         .select('*')
         .order('sort_order', { ascending: true })
       if (error) throw error
-      set({ tiers: (data ?? []).map(toTier) })
+      set({ tiers: (data ?? []).map(toTier), initialized: true })
     } catch (err) {
       console.error('tier load error', err)
     } finally {

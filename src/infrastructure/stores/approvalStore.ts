@@ -19,13 +19,16 @@ interface ApprovalStore {
   pendingUsers: PendingUser[]
   pendingCount: number
   loading: boolean
+  pendingInitialized: boolean
   rejectedUsers: PendingUser[]
   rejectedLoading: boolean
+  rejectedInitialized: boolean
   approvedUsers: ApprovedUser[]
   approvedLoading: boolean
-  loadPending: () => Promise<void>
-  loadRejected: () => Promise<void>
-  loadApproved: () => Promise<void>
+  approvedInitialized: boolean
+  loadPending: (force?: boolean) => Promise<void>
+  loadRejected: (force?: boolean) => Promise<void>
+  loadApproved: (force?: boolean) => Promise<void>
   approveUser: (userId: string) => Promise<void>
   rejectUser: (userId: string) => Promise<void>
   restoreUser: (userId: string) => Promise<void>
@@ -37,12 +40,16 @@ export const useApprovalStore = create<ApprovalStore>((set, get) => ({
   pendingUsers: [],
   pendingCount: 0,
   loading: false,
+  pendingInitialized: false,
   rejectedUsers: [],
   rejectedLoading: false,
+  rejectedInitialized: false,
   approvedUsers: [],
   approvedLoading: false,
+  approvedInitialized: false,
 
-  loadPending: async () => {
+  loadPending: async (force = false) => {
+    if (!force && get().pendingInitialized) return
     set({ loading: true })
     try {
       const fetchPending = async () =>
@@ -61,7 +68,7 @@ export const useApprovalStore = create<ApprovalStore>((set, get) => ({
         inGameName: r.in_game_name,
         createdAt: r.created_at,
       }))
-      set({ pendingUsers: users, pendingCount: users.length })
+      set({ pendingUsers: users, pendingCount: users.length, pendingInitialized: true })
     } catch (err) {
       console.error('[approvalStore] loadPending exception:', err)
     } finally {
@@ -69,7 +76,8 @@ export const useApprovalStore = create<ApprovalStore>((set, get) => ({
     }
   },
 
-  loadRejected: async () => {
+  loadRejected: async (force = false) => {
+    if (!force && get().rejectedInitialized) return
     set({ rejectedLoading: true })
     try {
       const fetchRejected = async () =>
@@ -88,7 +96,7 @@ export const useApprovalStore = create<ApprovalStore>((set, get) => ({
         inGameName: r.in_game_name,
         createdAt: r.created_at,
       }))
-      set({ rejectedUsers: users })
+      set({ rejectedUsers: users, rejectedInitialized: true })
     } catch (err) {
       console.error('[approvalStore] loadRejected exception:', err)
     } finally {
@@ -150,7 +158,8 @@ export const useApprovalStore = create<ApprovalStore>((set, get) => ({
     set({ rejectedUsers: users })
   },
 
-  loadApproved: async () => {
+  loadApproved: async (force = false) => {
+    if (!force && get().approvedInitialized) return
     set({ approvedLoading: true })
     try {
       const fetchApproved = async () =>
@@ -170,7 +179,7 @@ export const useApprovalStore = create<ApprovalStore>((set, get) => ({
         role: r.role as 'ROLE_ADMIN' | 'ROLE_USER',
         createdAt: r.created_at,
       }))
-      set({ approvedUsers: users })
+      set({ approvedUsers: users, approvedInitialized: true })
     } catch (err) {
       console.error('[approvalStore] loadApproved exception:', err)
     } finally {

@@ -15,7 +15,8 @@ export interface Notice {
 interface NoticeStore {
   notices: Notice[]
   loading: boolean
-  loadNotices: () => Promise<void>
+  initialized: boolean
+  loadNotices: (force?: boolean) => Promise<void>
   addNotice: (title: string, content: string, authorId: string, authorName: string) => Promise<void>
   updateNotice: (id: string, title: string, content: string) => Promise<void>
   deleteNotice: (id: string) => Promise<void>
@@ -36,8 +37,10 @@ const toNotice = (r: Record<string, unknown>): Notice => ({
 export const useNoticeStore = create<NoticeStore>((set, get) => ({
   notices: [],
   loading: false,
+  initialized: false,
 
-  loadNotices: async () => {
+  loadNotices: async (force = false) => {
+    if (!force && get().initialized) return
     set({ loading: true })
     try {
       const { data, error } = await supabase
@@ -46,7 +49,7 @@ export const useNoticeStore = create<NoticeStore>((set, get) => ({
         .order('pinned', { ascending: false })
         .order('created_at', { ascending: false })
       if (error) console.error('[noticeStore] loadNotices error:', error)
-      set({ notices: (data ?? []).map(toNotice) })
+      set({ notices: (data ?? []).map(toNotice), initialized: true })
     } finally {
       set({ loading: false })
     }

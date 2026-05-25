@@ -23,8 +23,9 @@ const toApp = (r: any): TransferApplication => ({
 interface TransferStore {
   apps: TransferApplication[]
   loading: boolean
+  initialized: boolean
   submit: (draft: TransferDraft) => Promise<boolean>
-  loadAll: () => Promise<void>
+  loadAll: (force?: boolean) => Promise<void>
   updateStatus: (id: string, status: TransferStatus, reviewerId: string, adminMessage?: string) => Promise<void>
   updateAdminMessage: (id: string, adminMessage: string) => Promise<void>
   updateTier: (id: string, tierId: string | null) => Promise<void>
@@ -33,9 +34,10 @@ interface TransferStore {
   lookupByCredentials: (uid: string) => Promise<TransferApplication[]>
 }
 
-export const useTransferStore = create<TransferStore>((set) => ({
+export const useTransferStore = create<TransferStore>((set, get) => ({
   apps: [],
   loading: false,
+  initialized: false,
 
   submit: async (draft) => {
     const inGameName = draft.inGameName.trim()
@@ -59,7 +61,8 @@ export const useTransferStore = create<TransferStore>((set) => ({
     return true
   },
 
-  loadAll: async () => {
+  loadAll: async (force = false) => {
+    if (!force && get().initialized) return
     set({ loading: true })
     try {
       const { data, error } = await supabase
@@ -67,7 +70,7 @@ export const useTransferStore = create<TransferStore>((set) => ({
         .select('*')
         .order('created_at', { ascending: false })
       if (error) throw error
-      set({ apps: (data ?? []).map(toApp) })
+      set({ apps: (data ?? []).map(toApp), initialized: true })
     } catch (err) {
       console.error('transfer load error', err)
     } finally {

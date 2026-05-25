@@ -7,10 +7,11 @@ interface EventStore {
   events: EventSession[]
   attendance: EventAttendance[]
   loading: boolean
+  initialized: boolean
   searchQuery: string
   showHidden: boolean
 
-  loadData: () => Promise<void>
+  loadData: (force?: boolean) => Promise<void>
   addEvent: (name: string, date: string) => Promise<void>
   deleteEvent: (eventId: string) => Promise<void>
   toggleHidden: (eventId: string) => Promise<void>
@@ -29,10 +30,12 @@ export const useEventStore = create<EventStore>((set, get) => ({
   events: [],
   attendance: [],
   loading: false,
+  initialized: false,
   searchQuery: '',
   showHidden: false,
 
-  loadData: async () => {
+  loadData: async (force = false) => {
+    if (!force && get().initialized) return
     set({ loading: true })
     try {
       const [{ data: eventRows }, { data: memberRows }, { data: attRows }] = await Promise.all([
@@ -60,7 +63,7 @@ export const useEventStore = create<EventStore>((set, get) => ({
         ),
       }))
 
-      set({ events, attendance })
+      set({ events, attendance, initialized: true })
     } catch (err) {
       console.error('[eventStore] loadData exception:', err)
     } finally {

@@ -29,8 +29,9 @@ interface VsPointStore {
   vsPoints: VsPointEntry[]
   members: MemberLite[]
   loading: boolean
+  initialized: boolean
 
-  loadData: () => Promise<void>
+  loadData: (force?: boolean) => Promise<void>
   addRound: (date: string) => Promise<void>
   deleteRound: (roundId: string) => Promise<void>
   updateRoundDate: (roundId: string, date: string) => Promise<void>
@@ -54,8 +55,10 @@ export const useVsPointStore = create<VsPointStore>((set, get) => ({
   vsPoints: [],
   members: [],
   loading: false,
+  initialized: false,
 
-  loadData: async () => {
+  loadData: async (force = false) => {
+    if (!force && get().initialized) return
     set({ loading: true })
     try {
       const [{ data: seasonRows }, { data: memberRows }] = await Promise.all([
@@ -70,7 +73,7 @@ export const useVsPointStore = create<VsPointStore>((set, get) => ({
       const members = (memberRows ?? []).map((r) => ({ id: r.id, inGameName: r.in_game_name }))
 
       if (!activeSeason) {
-        set({ activeSeason: null, rounds: [], vsPoints: [], members })
+        set({ activeSeason: null, rounds: [], vsPoints: [], members, initialized: true })
         return
       }
 
@@ -93,7 +96,7 @@ export const useVsPointStore = create<VsPointStore>((set, get) => ({
         }))
       }
 
-      set({ activeSeason, rounds, vsPoints, members })
+      set({ activeSeason, rounds, vsPoints, members, initialized: true })
     } catch (err) {
       console.error('[vsPointStore] loadData exception:', err)
     } finally {

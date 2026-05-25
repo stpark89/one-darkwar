@@ -20,10 +20,11 @@ interface WarStore {
   entries: WarEntry[]
   members: { id: string; inGameName: string }[]
   loading: boolean
+  initialized: boolean
   searchQuery: string
   filterTeam: string
 
-  loadData: () => Promise<void>
+  loadData: (force?: boolean) => Promise<void>
   addRound: (date: string) => Promise<void>
   deleteRound: (roundId: string) => Promise<void>
   updateRoundDate: (roundId: string, date: string) => Promise<void>
@@ -52,10 +53,13 @@ export const useWarStore = create<WarStore>((set, get) => ({
   entries: [],
   members: [],
   loading: false,
+  initialized: false,
   searchQuery: '',
   filterTeam: '',
 
-  loadData: async () => {
+  loadData: async (force = false) => {
+    // 이미 한 번 로드된 데이터면 중복 fetch 스킵 (force=true 시 강제 갱신)
+    if (!force && get().initialized) return
     set({ loading: true })
     try {
       const [{ data: seasonRows }, { data: memberRows }] = await Promise.all([
@@ -70,7 +74,7 @@ export const useWarStore = create<WarStore>((set, get) => ({
       const members = (memberRows ?? []).map(r => ({ id: r.id, inGameName: r.in_game_name }))
 
       if (!activeSeason) {
-        set({ seasons, activeSeason: null, rounds: [], entries: [], members })
+        set({ seasons, activeSeason: null, rounds: [], entries: [], members, initialized: true })
         return
       }
 
@@ -96,7 +100,7 @@ export const useWarStore = create<WarStore>((set, get) => ({
         note: r.note ?? '',
       }))
 
-      set({ seasons, activeSeason, rounds, entries, members })
+      set({ seasons, activeSeason, rounds, entries, members, initialized: true })
     } catch (err) {
       console.error('[warStore] loadData exception:', err)
     } finally {
