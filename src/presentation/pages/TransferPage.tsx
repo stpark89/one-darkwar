@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, Navigate } from 'react-router-dom'
-import { Send, Loader2, CheckCircle2, XCircle, Clock, Trash2, RotateCcw, Home, Layers, Pencil, Plus, Save, X, ChevronDown, Search } from 'lucide-react'
+import { Send, Loader2, CheckCircle2, XCircle, Clock, Trash2, RotateCcw, Home, Layers, Pencil, Plus, Save, X, ChevronDown, Search, Bell, BellOff } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { useTransferStore } from '@/infrastructure/stores/transferStore'
@@ -9,6 +9,8 @@ import type { TransferStatus } from '@/domain/entities/Transfer'
 import { Input } from '@/presentation/components/ui/input'
 import { Button } from '@/presentation/components/ui/button'
 import { parseCp, formatCp } from '@/lib/cp'
+import { isPushSupported, isCurrentlySubscribed, subscribeToPush, unsubscribeFromPush } from '@/lib/push'
+import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
 interface TierDraftForm {
@@ -88,6 +90,37 @@ export const TransferPage = () => {
   // 관리자: 신청서별 admin_message 입력 드래프트 (저장 전 로컬값)
   const [messageDrafts, setMessageDrafts] = useState<Record<string, string>>({})
   const [savingMessageId, setSavingMessageId] = useState<string | null>(null)
+
+  // 관리자: 푸시 알림 구독 상태
+  const [pushSubscribed, setPushSubscribed] = useState<boolean>(false)
+  const [pushBusy, setPushBusy] = useState<boolean>(false)
+  const pushSupported = isPushSupported()
+
+  useEffect(() => {
+    if (!isAdmin || !pushSupported) return
+    isCurrentlySubscribed().then(setPushSubscribed).catch(() => setPushSubscribed(false))
+  }, [isAdmin, pushSupported])
+
+  const handleTogglePush = async () => {
+    if (!user || pushBusy) return
+    setPushBusy(true)
+    try {
+      if (pushSubscribed) {
+        await unsubscribeFromPush()
+        setPushSubscribed(false)
+        toast.success(t('transfer.push_off_toast'))
+      } else {
+        await subscribeToPush(user.id)
+        setPushSubscribed(true)
+        toast.success(t('transfer.push_on_toast'))
+      }
+    } catch (err) {
+      console.error('[TransferPage] push toggle error:', err)
+      toast.error((err as Error).message || t('transfer.push_error_toast'))
+    } finally {
+      setPushBusy(false)
+    }
+  }
 
   const getMessageDraft = (a: { id: string; adminMessage: string }) =>
     messageDrafts[a.id] !== undefined ? messageDrafts[a.id] : a.adminMessage
@@ -461,9 +494,32 @@ export const TransferPage = () => {
         <div className="space-y-3">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <h2 className="text-sm font-bold text-[var(--color-text-primary)]">{t('transfer.admin_list_title')}</h2>
-            <button onClick={loadAll} className="flex items-center gap-1 text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors">
-              <RotateCcw className="w-3 h-3" /> {t('common.search')}
-            </button>
+            <div className="flex items-center gap-2">
+              {pushSupported && (
+                <button
+                  onClick={handleTogglePush}
+                  disabled={pushBusy}
+                  title={pushSubscribed ? t('transfer.push_off_btn') : t('transfer.push_on_btn')}
+                  className={cn(
+                    'flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold transition-colors',
+                    pushSubscribed
+                      ? 'bg-[var(--color-brand)]/15 text-[var(--color-brand)] hover:bg-[var(--color-brand)]/25'
+                      : 'bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]',
+                    pushBusy && 'opacity-50',
+                  )}
+                >
+                  {pushBusy
+                    ? <Loader2 className="w-3 h-3 animate-spin" />
+                    : pushSubscribed
+                      ? <Bell className="w-3 h-3" />
+                      : <BellOff className="w-3 h-3" />}
+                  {pushSubscribed ? t('transfer.push_on_label') : t('transfer.push_off_label')}
+                </button>
+              )}
+              <button onClick={loadAll} className="flex items-center gap-1 text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors">
+                <RotateCcw className="w-3 h-3" /> {t('common.search')}
+              </button>
+            </div>
           </div>
 
           {/* 등급별 정원 대시보드 + 인라인 편집 */}
