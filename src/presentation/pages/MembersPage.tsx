@@ -50,6 +50,16 @@ export const MembersPage = () => {
 
   useEffect(() => { loadMembers() }, [loadMembers])
 
+  // 페이지 이탈 시 검색어 초기화 — 다른 화면 갔다 돌아왔을 때 옛 검색어가 남아있는 문제 방지
+  useEffect(() => {
+    return () => { setSearchQuery('') }
+  }, [setSearchQuery])
+
+  // 내 행의 멤버 id — 본인 정보 강조 표시용
+  const myMemberId = user && !canEdit
+    ? base.find((m) => m.inGameName === user.inGameName)?.id ?? null
+    : null
+
   const handleSort = (key: SortKey) => {
     if (key !== sortKey) { setSortKey(key); setSortDir(key === 'cp' ? 'desc' : 'asc'); return }
     const next = nextSortDir(sortDir, key === 'cp')
@@ -119,6 +129,16 @@ export const MembersPage = () => {
         />
       </div>
 
+      {/* 비관리자 사용자에게 본인 정보 수정 안내 — 발견율 개선 */}
+      {!canEdit && myMemberId && (
+        <div className="mb-3 sm:mb-4 flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--color-brand)]/10 border border-[var(--color-brand)]/30">
+          <Pencil className="w-3.5 h-3.5 text-[var(--color-brand)] flex-shrink-0" />
+          <p className="text-[11px] sm:text-xs text-[var(--color-brand)] break-keep flex-1">
+            {t('members.self_edit_hint')}
+          </p>
+        </div>
+      )}
+
       <div className="rounded-lg border border-[var(--color-border-subtle)] overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
@@ -141,10 +161,28 @@ export const MembersPage = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-[var(--color-border-subtle)]">
-            {members.map((m, i) => (
-              <tr key={m.id} className="hover:bg-[var(--color-bg-surface)] transition-colors group">
+            {members.map((m, i) => {
+              const isMine = m.id === myMemberId
+              return (
+              <tr
+                key={m.id}
+                className={`transition-colors group ${
+                  isMine
+                    ? 'bg-[var(--color-brand)]/10 hover:bg-[var(--color-brand)]/15'
+                    : 'hover:bg-[var(--color-bg-surface)]'
+                }`}
+              >
                 <td className="px-3 sm:px-4 py-2.5 sm:py-3 text-[var(--color-text-muted)] text-xs">{i + 1}</td>
-                <td className="px-3 sm:px-4 py-2.5 sm:py-3 font-medium text-[var(--color-text-primary)] whitespace-nowrap">{m.inGameName}</td>
+                <td className="px-3 sm:px-4 py-2.5 sm:py-3 font-medium text-[var(--color-text-primary)] whitespace-nowrap">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span>{m.inGameName}</span>
+                    {isMine && (
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[var(--color-brand)] text-white leading-none">
+                        {t('members.my_row_badge')}
+                      </span>
+                    )}
+                  </div>
+                </td>
                 <td className="hidden sm:table-cell px-4 py-3 text-[var(--color-text-secondary)]">{m.zaloName || '-'}</td>
                 <td className="px-3 sm:px-4 py-2.5 sm:py-3">
                   {m.cp ? <Badge variant="success">{m.cp}</Badge> : <span className="text-[var(--color-text-muted)]">-</span>}
@@ -157,9 +195,21 @@ export const MembersPage = () => {
                 </td>
                 <td className="px-3 sm:px-4 py-2.5 sm:py-3">
                   {canEditRow(m) && (
-                    <div className="flex gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => openEdit(m)} className="p-1.5 rounded hover:bg-[var(--color-bg-elevated)] text-(--color-brand) hover:brightness-125">
+                    // 본인 행은 항상 노출 (발견율 ↑), 관리자가 다른 멤버 행 편집할 땐 hover 시 노출
+                    <div className={`flex gap-1 transition-opacity ${
+                      isMine ? 'opacity-100' : 'sm:opacity-0 sm:group-hover:opacity-100'
+                    }`}>
+                      <button
+                        onClick={() => openEdit(m)}
+                        className={`flex items-center gap-1 rounded transition-colors ${
+                          isMine
+                            ? 'px-2 py-1 bg-[var(--color-brand)] text-white hover:bg-[var(--color-brand)]/90 text-[11px] font-semibold'
+                            : 'p-1.5 hover:bg-[var(--color-bg-elevated)] text-(--color-brand) hover:brightness-125'
+                        }`}
+                        title={isMine ? t('members.edit_my_info') : undefined}
+                      >
                         <Pencil className="w-3.5 h-3.5" />
+                        {isMine && <span>{t('members.edit_my_info')}</span>}
                       </button>
                       {canEdit && (
                         <button onClick={() => setDeleteConfirm(m)} className="p-1.5 rounded hover:bg-[var(--color-bg-elevated)] text-(--color-danger) hover:brightness-125">
@@ -170,7 +220,8 @@ export const MembersPage = () => {
                   )}
                 </td>
               </tr>
-            ))}
+              )
+            })}
           </tbody>
         </table>
       </div>
