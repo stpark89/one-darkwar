@@ -37,6 +37,7 @@ interface VsPointStore {
   updateRoundDate: (roundId: string, date: string) => Promise<void>
   batchSaveVs: (changes: { roundId: string; memberId: string; points: string }[]) => Promise<boolean>
   deleteVsPointsForRound: (roundId: string) => Promise<void>
+  syncDeleteMember: (memberId: string) => void
 }
 
 function sortRoundsByDate(rounds: VsRound[]): VsRound[] {
@@ -175,6 +176,12 @@ export const useVsPointStore = create<VsPointStore>((set, get) => ({
       return false
     }
   },
+
+  syncDeleteMember: (memberId) =>
+    set((s) => ({
+      members: s.members.filter((m) => m.id !== memberId),
+      vsPoints: s.vsPoints.filter((v) => v.memberId !== memberId),
+    })),
 
   // 회차는 유지하고 해당 회차의 VS 포인트 데이터만 삭제 (잘못 입력한 경우 리셋)
   deleteVsPointsForRound: async (roundId) => {

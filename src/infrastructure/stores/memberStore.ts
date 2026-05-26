@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import type { Member, CreateMemberInput } from '@/domain/entities/Member'
 import { useWarStore } from './warStore'
+import { useVsPointStore } from './vsPointStore'
 import { useEventStore } from './eventStore'
 
 // authStore 의 toEmail 과 동일 규칙 (signIn 시 사용)
@@ -141,7 +142,9 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
   deleteMember: async (id) => {
     await supabase.from('members').delete().eq('id', id)
     set((s) => ({ members: s.members.filter((m) => m.id !== id) }))
-    // attendance rows are cascade deleted by DB foreign key
+    // in-memory sync: related rows cascade-deleted in DB, mirror locally
+    useWarStore.getState().syncDeleteMember(id)
+    useVsPointStore.getState().syncDeleteMember(id)
   },
 
   setSearchQuery: (searchQuery) => set({ searchQuery }),

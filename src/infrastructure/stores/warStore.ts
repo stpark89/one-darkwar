@@ -29,6 +29,7 @@ interface WarStore {
   deleteRound: (roundId: string) => Promise<void>
   updateRoundDate: (roundId: string, date: string) => Promise<void>
   syncMemberName: (memberId: string, newName: string) => void
+  syncDeleteMember: (memberId: string) => void
   setSearchQuery: (q: string) => void
   setFilterTeam: (team: string) => void
   getMemberRows: () => MemberWarRow[]
@@ -185,6 +186,12 @@ export const useWarStore = create<WarStore>((set, get) => ({
 
   syncMemberName: (memberId, newName) =>
     set(s => ({ members: s.members.map(m => m.id === memberId ? { ...m, inGameName: newName } : m) })),
+
+  syncDeleteMember: (memberId) =>
+    set(s => ({
+      members: s.members.filter(m => m.id !== memberId),
+      entries: s.entries.filter(e => e.memberId !== memberId),
+    })),
 
   setSearchQuery: (searchQuery) => set({ searchQuery }),
   setFilterTeam: (filterTeam) => set({ filterTeam }),
