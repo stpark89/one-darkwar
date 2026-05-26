@@ -6,6 +6,7 @@ import { useWarStore } from './warStore'
 import { useVsPointStore } from './vsPointStore'
 import { useEventStore } from './eventStore'
 
+
 // authStore 의 toEmail 과 동일 규칙 (signIn 시 사용)
 const toLoginEmail = (name: string) =>
   `${encodeURIComponent(name.trim().toLowerCase())}@onedarkwar.app`
@@ -145,6 +146,7 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
     // in-memory sync: related rows cascade-deleted in DB, mirror locally
     useWarStore.getState().syncDeleteMember(id)
     useVsPointStore.getState().syncDeleteMember(id)
+    useEventStore.getState().syncDeleteMember(id)
   },
 
   setSearchQuery: (searchQuery) => set({ searchQuery }),

@@ -21,6 +21,7 @@ interface EventStore {
   bulkUpdateMember: (memberId: string, updates: { eventKey: string; status: AttendanceStatus }[]) => Promise<void>
   batchSave: (changes: { memberId: string; eventKey: string; status: AttendanceStatus }[]) => Promise<boolean>
   syncMemberName: (memberId: string, newName: string) => void
+  syncDeleteMember: (memberId: string) => void
   setSearchQuery: (q: string) => void
   getFiltered: () => EventAttendance[]
   getSummary: () => { memberId: string; inGameName: string; total: number; ct: number; db: number }[]
@@ -268,6 +269,9 @@ export const useEventStore = create<EventStore>((set, get) => ({
 
   syncMemberName: (memberId, newName) =>
     set(s => ({ attendance: s.attendance.map(a => a.memberId === memberId ? { ...a, inGameName: newName } : a) })),
+
+  syncDeleteMember: (memberId) =>
+    set(s => ({ attendance: s.attendance.filter(a => a.memberId !== memberId) })),
 
   setSearchQuery: (searchQuery) => set({ searchQuery }),
 
