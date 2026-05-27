@@ -24,19 +24,34 @@ type CellPopoverState = {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-const isAttended = (role: string) => role !== ''
+const ENTRY_STYLE: Record<string, string> = {
+  'A-CT': 'bg-blue-500/20 text-blue-400',
+  'A-DB': 'bg-blue-500/10 text-blue-300',
+  'B-CT': 'bg-purple-500/20 text-purple-400',
+  'B-DB': 'bg-purple-500/10 text-purple-300',
+}
+
+const entryScore = (team: string, role: string) => {
+  if (!team || !role) return 0
+  if (team === 'A' && role === 'CT') return 4
+  if (team === 'A' && role === 'DB') return 3
+  if (team === 'B' && role === 'CT') return 2
+  return 1
+}
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
 const EntryCell = ({
-  role, note, pending,
-}: { role: string; note: string; pending: boolean }) => {
-  const attended = isAttended(role)
+  team, role, note, pending,
+}: { team: string; role: string; note: string; pending: boolean }) => {
+  const key = `${team}-${role}`
   return (
     <span className="relative inline-flex items-center justify-center">
-      {attended
-        ? <span className="text-[var(--color-success)] font-bold text-base leading-none">✓</span>
-        : <span className="text-[var(--color-text-muted)]">·</span>
+      {!team || !role
+        ? <span className="text-[var(--color-text-muted)]">·</span>
+        : <span className={cn('text-[11px] font-bold px-1.5 py-0.5 rounded', ENTRY_STYLE[key] ?? '')}>
+            {team}·{role}
+          </span>
       }
       {note && (
         <span className="absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full bg-orange-400" title={note} />
@@ -103,9 +118,9 @@ export const WarPage = () => {
       if (sortKey === 'inGameName') cmp = a.inGameName.localeCompare(b.inGameName)
       else if (sortKey === 'total') cmp = a.total - b.total
       else {
-        const ea = a.entryMap[sortKey] ?? { role: '' }
-        const eb = b.entryMap[sortKey] ?? { role: '' }
-        cmp = (isAttended(ea.role) ? 1 : 0) - (isAttended(eb.role) ? 1 : 0)
+        const ea = a.entryMap[sortKey] ?? { team: '', role: '' }
+        const eb = b.entryMap[sortKey] ?? { team: '', role: '' }
+        cmp = entryScore(ea.team, ea.role) - entryScore(eb.team, eb.role)
       }
       return sortDir === 'asc' ? cmp : -cmp
     })
@@ -353,6 +368,7 @@ export const WarPage = () => {
                           isPopoverOpen && 'bg-[var(--color-bg-elevated)]',
                         )}>
                         <EntryCell
+                          team={visible ? displayEntry.team : ''}
                           role={visible ? displayEntry.role : ''}
                           note={displayEntry.note}
                           pending={isPending}
@@ -409,6 +425,10 @@ export const WarPage = () => {
               </span>
               <span className="flex-1 font-medium text-[var(--color-text-primary)] text-sm">{s.inGameName}</span>
               <span className="text-[var(--color-success)] font-bold text-sm">{t('war.ranking_total', { count: s.total })}</span>
+              {s.ct > 0 && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400">CT {s.ct}</span>}
+              {s.db > 0 && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-400">DB {s.db}</span>}
+              {s.teamA > 0 && <span className="text-[10px] text-[var(--color-text-muted)]">A:{s.teamA}</span>}
+              {s.teamB > 0 && <span className="text-[10px] text-[var(--color-text-muted)]">B:{s.teamB}</span>}
             </div>
           ))}
         </div>
@@ -421,29 +441,36 @@ export const WarPage = () => {
           className="bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-xl shadow-2xl p-2 w-64"
           onMouseDown={e => e.stopPropagation()}
         >
-          {/* Attend / Not-attend buttons */}
-          <div className="flex gap-2 mb-2">
+          {/* Team·Role 4-button row */}
+          <div className="flex gap-1.5 mb-2">
+            {(['A-CT', 'A-DB', 'B-CT', 'B-DB'] as const).map(opt => {
+              const [tTeam, tRole] = opt.split('-') as [WarTeam, WarRole]
+              const isActive = cellPopover.entry.team === tTeam && cellPopover.entry.role === tRole
+              return (
+                <button
+                  key={opt}
+                  onClick={() => setCellPopover(prev => prev ? { ...prev, entry: { ...prev.entry, team: tTeam, role: tRole } } : null)}
+                  className={cn(
+                    'flex-1 py-1.5 rounded text-[11px] font-bold transition-colors',
+                    isActive
+                      ? tTeam === 'A' ? 'bg-blue-500 text-white' : 'bg-purple-500 text-white'
+                      : 'bg-[var(--color-bg-elevated)] text-[var(--color-text-secondary)] hover:bg-[var(--color-border)]',
+                  )}
+                >
+                  {tTeam}·{tRole}
+                </button>
+              )
+            })}
             <button
-              onClick={() => setCellPopover(prev => prev ? { ...prev, entry: { ...prev.entry, team: '' as WarTeam, role: 'CT' as WarRole } } : null)}
+              onClick={() => setCellPopover(prev => prev ? { ...prev, entry: { ...prev.entry, team: '', role: '' } } : null)}
               className={cn(
-                'flex-1 py-1.5 rounded text-sm font-bold transition-colors',
-                isAttended(cellPopover.entry.role)
-                  ? 'bg-[var(--color-success)]/20 text-[var(--color-success)]'
-                  : 'bg-[var(--color-bg-elevated)] text-[var(--color-text-secondary)] hover:bg-[var(--color-border)]',
-              )}
-            >
-              ✓ {t('war.attend_yes')}
-            </button>
-            <button
-              onClick={() => setCellPopover(prev => prev ? { ...prev, entry: { ...prev.entry, team: '' as WarTeam, role: '' as WarRole } } : null)}
-              className={cn(
-                'px-4 py-1.5 rounded text-sm font-bold transition-colors',
-                !isAttended(cellPopover.entry.role)
+                'px-2 py-1.5 rounded text-[11px] font-bold transition-colors',
+                (!cellPopover.entry.team && !cellPopover.entry.role)
                   ? 'bg-[var(--color-danger)]/20 text-[var(--color-danger)]'
                   : 'bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:bg-[var(--color-border)]',
               )}
             >
-              <X className="w-4 h-4" />
+              <X className="w-3 h-3" />
             </button>
           </div>
           {/* Note input */}
