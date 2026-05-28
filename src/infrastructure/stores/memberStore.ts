@@ -20,7 +20,7 @@ interface MemberStore {
   loadMembers: (force?: boolean) => Promise<void>
   setMembers: (members: Member[]) => void
   addMember: (input: CreateMemberInput) => Promise<string>
-  updateMember: (id: string, input: Partial<Member>) => Promise<void>
+  updateMember: (id: string, input: Partial<Member>) => Promise<boolean>
   deleteMember: (id: string) => Promise<void>
   setSearchQuery: (q: string) => void
   getFiltered: () => Member[]
@@ -101,7 +101,7 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
       if (error) {
         console.error('[memberStore] rename RPC error:', error)
         toast.error('이름 변경 중 오류가 발생했습니다.')
-        return
+        return false
       }
       const result = (data ?? {}) as { ok: boolean; reason?: string; profile_updated?: boolean }
       if (!result.ok) {
@@ -112,7 +112,7 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
         } else {
           toast.error('이름 변경에 실패했습니다.')
         }
-        return
+        return false
       }
       // 멤버는 이미 RPC 안에서 update 됨 → 추가 update 는 다른 필드만
       if (result.profile_updated) {
@@ -123,21 +123,29 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
     // 이름 외 나머지 필드 (혹은 이름이 안 바뀐 경우 모든 필드) 업데이트
     const updates: Record<string, string> = {}
     if (!nameChanged && input.inGameName !== undefined) updates.in_game_name = input.inGameName
-    if (input.zaloName !== undefined) updates.zalo_name = input.zaloName
-    if (input.cp !== undefined) updates.cp = input.cp
-    if (input.houseLevel !== undefined) updates.house_level = input.houseLevel
-    if (input.note !== undefined) updates.note = input.note
+    if (input.zaloName !== undefined) updates.zalo_name = input.zaloName ?? ''
+    if (input.cp !== undefined) updates.cp = input.cp ?? ''
+    if (input.houseLevel !== undefined) updates.house_level = input.houseLevel ?? ''
+    if (input.note !== undefined) updates.note = input.note ?? ''
+
     if (Object.keys(updates).length > 0) {
-      await supabase.from('members').update(updates).eq('id', id)
+      const { error } = await supabase.from('members').update(updates).eq('id', id)
+      if (error) {
+        console.error('[memberStore] updateMember error:', error)
+        toast.error('저장 중 오류가 발생했습니다.')
+        return false
+      }
     }
 
     set((s) => ({
       members: s.members.map((m) => (m.id === id ? { ...m, ...input } : m)).sort(sortBycp),
     }))
+    if (!nameChanged) toast.success('저장되었습니다.')
     if (input.inGameName !== undefined) {
       useWarStore.getState().syncMemberName(id, input.inGameName)
       useEventStore.getState().syncMemberName(id, input.inGameName)
     }
+    return true
   },
 
   deleteMember: async (id) => {

@@ -34,6 +34,7 @@ export const MembersPage = () => {
   const [editId, setEditId] = useState<string | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<Member | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [saving, setSaving] = useState(false)
   const [sortKey, setSortKey] = useState<SortKey>('cp')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
 
@@ -81,10 +82,19 @@ export const MembersPage = () => {
   const closeForm = () => { setForm(null); setEditId(null) }
 
   const handleSave = async () => {
-    if (!form?.inGameName?.trim()) return
-    if (editId) await updateMember(editId, form)
-    else await addMember({ inGameName: form.inGameName!, ...form })
-    closeForm()
+    if (!form?.inGameName?.trim() || saving) return
+    setSaving(true)
+    try {
+      if (editId) {
+        const ok = await updateMember(editId, form)
+        if (ok) closeForm()
+      } else {
+        await addMember({ inGameName: form.inGameName!, ...form })
+        closeForm()
+      }
+    } finally {
+      setSaving(false)
+    }
   }
 
   if (loading && members.length === 0) return (
@@ -268,7 +278,8 @@ export const MembersPage = () => {
             </div>
             <div className="flex gap-2 mt-5">
               <Button variant="outline" size="full" onClick={closeForm}>{t('common.cancel')}</Button>
-              <Button size="full" onClick={handleSave} disabled={!form.inGameName?.trim()}>
+              <Button size="full" onClick={handleSave} disabled={!form.inGameName?.trim() || saving}>
+                {saving && <Loader2 className="w-4 h-4 animate-spin" />}
                 {editId ? t('common.save') : t('common.add')}
               </Button>
             </div>
