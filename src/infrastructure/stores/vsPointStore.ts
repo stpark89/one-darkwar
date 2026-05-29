@@ -37,6 +37,7 @@ interface VsPointStore {
   updateRoundDate: (roundId: string, date: string) => Promise<void>
   batchSaveVs: (changes: { roundId: string; memberId: string; points: string }[]) => Promise<boolean>
   deleteVsPointsForRound: (roundId: string) => Promise<void>
+  syncMemberName: (memberId: string, newName: string) => void
   syncDeleteMember: (memberId: string) => void
 }
 
@@ -176,6 +177,11 @@ export const useVsPointStore = create<VsPointStore>((set, get) => ({
       return false
     }
   },
+
+  syncMemberName: (memberId, newName) =>
+    set((s) => ({
+      members: s.members.map((m) => m.id === memberId ? { ...m, inGameName: newName } : m),
+    })),
 
   syncDeleteMember: (memberId) =>
     set((s) => ({

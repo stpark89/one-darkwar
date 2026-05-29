@@ -6,7 +6,6 @@ import { useWarStore } from './warStore'
 import { useVsPointStore } from './vsPointStore'
 import { useEventStore } from './eventStore'
 
-
 // authStore 의 toEmail 과 동일 규칙 (signIn 시 사용)
 const toLoginEmail = (name: string) =>
   `${encodeURIComponent(name.trim().toLowerCase())}@onedarkwar.app`
@@ -91,32 +90,55 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
       input.inGameName !== undefined && current !== undefined && current.inGameName !== input.inGameName
 
     if (nameChanged) {
-      // 이름 변경은 RPC 로 처리 — members + profiles + auth.users 동기화
+      // 이름 변경: RPC 로 members + profiles + auth.users 동기화 시도
+      // RPC 미배포 시(함수 없음)엔 직접 members.update 로 fallback
       const newEmail = toLoginEmail(input.inGameName!)
       const { data, error } = await supabase.rpc('rename_member_with_profile', {
         p_member_id: id,
         p_new_name: input.inGameName,
         p_new_email: newEmail,
       })
+
       if (error) {
-        console.error('[memberStore] rename RPC error:', error)
-        toast.error('이름 변경 중 오류가 발생했습니다.')
-        return false
-      }
-      const result = (data ?? {}) as { ok: boolean; reason?: string; profile_updated?: boolean }
-      if (!result.ok) {
-        if (result.reason === 'email_conflict') {
-          toast.error('해당 인게임명의 로그인 계정이 이미 존재합니다. 다른 이름을 사용하세요.')
-        } else if (result.reason === 'member_not_found') {
-          toast.error('멤버를 찾을 수 없습니다.')
+        // 함수 자체가 없는 경우(미배포) → 직접 update fallback
+        const isFunctionMissing =
+          error.code === 'PGRST202' || error.code === '42883' ||
+          error.message?.includes('Could not find the function') ||
+          error.message?.includes('does not exist')
+
+        if (isFunctionMissing) {
+          // RPC 없이 members 테이블만 직접 업데이트
+          const { error: directErr } = await supabase
+            .from('members')
+            .update({ in_game_name: input.inGameName })
+            .eq('id', id)
+          if (directErr) {
+            console.error('[memberStore] direct rename error:', directErr)
+            toast.error('이름 변경 중 오류가 발생했습니다.')
+            return false
+          }
+          // fallback 성공 — 이름 외 다른 필드는 아래 updates 에서 처리
         } else {
-          toast.error('이름 변경에 실패했습니다.')
+          console.error('[memberStore] rename RPC error:', error)
+          toast.error('이름 변경 중 오류가 발생했습니다.')
+          return false
         }
-        return false
-      }
-      // 멤버는 이미 RPC 안에서 update 됨 → 추가 update 는 다른 필드만
-      if (result.profile_updated) {
-        toast.success('이름이 멤버 명단 + 로그인 계정에 함께 반영되었습니다.')
+      } else {
+        // RPC 응답 처리
+        const result = (data ?? {}) as { ok: boolean; reason?: string; profile_updated?: boolean }
+        if (!result.ok) {
+          if (result.reason === 'email_conflict') {
+            toast.error('해당 인게임명의 로그인 계정이 이미 존재합니다. 다른 이름을 사용하세요.')
+          } else if (result.reason === 'member_not_found') {
+            toast.error('멤버를 찾을 수 없습니다.')
+          } else if (result.reason !== 'no_change') {
+            toast.error('이름 변경에 실패했습니다.')
+          }
+          if (result.reason !== 'no_change') return false
+        }
+        if (result.profile_updated) {
+          toast.success('이름이 멤버 명단 + 로그인 계정에 함께 반영되었습니다.')
+        }
       }
     }
 
@@ -144,6 +166,7 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
     if (input.inGameName !== undefined) {
       useWarStore.getState().syncMemberName(id, input.inGameName)
       useEventStore.getState().syncMemberName(id, input.inGameName)
+      useVsPointStore.getState().syncMemberName(id, input.inGameName)
     }
     return true
   },
