@@ -185,6 +185,16 @@ export default {
     status_rejected_title: 'Bị từ chối',
     status_rejected_desc: 'Rất tiếc, đơn của bạn chưa được duyệt lần này.',
   },
+  media: {
+    attachment: 'Ảnh / Video đính kèm',
+    add_btn: 'Thêm tệp',
+    uploading: 'Đang tải lên...',
+    hint: 'Ảnh tối đa {{imgMb}}MB (tự nén), video tối đa {{videoMb}}MB. Có thể chọn nhiều.',
+    max_reached: 'Tối đa {{n}} tệp.',
+    unsupported_type: 'Định dạng không hỗ trợ: {{name}}',
+    video_too_big: '{{name}} vượt quá {{mb}}MB.',
+    upload_failed: 'Tải lên thất bại: {{name}}',
+  },
   vsPoint: {
     title: 'Điểm VS',
     subtitle: '{{n}} đợt',

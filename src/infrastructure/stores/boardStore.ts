@@ -8,6 +8,7 @@ export interface Post {
   authorId: string | null
   authorName: string
   commentCount: number
+  mediaUrls: string[]
   createdAt: string
   updatedAt: string
 }
@@ -18,6 +19,7 @@ export interface PostComment {
   content: string
   authorId: string | null
   authorName: string
+  mediaUrls: string[]
   createdAt: string
 }
 
@@ -31,6 +33,7 @@ const toPost = (r: any): Post => ({
   authorId: r.author_id ?? null,
   authorName: r.author_name,
   commentCount: Number(r.post_comments?.[0]?.count ?? 0),
+  mediaUrls: r.media_urls ?? [],
   createdAt: r.created_at,
   updatedAt: r.updated_at,
 })
@@ -42,6 +45,7 @@ const toComment = (r: any): PostComment => ({
   content: r.content,
   authorId: r.author_id ?? null,
   authorName: r.author_name,
+  mediaUrls: r.media_urls ?? [],
   createdAt: r.created_at,
 })
 
@@ -54,11 +58,11 @@ interface BoardStore {
   commentsLoading: Record<string, boolean>
 
   loadPosts: (reset?: boolean, force?: boolean) => Promise<void>
-  addPost: (title: string, content: string, authorId: string, authorName: string) => Promise<Post | null>
-  updatePost: (id: string, title: string, content: string) => Promise<void>
+  addPost: (title: string, content: string, authorId: string, authorName: string, mediaUrls?: string[]) => Promise<Post | null>
+  updatePost: (id: string, title: string, content: string, mediaUrls?: string[]) => Promise<void>
   deletePost: (id: string) => Promise<void>
   loadComments: (postId: string) => Promise<void>
-  addComment: (postId: string, content: string, authorId: string, authorName: string) => Promise<void>
+  addComment: (postId: string, content: string, authorId: string, authorName: string, mediaUrls?: string[]) => Promise<void>
   deleteComment: (commentId: string, postId: string) => Promise<void>
 }
 
@@ -96,10 +100,10 @@ export const useBoardStore = create<BoardStore>((set, get) => ({
     }
   },
 
-  addPost: async (title, content, authorId, authorName) => {
+  addPost: async (title, content, authorId, authorName, mediaUrls = []) => {
     const { data, error } = await supabase
       .from('posts')
-      .insert({ title, content, author_id: authorId, author_name: authorName })
+      .insert({ title, content, author_id: authorId, author_name: authorName, media_urls: mediaUrls })
       .select('*, post_comments(count)')
       .single()
     if (error || !data) { console.error('[boardStore] addPost:', error); return null }
@@ -108,10 +112,14 @@ export const useBoardStore = create<BoardStore>((set, get) => ({
     return post
   },
 
-  updatePost: async (id, title, content) => {
+  updatePost: async (id, title, content, mediaUrls) => {
+    const payload: Record<string, unknown> = {
+      title, content, updated_at: new Date().toISOString(),
+    }
+    if (mediaUrls !== undefined) payload.media_urls = mediaUrls
     const { data, error } = await supabase
       .from('posts')
-      .update({ title, content, updated_at: new Date().toISOString() })
+      .update(payload)
       .eq('id', id)
       .select('*, post_comments(count)')
       .single()
@@ -147,10 +155,10 @@ export const useBoardStore = create<BoardStore>((set, get) => ({
     }
   },
 
-  addComment: async (postId, content, authorId, authorName) => {
+  addComment: async (postId, content, authorId, authorName, mediaUrls = []) => {
     const { data, error } = await supabase
       .from('post_comments')
-      .insert({ post_id: postId, content, author_id: authorId, author_name: authorName })
+      .insert({ post_id: postId, content, author_id: authorId, author_name: authorName, media_urls: mediaUrls })
       .select()
       .single()
     if (error || !data) { console.error('[boardStore] addComment:', error); return }

@@ -185,6 +185,16 @@ export default {
     status_rejected_title: '거절되었습니다',
     status_rejected_desc: '안타깝게도 이번 신청은 승인되지 않았습니다.',
   },
+  media: {
+    attachment: '사진 / 동영상 첨부',
+    add_btn: '파일 추가',
+    uploading: '업로드 중...',
+    hint: '사진 최대 {{imgMb}}MB (자동 압축), 동영상 최대 {{videoMb}}MB. 여러 개 선택 가능.',
+    max_reached: '최대 {{n}}개까지 첨부 가능합니다.',
+    unsupported_type: '지원하지 않는 형식입니다: {{name}}',
+    video_too_big: '{{name}} 은 {{mb}}MB 를 초과합니다.',
+    upload_failed: '{{name}} 업로드에 실패했습니다.',
+  },
   vsPoint: {
     title: 'VS 포인트',
     subtitle: '{{n}}회차',

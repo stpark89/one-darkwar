@@ -8,6 +8,7 @@ export interface Notice {
   authorId: string | null
   authorName: string
   pinned: boolean
+  mediaUrls: string[]
   createdAt: string
   updatedAt: string
 }
@@ -17,8 +18,8 @@ interface NoticeStore {
   loading: boolean
   initialized: boolean
   loadNotices: (force?: boolean) => Promise<void>
-  addNotice: (title: string, content: string, authorId: string, authorName: string) => Promise<void>
-  updateNotice: (id: string, title: string, content: string) => Promise<void>
+  addNotice: (title: string, content: string, authorId: string, authorName: string, mediaUrls?: string[]) => Promise<void>
+  updateNotice: (id: string, title: string, content: string, mediaUrls?: string[]) => Promise<void>
   deleteNotice: (id: string) => Promise<void>
   togglePin: (id: string) => Promise<void>
 }
@@ -30,6 +31,7 @@ const toNotice = (r: Record<string, unknown>): Notice => ({
   authorId: r.author_id as string | null,
   authorName: r.author_name as string,
   pinned: r.pinned as boolean,
+  mediaUrls: (r.media_urls as string[] | null) ?? [],
   createdAt: r.created_at as string,
   updatedAt: r.updated_at as string,
 })
@@ -55,20 +57,24 @@ export const useNoticeStore = create<NoticeStore>((set, get) => ({
     }
   },
 
-  addNotice: async (title, content, authorId, authorName) => {
+  addNotice: async (title, content, authorId, authorName, mediaUrls = []) => {
     const { data, error } = await supabase
       .from('notices')
-      .insert({ title, content, author_id: authorId, author_name: authorName })
+      .insert({ title, content, author_id: authorId, author_name: authorName, media_urls: mediaUrls })
       .select()
       .single()
     if (error || !data) return
     set((s) => ({ notices: [toNotice(data), ...s.notices] }))
   },
 
-  updateNotice: async (id, title, content) => {
+  updateNotice: async (id, title, content, mediaUrls) => {
+    const payload: Record<string, unknown> = {
+      title, content, updated_at: new Date().toISOString(),
+    }
+    if (mediaUrls !== undefined) payload.media_urls = mediaUrls
     const { data, error } = await supabase
       .from('notices')
-      .update({ title, content, updated_at: new Date().toISOString() })
+      .update(payload)
       .eq('id', id)
       .select()
       .single()

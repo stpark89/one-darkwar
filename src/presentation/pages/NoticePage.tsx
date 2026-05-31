@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
-import { Plus, Pin, PinOff, Pencil, Trash2, Loader2, X, ChevronDown, ChevronUp, Megaphone, Languages } from 'lucide-react'
+import { Plus, Pin, PinOff, Pencil, Trash2, Loader2, X, ChevronDown, ChevronUp, Megaphone, Languages, ImageIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useNoticeStore } from '@/infrastructure/stores/noticeStore'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { Button } from '@/presentation/components/ui/button'
 import { Input } from '@/presentation/components/ui/input'
+import { MediaUploader } from '@/presentation/components/MediaUploader'
+import { MediaViewer } from '@/presentation/components/MediaViewer'
 import { cn } from '@/lib/utils'
 import { translateText } from '@/lib/translate'
 
@@ -26,9 +28,10 @@ export const NoticePage = () => {
   const [translatingId, setTranslatingId] = useState<string | null>(null)
   const [translations, setTranslations] = useState<Map<string, string>>(new Map())
   const [showModal, setShowModal] = useState(false)
-  const [editTarget, setEditTarget] = useState<{ id: string; title: string; content: string } | null>(null)
+  const [editTarget, setEditTarget] = useState<{ id: string; title: string; content: string; mediaUrls: string[] } | null>(null)
   const [formTitle, setFormTitle] = useState('')
   const [formContent, setFormContent] = useState('')
+  const [formMedia, setFormMedia] = useState<string[]>([])
   const [saving, setSaving] = useState(false)
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -40,28 +43,31 @@ export const NoticePage = () => {
     setEditTarget(null)
     setFormTitle('')
     setFormContent('')
+    setFormMedia([])
     setShowModal(true)
   }
 
-  const openEdit = (n: { id: string; title: string; content: string }) => {
+  const openEdit = (n: { id: string; title: string; content: string; mediaUrls: string[] }) => {
     setEditTarget(n)
     setFormTitle(n.title)
     setFormContent(n.content)
+    setFormMedia(n.mediaUrls ?? [])
     setShowModal(true)
   }
 
   const closeModal = () => {
     setShowModal(false)
     setEditTarget(null)
+    setFormMedia([])
   }
 
   const handleSave = async () => {
     if (!formTitle.trim() || !formContent.trim() || !user) return
     setSaving(true)
     if (editTarget) {
-      await updateNotice(editTarget.id, formTitle.trim(), formContent.trim())
+      await updateNotice(editTarget.id, formTitle.trim(), formContent.trim(), formMedia)
     } else {
-      await addNotice(formTitle.trim(), formContent.trim(), user.id, user.inGameName)
+      await addNotice(formTitle.trim(), formContent.trim(), user.id, user.inGameName, formMedia)
     }
     setSaving(false)
     closeModal()
@@ -162,6 +168,12 @@ export const NoticePage = () => {
                     </p>
                   </div>
                   <div className="flex items-center gap-1 flex-shrink-0 mt-0.5">
+                    {notice.mediaUrls.length > 0 && (
+                      <span className="flex items-center gap-1 text-[11px] text-[var(--color-text-muted)] mr-1">
+                        <ImageIcon className="w-3.5 h-3.5" />
+                        {notice.mediaUrls.length}
+                      </span>
+                    )}
                     {isAdmin && (
                       <>
                         <span
@@ -215,6 +227,9 @@ export const NoticePage = () => {
                     <p className="text-sm text-[var(--color-text-secondary)] whitespace-pre-wrap leading-relaxed pt-3">
                       {notice.content}
                     </p>
+                    {notice.mediaUrls.length > 0 && (
+                      <MediaViewer urls={notice.mediaUrls} className="mt-3" />
+                    )}
                     {translations.has(notice.id) && (
                       <div className="mt-3 pt-3 border-t border-[var(--color-border-subtle)]/60">
                         <p className="text-[10px] text-[var(--color-text-muted)] mb-1.5 flex items-center gap-1">
@@ -277,6 +292,18 @@ export const NoticePage = () => {
                   className="w-full text-sm bg-[var(--color-bg-elevated)] border border-[var(--color-border-subtle)] rounded-lg px-3 py-2 outline-none focus:border-[var(--color-brand)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] resize-none"
                 />
               </div>
+              {/* 사진/동영상 첨부 (최대 5개) */}
+              {user && (
+                <div>
+                  <label className="text-xs text-[var(--color-text-muted)] mb-1 block">{t('media.attachment')}</label>
+                  <MediaUploader
+                    value={formMedia}
+                    onChange={setFormMedia}
+                    userId={user.id}
+                    maxCount={5}
+                  />
+                </div>
+              )}
             </div>
             <div className="flex gap-2 mt-5">
               <Button variant="outline" size="full" onClick={closeModal}>{t('common.cancel')}</Button>

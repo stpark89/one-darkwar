@@ -1,13 +1,15 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import {
   Plus, MessageCircle, Pencil, Trash2, Loader2, X,
-  ChevronDown, ChevronUp, Send, MessageSquare, Languages,
+  ChevronDown, ChevronUp, Send, MessageSquare, Languages, ImageIcon,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useBoardStore, type Post } from '@/infrastructure/stores/boardStore'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { Button } from '@/presentation/components/ui/button'
 import { Input } from '@/presentation/components/ui/input'
+import { MediaUploader } from '@/presentation/components/MediaUploader'
+import { MediaViewer } from '@/presentation/components/MediaViewer'
 import { cn } from '@/lib/utils'
 import { translateText } from '@/lib/translate'
 
@@ -57,11 +59,13 @@ export const BoardPage = () => {
   const [editTarget, setEditTarget] = useState<Post | null>(null)
   const [formTitle, setFormTitle] = useState('')
   const [formContent, setFormContent] = useState('')
+  const [formMedia, setFormMedia] = useState<string[]>([])
   const [saving, setSaving] = useState(false)
   const [deletePostId, setDeletePostId] = useState<string | null>(null)
   const [deletingPostId, setDeletingPostId] = useState<string | null>(null)
   const [deleteCommentTarget, setDeleteCommentTarget] = useState<{ commentId: string; postId: string } | null>(null)
   const [commentInputs, setCommentInputs] = useState<Record<string, string>>({})
+  const [commentMedia, setCommentMedia] = useState<Record<string, string[]>>({})
   const [submittingComment, setSubmittingComment] = useState<string | null>(null)
   const [translatingId, setTranslatingId] = useState<string | null>(null)
   const [translations, setTranslations] = useState<Map<string, string>>(new Map())
@@ -82,6 +86,7 @@ export const BoardPage = () => {
     setEditTarget(null)
     setFormTitle('')
     setFormContent('')
+    setFormMedia([])
     setShowModal(true)
   }
 
@@ -89,18 +94,19 @@ export const BoardPage = () => {
     setEditTarget(post)
     setFormTitle(post.title)
     setFormContent(post.content)
+    setFormMedia(post.mediaUrls ?? [])
     setShowModal(true)
   }
 
-  const closeModal = () => { setShowModal(false); setEditTarget(null) }
+  const closeModal = () => { setShowModal(false); setEditTarget(null); setFormMedia([]) }
 
   const handleSave = async () => {
     if (!formTitle.trim() || !formContent.trim() || !user) return
     setSaving(true)
     if (editTarget) {
-      await updatePost(editTarget.id, formTitle.trim(), formContent.trim())
+      await updatePost(editTarget.id, formTitle.trim(), formContent.trim(), formMedia)
     } else {
-      const post = await addPost(formTitle.trim(), formContent.trim(), user.id, user.inGameName)
+      const post = await addPost(formTitle.trim(), formContent.trim(), user.id, user.inGameName, formMedia)
       if (post) setExpandedId(post.id)
     }
     setSaving(false)
@@ -118,10 +124,12 @@ export const BoardPage = () => {
 
   const handleAddComment = async (postId: string) => {
     const content = (commentInputs[postId] ?? '').trim()
-    if (!content || !user || submittingComment) return
+    const media = commentMedia[postId] ?? []
+    if ((!content && media.length === 0) || !user || submittingComment) return
     setSubmittingComment(postId)
-    await addComment(postId, content, user.id, user.inGameName)
+    await addComment(postId, content, user.id, user.inGameName, media)
     setCommentInputs(prev => ({ ...prev, [postId]: '' }))
+    setCommentMedia(prev => ({ ...prev, [postId]: [] }))
     setSubmittingComment(null)
   }
 
@@ -211,6 +219,12 @@ export const BoardPage = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                    {post.mediaUrls.length > 0 && (
+                      <span className="flex items-center gap-1 text-[11px] text-[var(--color-text-muted)]">
+                        <ImageIcon className="w-3.5 h-3.5" />
+                        {post.mediaUrls.length}
+                      </span>
+                    )}
                     <span className="flex items-center gap-1 text-[11px] text-[var(--color-text-muted)]">
                       <MessageCircle className="w-3.5 h-3.5" />
                       {post.commentCount}
@@ -229,6 +243,11 @@ export const BoardPage = () => {
                       <p className="text-sm text-[var(--color-text-secondary)] whitespace-pre-wrap leading-relaxed">
                         {post.content}
                       </p>
+
+                      {/* 첨부 미디어 */}
+                      {post.mediaUrls.length > 0 && (
+                        <MediaViewer urls={post.mediaUrls} className="mt-3" />
+                      )}
 
                       {/* 번역 결과 */}
                       {translations.has(post.id) && (
@@ -311,7 +330,12 @@ export const BoardPage = () => {
                                       )}
                                     </div>
                                   </div>
-                                  <p className="text-xs text-[var(--color-text-secondary)] whitespace-pre-wrap">{comment.content}</p>
+                                  {comment.content && (
+                                    <p className="text-xs text-[var(--color-text-secondary)] whitespace-pre-wrap">{comment.content}</p>
+                                  )}
+                                  {comment.mediaUrls.length > 0 && (
+                                    <MediaViewer urls={comment.mediaUrls} className="mt-2 !grid-cols-2" />
+                                  )}
                                 </div>
                               </div>
                             ))}
@@ -320,26 +344,37 @@ export const BoardPage = () => {
 
                         {/* 댓글 입력 */}
                         {!isGuest && user && (
-                          <div className="flex items-center gap-2 mt-2">
-                            <Avatar name={user.inGameName} size="sm" />
-                            <div className="flex-1 flex items-center gap-2">
-                              <Input
-                                ref={(el) => { commentInputRef.current[post.id] = el }}
-                                value={commentInputs[post.id] ?? ''}
-                                onChange={(e) => setCommentInputs(prev => ({ ...prev, [post.id]: e.target.value }))}
-                                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAddComment(post.id) } }}
-                                placeholder={t('board.comment_placeholder')}
-                                className="text-xs h-8"
+                          <div className="mt-2 space-y-2">
+                            <div className="flex items-center gap-2">
+                              <Avatar name={user.inGameName} size="sm" />
+                              <div className="flex-1 flex items-center gap-2">
+                                <Input
+                                  ref={(el) => { commentInputRef.current[post.id] = el }}
+                                  value={commentInputs[post.id] ?? ''}
+                                  onChange={(e) => setCommentInputs(prev => ({ ...prev, [post.id]: e.target.value }))}
+                                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAddComment(post.id) } }}
+                                  placeholder={t('board.comment_placeholder')}
+                                  className="text-xs h-8"
+                                />
+                                <button
+                                  onClick={() => handleAddComment(post.id)}
+                                  disabled={(!((commentInputs[post.id] ?? '').trim()) && (commentMedia[post.id]?.length ?? 0) === 0) || submittingComment === post.id}
+                                  className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg bg-[var(--color-brand)] text-white hover:opacity-90 transition-opacity disabled:opacity-40"
+                                >
+                                  {submittingComment === post.id
+                                    ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                    : <Send className="w-3.5 h-3.5" />}
+                                </button>
+                              </div>
+                            </div>
+                            {/* 댓글에도 사진/영상 첨부 (최대 2) */}
+                            <div className="pl-8">
+                              <MediaUploader
+                                value={commentMedia[post.id] ?? []}
+                                onChange={(urls) => setCommentMedia(prev => ({ ...prev, [post.id]: urls }))}
+                                userId={user.id}
+                                maxCount={2}
                               />
-                              <button
-                                onClick={() => handleAddComment(post.id)}
-                                disabled={!(commentInputs[post.id] ?? '').trim() || submittingComment === post.id}
-                                className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg bg-[var(--color-brand)] text-white hover:opacity-90 transition-opacity disabled:opacity-40"
-                              >
-                                {submittingComment === post.id
-                                  ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                  : <Send className="w-3.5 h-3.5" />}
-                              </button>
                             </div>
                           </div>
                         )}
@@ -400,6 +435,18 @@ export const BoardPage = () => {
                   className="w-full text-sm bg-[var(--color-bg-elevated)] border border-[var(--color-border-subtle)] rounded-lg px-3 py-2 outline-none focus:border-[var(--color-brand)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] resize-none"
                 />
               </div>
+              {/* 사진/동영상 첨부 (게시글당 최대 5개) */}
+              {user && (
+                <div>
+                  <label className="text-xs text-[var(--color-text-muted)] mb-1 block">{t('media.attachment')}</label>
+                  <MediaUploader
+                    value={formMedia}
+                    onChange={setFormMedia}
+                    userId={user.id}
+                    maxCount={5}
+                  />
+                </div>
+              )}
             </div>
             <div className="flex gap-2 mt-5">
               <Button variant="outline" size="full" onClick={closeModal}>{t('common.cancel')}</Button>

@@ -185,6 +185,16 @@ export default {
     status_rejected_title: '已拒絕',
     status_rejected_desc: '很遺憾，本次申請未被核准。',
   },
+  media: {
+    attachment: '照片 / 影片附件',
+    add_btn: '新增檔案',
+    uploading: '上傳中...',
+    hint: '照片最大 {{imgMb}}MB (自動壓縮)，影片最大 {{videoMb}}MB。可多選。',
+    max_reached: '最多可附加 {{n}} 個檔案。',
+    unsupported_type: '不支援的格式：{{name}}',
+    video_too_big: '{{name}} 超過 {{mb}}MB。',
+    upload_failed: '上傳失敗：{{name}}',
+  },
   vsPoint: {
     title: 'VS 積分',
     subtitle: '{{n}} 輪次',

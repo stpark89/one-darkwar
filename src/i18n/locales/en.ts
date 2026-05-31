@@ -185,6 +185,16 @@ export default {
     status_rejected_title: 'Rejected',
     status_rejected_desc: 'Unfortunately your application was not approved this time.',
   },
+  media: {
+    attachment: 'Photo / Video attachments',
+    add_btn: 'Add file',
+    uploading: 'Uploading...',
+    hint: 'Photos up to {{imgMb}}MB (auto-compressed), videos up to {{videoMb}}MB. Multi-select supported.',
+    max_reached: 'You can attach up to {{n}} files.',
+    unsupported_type: 'Unsupported format: {{name}}',
+    video_too_big: '{{name}} exceeds {{mb}}MB.',
+    upload_failed: 'Upload failed: {{name}}',
+  },
   vsPoint: {
     title: 'VS Points',
     subtitle: '{{n}} rounds',
