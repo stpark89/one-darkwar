@@ -9,6 +9,7 @@ import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { useApprovalStore } from '@/infrastructure/stores/approvalStore'
 import { useNoticeStore } from '@/infrastructure/stores/noticeStore'
 import { useBoardStore } from '@/infrastructure/stores/boardStore'
+import { MediaHighlights, type MediaItem } from '@/presentation/components/MediaHighlights'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
 
@@ -179,6 +180,36 @@ export const HomePage = () => {
   const eventSummary = eventStore.getSummary()
   const { events, attendance } = eventStore
   const { rounds } = warStore
+
+  // 최근 미디어 하이라이트 — 게시판 글 + 공지에서 첨부 있는 항목의 첫 미디어 1장씩
+  const mediaItems: MediaItem[] = (() => {
+    const items: MediaItem[] = []
+    for (const p of posts) {
+      if (p.mediaUrls.length > 0) {
+        items.push({
+          url: p.mediaUrls[0],
+          sourceType: 'post',
+          sourceId: p.id,
+          sourceTitle: p.title,
+          authorName: p.authorName,
+          createdAt: p.createdAt,
+        })
+      }
+    }
+    for (const n of notices) {
+      if (n.mediaUrls.length > 0) {
+        items.push({
+          url: n.mediaUrls[0],
+          sourceType: 'notice',
+          sourceId: n.id,
+          sourceTitle: n.title,
+          authorName: n.authorName,
+          createdAt: n.createdAt,
+        })
+      }
+    }
+    return items.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
+  })()
 
   const warRate =
     members.length > 0
@@ -481,6 +512,13 @@ export const HomePage = () => {
           )}
         </div>
       </div>
+
+      {/* 최근 사진/영상 하이라이트 — 게시판 + 공지에서 모은 가로 스크롤 */}
+      {mediaItems.length > 0 && (
+        <div className="bg-[var(--color-bg-surface)] border border-[var(--color-border-subtle)] rounded-xl p-4">
+          <MediaHighlights items={mediaItems} maxItems={12} />
+        </div>
+      )}
 
       {/* 공지사항 위젯 */}
       <div className="bg-[var(--color-bg-surface)] border border-[var(--color-border-subtle)] rounded-xl p-4">
