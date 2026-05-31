@@ -378,6 +378,13 @@ export const HomePage = () => {
         </div>
       )}
 
+      {/* 최근 사진/영상 하이라이트 — 게시판 + 공지에서 모은 가로 스크롤 (최상단 우선 노출) */}
+      {mediaItems.length > 0 && (
+        <div className="bg-[var(--color-bg-surface)] border border-[var(--color-border-subtle)] rounded-xl p-4">
+          <MediaHighlights items={mediaItems} maxItems={12} />
+        </div>
+      )}
+
       {/* Stat Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard
@@ -512,13 +519,6 @@ export const HomePage = () => {
           )}
         </div>
       </div>
-
-      {/* 최근 사진/영상 하이라이트 — 게시판 + 공지에서 모은 가로 스크롤 */}
-      {mediaItems.length > 0 && (
-        <div className="bg-[var(--color-bg-surface)] border border-[var(--color-border-subtle)] rounded-xl p-4">
-          <MediaHighlights items={mediaItems} maxItems={12} />
-        </div>
-      )}
 
       {/* 공지사항 위젯 */}
       <div className="bg-[var(--color-bg-surface)] border border-[var(--color-border-subtle)] rounded-xl p-4">
