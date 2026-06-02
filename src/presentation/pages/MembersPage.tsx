@@ -183,15 +183,21 @@ export const MembersPage = () => {
                 }`}
               >
                 <td className="px-3 sm:px-4 py-2.5 sm:py-3 text-[var(--color-text-muted)] text-xs">{i + 1}</td>
-                <td className="px-3 sm:px-4 py-2.5 sm:py-3 font-medium text-[var(--color-text-primary)] whitespace-nowrap">
+                <td className="px-3 sm:px-4 py-2.5 sm:py-3 font-medium text-[var(--color-text-primary)]">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <span>{m.inGameName}</span>
+                    <span className="whitespace-nowrap">{m.inGameName}</span>
                     {isMine && (
                       <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[var(--color-brand)] text-white leading-none">
                         {t('members.my_row_badge')}
                       </span>
                     )}
                   </div>
+                  {/* 모바일에서 메모 표시 (md 이상에선 별도 컬럼으로 보이므로 숨김) */}
+                  {m.note && (
+                    <p className="md:hidden mt-0.5 text-[11px] text-[var(--color-text-muted)] truncate max-w-[160px]">
+                      {m.note}
+                    </p>
+                  )}
                 </td>
                 <td className="hidden sm:table-cell px-4 py-3 text-[var(--color-text-secondary)]">{m.zaloName || '-'}</td>
                 <td className="px-3 sm:px-4 py-2.5 sm:py-3">

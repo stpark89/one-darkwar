@@ -190,7 +190,8 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
       (m) =>
         m.inGameName.toLowerCase().includes(q) ||
         m.zaloName.toLowerCase().includes(q) ||
-        m.cp.toLowerCase().includes(q),
+        m.cp.toLowerCase().includes(q) ||
+        (m.note ?? '').toLowerCase().includes(q),
     )
   },
 }))
