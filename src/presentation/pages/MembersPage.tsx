@@ -194,7 +194,7 @@ export const MembersPage = () => {
                   </div>
                   {/* 모바일에서 메모 표시 (md 이상에선 별도 컬럼으로 보이므로 숨김) */}
                   {m.note && (
-                    <p className="md:hidden mt-0.5 text-[11px] text-[var(--color-text-muted)] truncate max-w-[160px]">
+                    <p className="md:hidden mt-1 text-xs text-[var(--color-text-secondary)] break-all line-clamp-2">
                       {m.note}
                     </p>
                   )}
