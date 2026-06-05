@@ -30,6 +30,8 @@ interface TransferStore {
   updateAdminMessage: (id: string, adminMessage: string) => Promise<void>
   updateTier: (id: string, tierId: string | null) => Promise<void>
   remove: (id: string) => Promise<void>
+  /** 신청자가 본인 신청서 내용 수정 + 상태 PENDING 재설정 */
+  updateApplication: (id: string, draft: TransferDraft) => Promise<boolean>
   /** 게스트가 UID 로 본인 신청 조회 (anon RPC 호출). inGameName 은 더 이상 사용 안 함 (호환용) */
   lookupByCredentials: (uid: string) => Promise<TransferApplication[]>
 }
@@ -122,6 +124,36 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
     set((s) => ({
       apps: s.apps.map((a) => (a.id === id ? { ...a, adminMessage } : a)),
     }))
+  },
+
+  updateApplication: async (id, draft) => {
+    const { error } = await supabase
+      .from('transfer_applications')
+      .update({
+        in_game_name: draft.inGameName.trim(),
+        uid: draft.uid.trim(),
+        current_server: draft.currentServer.trim(),
+        country: draft.country.trim(),
+        cp: draft.cp.trim(),
+        tier_id: draft.tierId,
+        status: 'PENDING',
+        reviewed_at: null,
+        reviewed_by: null,
+      })
+      .eq('id', id)
+    if (error) {
+      console.error('transfer updateApplication error', error)
+      toast.error('수정 중 오류가 발생했습니다.')
+      return false
+    }
+    set((s) => ({
+      apps: s.apps.map((a) =>
+        a.id === id
+          ? { ...a, ...draft, status: 'PENDING' as TransferStatus, reviewedAt: null, reviewedBy: null }
+          : a,
+      ),
+    }))
+    return true
   },
 
   lookupByCredentials: async (uid) => {

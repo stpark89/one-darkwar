@@ -184,6 +184,8 @@ export default {
     status_approved_desc: '歡迎加入！請查看下方管理員訊息。',
     status_rejected_title: '已拒絕',
     status_rejected_desc: '很遺憾，本次申請未被核准。',
+    edit_title: '修改申請',
+    edit_submit: '重新提交',
   },
   media: {
     attachment: '照片 / 影片附件',

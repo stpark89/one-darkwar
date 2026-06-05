@@ -184,6 +184,8 @@ export default {
     status_approved_desc: '환영합니다! 아래 관리자 메시지를 확인해주세요.',
     status_rejected_title: '거절되었습니다',
     status_rejected_desc: '안타깝게도 이번 신청은 승인되지 않았습니다.',
+    edit_title: '신청서 수정',
+    edit_submit: '수정 후 재신청',
   },
   media: {
     attachment: '사진 / 동영상 첨부',

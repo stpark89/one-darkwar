@@ -184,6 +184,8 @@ export default {
     status_approved_desc: 'Welcome! Please read the admin message below.',
     status_rejected_title: 'Rejected',
     status_rejected_desc: 'Unfortunately your application was not approved this time.',
+    edit_title: 'Edit Application',
+    edit_submit: 'Resubmit',
   },
   media: {
     attachment: 'Photo / Video attachments',

@@ -184,6 +184,8 @@ export default {
     status_approved_desc: 'Chào mừng! Vui lòng đọc lời nhắn của quản trị viên bên dưới.',
     status_rejected_title: 'Bị từ chối',
     status_rejected_desc: 'Rất tiếc, đơn của bạn chưa được duyệt lần này.',
+    edit_title: 'Chỉnh sửa đơn đăng ký',
+    edit_submit: 'Gửi lại đơn',
   },
   media: {
     attachment: 'Ảnh / Video đính kèm',

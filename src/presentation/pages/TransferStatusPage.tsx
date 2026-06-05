@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, Loader2, CheckCircle2, XCircle, Clock, ArrowLeft, MessageSquare, Languages } from 'lucide-react'
+import { Search, Loader2, CheckCircle2, XCircle, Clock, ArrowLeft, MessageSquare, Languages, Pencil, ChevronDown } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useTransferStore } from '@/infrastructure/stores/transferStore'
-import { useTransferTierStore } from '@/infrastructure/stores/transferTierStore'
-import type { TransferApplication, TransferStatus } from '@/domain/entities/Transfer'
+import { useTransferTierStore, findTierForCp } from '@/infrastructure/stores/transferTierStore'
+import type { TransferApplication, TransferDraft, TransferStatus } from '@/domain/entities/Transfer'
 import { Input } from '@/presentation/components/ui/input'
 import { Button } from '@/presentation/components/ui/button'
 import { translateText } from '@/lib/translate'
+import { parseCp } from '@/lib/cp'
 import { cn } from '@/lib/utils'
 
 const STATUS_META: Record<TransferStatus, { icon: typeof Clock; color: string; bg: string }> = {
@@ -19,17 +20,24 @@ const STATUS_META: Record<TransferStatus, { icon: typeof Clock; color: string; b
 const COUNTRY_FLAGS: Record<string, string> = {
   KR: '🇰🇷', VN: '🇻🇳', TW: '🇹🇼', CN: '🇨🇳', JP: '🇯🇵', EN: '🇺🇸', OTHER: '🌐',
 }
+const COUNTRY_OPTIONS = ['KR', 'VN', 'TW', 'CN', 'JP', 'EN', 'OTHER'] as const
 
 export const TransferStatusPage = () => {
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
-  const { lookupByCredentials } = useTransferStore()
+  const { lookupByCredentials, updateApplication } = useTransferStore()
   const { tiers, loadAll: loadTiers } = useTransferTierStore()
 
   const [uid, setUid] = useState('')
   const [loading, setLoading] = useState(false)
   const [searched, setSearched] = useState(false)
   const [results, setResults] = useState<TransferApplication[]>([])
+
+  // 수정 모드
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editDraft, setEditDraft] = useState<TransferDraft | null>(null)
+  const [editSaving, setEditSaving] = useState(false)
+  const [countryOpen, setCountryOpen] = useState(false)
 
   // 번역 토글 상태 — 신청 id → 번역된 텍스트
   const [translations, setTranslations] = useState<Map<string, string>>(new Map())
@@ -79,6 +87,42 @@ export const TransferStatusPage = () => {
   const handleReset = () => {
     setSearched(false)
     setResults([])
+    setEditingId(null)
+    setEditDraft(null)
+  }
+
+  const openEdit = (a: TransferApplication) => {
+    setEditDraft({
+      inGameName: a.inGameName,
+      uid: a.uid,
+      currentServer: a.currentServer,
+      country: a.country,
+      cp: a.cp,
+      tierId: a.tierId,
+    })
+    setEditingId(a.id)
+  }
+
+  const handleEditSave = async () => {
+    if (!editingId || !editDraft || editSaving) return
+    setEditSaving(true)
+    try {
+      const ok = await updateApplication(editingId, editDraft)
+      if (ok) {
+        // 결과 로컬 갱신
+        setResults((prev) =>
+          prev.map((a) =>
+            a.id === editingId
+              ? { ...a, ...editDraft, status: 'PENDING' as TransferStatus, reviewedAt: null, reviewedBy: null }
+              : a,
+          ),
+        )
+        setEditingId(null)
+        setEditDraft(null)
+      }
+    } finally {
+      setEditSaving(false)
+    }
   }
 
   return (
@@ -145,18 +189,112 @@ export const TransferStatusPage = () => {
               const tier = a.tierId ? tiers.find((tt) => tt.id === a.tierId) : null
               return (
                 <div key={a.id} className="bg-[var(--color-bg-surface)] border border-[var(--color-border-subtle)] rounded-xl p-5 space-y-3">
-                  {/* 상태 배지 큼지막하게 */}
-                  <div className={cn('flex items-center gap-3 px-4 py-3 rounded-lg', meta.bg)}>
-                    <Icon className={cn('w-6 h-6 flex-shrink-0', meta.color)} />
-                    <div className="min-w-0">
-                      <p className={cn('text-base font-bold', meta.color)}>
-                        {t(`transfer_status.status_${a.status.toLowerCase()}_title`)}
-                      </p>
-                      <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">
-                        {t(`transfer_status.status_${a.status.toLowerCase()}_desc`)}
-                      </p>
+                  {/* 상태 배지 + 수정 버튼 */}
+                  <div className="flex items-center gap-2">
+                    <div className={cn('flex items-center gap-3 px-4 py-3 rounded-lg flex-1', meta.bg)}>
+                      <Icon className={cn('w-6 h-6 flex-shrink-0', meta.color)} />
+                      <div className="min-w-0">
+                        <p className={cn('text-base font-bold', meta.color)}>
+                          {t(`transfer_status.status_${a.status.toLowerCase()}_title`)}
+                        </p>
+                        <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">
+                          {t(`transfer_status.status_${a.status.toLowerCase()}_desc`)}
+                        </p>
+                      </div>
                     </div>
+                    {/* PENDING 또는 REJECTED 일 때만 수정 버튼 노출 */}
+                    {(a.status === 'PENDING' || a.status === 'REJECTED') && editingId !== a.id && (
+                      <button
+                        onClick={() => openEdit(a)}
+                        className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-[var(--color-bg-elevated)] text-[var(--color-text-secondary)] hover:text-[var(--color-brand)] hover:bg-[var(--color-brand)]/10 border border-[var(--color-border-subtle)] transition-colors"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                        {t('common.edit')}
+                      </button>
+                    )}
                   </div>
+
+                  {/* 수정 폼 */}
+                  {editingId === a.id && editDraft && (
+                    <div className="border border-[var(--color-brand)]/40 rounded-xl p-4 space-y-3 bg-[var(--color-brand)]/5">
+                      <p className="text-xs font-bold text-[var(--color-brand)]">{t('transfer_status.edit_title')}</p>
+
+                      {/* 인게임명 */}
+                      <div>
+                        <label className="text-[11px] text-[var(--color-text-muted)] mb-1 block">{t('transfer.field_name')} *</label>
+                        <Input value={editDraft.inGameName} onChange={(e) => setEditDraft((d) => d && ({ ...d, inGameName: e.target.value }))} />
+                      </div>
+                      {/* 현재 서버 */}
+                      <div>
+                        <label className="text-[11px] text-[var(--color-text-muted)] mb-1 block">{t('transfer.field_server')}</label>
+                        <Input value={editDraft.currentServer} onChange={(e) => setEditDraft((d) => d && ({ ...d, currentServer: e.target.value }))} placeholder={t('transfer.field_server_placeholder')} />
+                      </div>
+                      {/* 국가 */}
+                      <div>
+                        <label className="text-[11px] text-[var(--color-text-muted)] mb-1 block">{t('transfer.field_country')}</label>
+                        <div className="relative">
+                          <button
+                            type="button"
+                            onClick={() => setCountryOpen((o) => !o)}
+                            className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-[var(--color-bg-elevated)] border border-[var(--color-border-subtle)] text-sm text-[var(--color-text-primary)]"
+                          >
+                            <span>
+                              {editDraft.country
+                                ? `${COUNTRY_FLAGS[editDraft.country] ?? '🌐'} ${t(`transfer.country_${editDraft.country.toLowerCase()}`, { defaultValue: editDraft.country })}`
+                                : <span className="text-[var(--color-text-muted)]">{t('transfer.select_country')}</span>}
+                            </span>
+                            <ChevronDown className="w-4 h-4 text-[var(--color-text-muted)]" />
+                          </button>
+                          {countryOpen && (
+                            <div className="absolute z-50 mt-1 w-full bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-xl shadow-xl overflow-hidden">
+                              {COUNTRY_OPTIONS.map((c) => (
+                                <button key={c} type="button"
+                                  onClick={() => { setEditDraft((d) => d && ({ ...d, country: c })); setCountryOpen(false) }}
+                                  className={cn('w-full flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-[var(--color-bg-elevated)] transition-colors',
+                                    editDraft.country === c && 'text-[var(--color-brand)] font-semibold')}
+                                >
+                                  <span>{COUNTRY_FLAGS[c]}</span>
+                                  <span>{t(`transfer.country_${c.toLowerCase()}`, { defaultValue: c })}</span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      {/* CP */}
+                      <div>
+                        <label className="text-[11px] text-[var(--color-text-muted)] mb-1 block">{t('transfer.field_cp')}</label>
+                        <Input
+                          value={editDraft.cp}
+                          onChange={(e) => {
+                            const cp = e.target.value
+                            const suggested = tiers.length > 0 ? findTierForCp(tiers, parseCp(cp)) : null
+                            setEditDraft((d) => d && ({ ...d, cp, tierId: suggested?.id ?? d.tierId }))
+                          }}
+                          placeholder={t('transfer.field_cp_placeholder')}
+                        />
+                        {/* 티어 자동 매칭 표시 */}
+                        {editDraft.tierId && tiers.length > 0 && (() => {
+                          const tier = tiers.find((tt) => tt.id === editDraft.tierId)
+                          return tier ? (
+                            <p className="text-[11px] text-[var(--color-brand)] mt-1">
+                              {t('transfer.auto_tier')}: <span className="font-bold">{tier.name}</span>
+                            </p>
+                          ) : null
+                        })()}
+                      </div>
+
+                      <div className="flex gap-2 pt-1">
+                        <Button variant="outline" size="full" onClick={() => { setEditingId(null); setEditDraft(null) }} disabled={editSaving}>
+                          {t('common.cancel')}
+                        </Button>
+                        <Button size="full" onClick={handleEditSave} disabled={!editDraft.inGameName.trim() || editSaving}>
+                          {editSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                          {t('transfer_status.edit_submit')}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
 
                   {/* 관리자 메시지 */}
                   {a.adminMessage && (
