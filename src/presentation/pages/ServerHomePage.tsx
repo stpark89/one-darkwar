@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
-  Server, UserPlus, MessageCircleQuestion, ChevronRight, Eye, Search,
+  UserPlus, MessageCircleQuestion, ChevronRight, Eye, Search,
   Swords, Crown, ListChecks, Castle,
 } from 'lucide-react'
 import { getSessionAvatar } from '@/lib/avatars'
@@ -32,9 +32,6 @@ export const ServerHomePage = () => {
     <div className="p-4 sm:p-8 max-w-2xl mx-auto space-y-6 break-keep">
       {/* Hero */}
       <div className="text-center pt-4 sm:pt-6">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--color-brand)]/15 text-[var(--color-brand)] text-xs font-bold mb-4">
-          <Server className="w-3.5 h-3.5" /> {t('server_home.badge')}
-        </div>
         <div className="inline-block w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden mb-4 shadow-xl bg-[var(--color-bg-elevated)]">
           <img src={getSessionAvatar()} alt="ONE" className="w-full h-full object-cover" />
         </div>
