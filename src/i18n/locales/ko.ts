@@ -41,6 +41,11 @@ export default {
     capacity: '정원',
     delete_title: '티켓 등급 삭제',
     delete_desc: '이 티켓 등급을 영구 삭제합니다. 되돌릴 수 없습니다.',
+    field_color: '색상',
+    color_orange: '오렌지',
+    color_purple: '보라',
+    color_blue: '블루',
+    color_gray: '회색',
   },
   guest_home: {
     hero_title: 'ONE 동맹에 오신 것을 환영합니다',

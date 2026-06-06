@@ -6,6 +6,7 @@ import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { useTransferStore } from '@/infrastructure/stores/transferStore'
 import { useTransferTierStore, findTierForCp } from '@/infrastructure/stores/transferTierStore'
 import type { TransferStatus } from '@/domain/entities/Transfer'
+import { type TierColor, TIER_COLOR_CLASS } from '@/domain/entities/TransferTier'
 import { Input } from '@/presentation/components/ui/input'
 import { Button } from '@/presentation/components/ui/button'
 import { TransferSubmitForm } from '@/presentation/components/TransferSubmitForm'
@@ -23,9 +24,12 @@ interface TierDraftForm {
   capacityStr: string
   sortOrderStr: string
   seasonName: string
+  color: TierColor
 }
 
-const EMPTY_TIER_DRAFT: TierDraftForm = { name: '', minCpStr: '', maxCpStr: '', capacityStr: '0', sortOrderStr: '0', seasonName: '' }
+const EMPTY_TIER_DRAFT: TierDraftForm = { name: '', minCpStr: '', maxCpStr: '', capacityStr: '0', sortOrderStr: '0', seasonName: '', color: 'gray' }
+
+const TIER_COLOR_OPTIONS: TierColor[] = ['orange', 'purple', 'blue', 'gray']
 
 // 게임 룰상 티켓 등급 최대치 (주황·보라·파랑·회색)
 const MAX_TIERS = 4
@@ -176,6 +180,7 @@ export const TransferPage = () => {
       capacityStr: String(tier.capacity),
       sortOrderStr: String(tier.sortOrder),
       seasonName: tier.seasonName,
+      color: tier.color,
     })
   }
 
@@ -195,6 +200,7 @@ export const TransferPage = () => {
       capacity: parseInt(tierDraft.capacityStr, 10) || 0,
       sortOrder: parseInt(tierDraft.sortOrderStr, 10) || 0,
       seasonName: tierDraft.seasonName,
+      color: tierDraft.color,
     })
     setTierSaving(false)
     if (ok) setTierDraft(null)
@@ -348,7 +354,7 @@ export const TransferPage = () => {
                           {(() => {
                             const userTier = a.tierId ? tiers.find((tt) => tt.id === a.tierId) : null
                             return userTier ? (
-                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[var(--color-brand)]/15 text-[var(--color-brand)]">{userTier.name}</span>
+                              <span className={cn('text-[10px] font-bold px-1.5 py-0.5 rounded', TIER_COLOR_CLASS[userTier.color].badge)}>{userTier.name}</span>
                             ) : (
                               <span className="text-[var(--color-text-muted)]">—</span>
                             )
@@ -642,7 +648,10 @@ export const TransferPage = () => {
                   return (
                     <div key={tier.id} className="bg-[var(--color-bg-base)] rounded-lg p-2 sm:p-2.5">
                       <div className="flex items-center justify-between mb-1 gap-1">
-                        <span className="text-[11px] sm:text-xs font-semibold text-[var(--color-text-primary)] truncate">{tier.name}</span>
+                        <span className="text-[11px] sm:text-xs font-semibold text-[var(--color-text-primary)] truncate flex items-center gap-1">
+                          <span className={cn('w-2 h-2 rounded-full flex-shrink-0', TIER_COLOR_CLASS[tier.color].dot)} />
+                          {tier.name}
+                        </span>
                         <span className={cn(
                           'text-[10px] sm:text-[11px] font-bold flex-shrink-0',
                           over ? 'text-[var(--color-danger)]' : full ? 'text-yellow-400' : 'text-[var(--color-text-secondary)]',
@@ -654,7 +663,7 @@ export const TransferPage = () => {
                         <div
                           className={cn(
                             'h-full transition-all',
-                            over ? 'bg-[var(--color-danger)]' : full ? 'bg-yellow-400' : 'bg-[var(--color-brand)]',
+                            over ? 'bg-[var(--color-danger)]' : full ? 'bg-yellow-400' : TIER_COLOR_CLASS[tier.color].bar,
                           )}
                           style={{ width: `${over ? 100 : pct}%` }}
                         />
@@ -976,6 +985,29 @@ export const TransferPage = () => {
             <div>
               <label className="text-xs text-[var(--color-text-muted)] mb-1 block">{t('tiers.field_season')}</label>
               <Input value={tierDraft.seasonName} onChange={(e) => setTierDraft({ ...tierDraft, seasonName: e.target.value })} placeholder={t('tiers.season_placeholder')} />
+            </div>
+
+            {/* 색상 선택 */}
+            <div>
+              <label className="text-xs text-[var(--color-text-muted)] mb-1 block">{t('tiers.field_color')}</label>
+              <div className="flex gap-2">
+                {TIER_COLOR_OPTIONS.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setTierDraft({ ...tierDraft, color: c })}
+                    className={cn(
+                      'flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all border',
+                      tierDraft.color === c
+                        ? 'border-[var(--color-text-primary)] bg-[var(--color-bg-elevated)]'
+                        : 'border-transparent bg-[var(--color-bg-elevated)] opacity-60 hover:opacity-100',
+                    )}
+                  >
+                    <span className={cn('w-3 h-3 rounded-full', TIER_COLOR_CLASS[c].dot)} />
+                    {t(`tiers.color_${c}`)}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="flex gap-2 pt-2">

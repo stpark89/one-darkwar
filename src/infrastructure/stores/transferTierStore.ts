@@ -12,6 +12,7 @@ const toTier = (r: any): TransferTier => ({
   capacity: r.capacity ?? 0,
   sortOrder: r.sort_order ?? 0,
   seasonName: r.season_name ?? '',
+  color: (r.color ?? 'gray') as TransferTier['color'],
   createdAt: r.created_at,
 })
 
@@ -54,6 +55,7 @@ export const useTransferTierStore = create<TransferTierStore>((set, get) => ({
       capacity: draft.capacity,
       sort_order: draft.sortOrder,
       season_name: draft.seasonName.trim(),
+      color: draft.color,
     }
     if (draft.id) {
       const { error } = await supabase.from('transfer_tiers').update(payload).eq('id', draft.id)
@@ -71,6 +73,7 @@ export const useTransferTierStore = create<TransferTierStore>((set, get) => ({
                 capacity: payload.capacity,
                 sortOrder: payload.sort_order,
                 seasonName: payload.season_name,
+                color: payload.color,
               } }
             : t,
         ).sort((a, b) => a.sortOrder - b.sortOrder),

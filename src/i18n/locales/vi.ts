@@ -41,6 +41,11 @@ export default {
     capacity: 'Sức chứa',
     delete_title: 'Xóa hạng vé',
     delete_desc: 'Hạng vé này sẽ bị xóa vĩnh viễn. Không thể hoàn tác.',
+    field_color: 'Màu',
+    color_orange: 'Cam',
+    color_purple: 'Tím',
+    color_blue: 'Xanh dương',
+    color_gray: 'Xám',
   },
   guest_home: {
     hero_title: 'Chào mừng bạn đến với Liên minh ONE',
