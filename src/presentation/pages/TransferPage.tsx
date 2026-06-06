@@ -9,6 +9,7 @@ import type { TransferStatus } from '@/domain/entities/Transfer'
 import { Input } from '@/presentation/components/ui/input'
 import { Button } from '@/presentation/components/ui/button'
 import { TransferSubmitForm } from '@/presentation/components/TransferSubmitForm'
+import { TransferStatsPanel } from '@/presentation/components/TransferStatsPanel'
 import { parseCp, formatCp } from '@/lib/cp'
 import { isPushSupported, isCurrentlySubscribed, subscribeToPush, unsubscribeFromPush } from '@/lib/push'
 import { toast } from 'sonner'
@@ -537,6 +538,9 @@ export const TransferPage = () => {
               </button>
             </div>
           </div>
+
+          {/* 신청 통계 대시보드 */}
+          <TransferStatsPanel apps={apps} groups={groups} tiers={tiers} />
 
           {/* 등급별 정원 대시보드 + 인라인 편집 */}
           <div className="bg-[var(--color-bg-surface)] border border-[var(--color-border-subtle)] rounded-xl p-4">
