@@ -57,7 +57,7 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
     { to: '/approval', icon: UserCheck, label: t('nav.join_management'), badge: pendingCount },
     { to: '/questions', icon: MessageCircleQuestion, label: t('nav.questions'), badge: 0 },
     { to: '/transfer', icon: UserPlus, label: t('nav.transfer'), badge: 0 },
-    { to: '/transfer/list', icon: ListChecks, label: t('nav.transfer_list'), badge: 0 },
+    // '이주 신청 내역' 은 NAV_GENERAL 에 있어 모두에게 노출됨 → 관리자 중복 방지 위해 제거
   ]
 
   // 게스트가 둘러보기 모드면 NAV_GENERAL 을 read-only 로 노출
