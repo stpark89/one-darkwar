@@ -62,6 +62,7 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
       { to: '/server', icon: Home, label: t('nav.home'), end: true },
       { to: '/occupation', icon: Castle, label: t('nav.occupation') },
       { to: '/transfer/list', icon: ListChecks, label: t('nav.transfer_list') },
+      { to: '/questions', icon: MessageCircleQuestion, label: t('nav.questions') },
     ],
   }
 
@@ -86,7 +87,6 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
       { to: '/contribution', icon: BarChart3, label: t('nav.contribution') },
       { to: '/excel', icon: FileSpreadsheet, label: t('nav.excel') },
       { to: '/approval', icon: UserCheck, label: t('nav.join_management'), badge: pendingCount },
-      { to: '/questions', icon: MessageCircleQuestion, label: t('nav.questions') },
       { to: '/transfer', icon: UserPlus, label: t('nav.transfer'), end: true },
     ],
   }
