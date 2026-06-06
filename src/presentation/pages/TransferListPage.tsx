@@ -88,7 +88,9 @@ export const TransferListPage = () => {
   const tierName = (a: { tierId: string | null; totalPower: string }): string | null => {
     const tier = a.tierId
       ? tiers.find((tt) => tt.id === a.tierId) ?? null
-      : findTierForCp(tiers, parseCp(a.totalPower))
+      : a.totalPower.trim()
+        ? findTierForCp(tiers, parseCp(a.totalPower))
+        : null
     return tier?.name ?? null
   }
 

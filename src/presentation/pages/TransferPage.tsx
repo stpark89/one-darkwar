@@ -213,7 +213,9 @@ export const TransferPage = () => {
   const getEffectiveTier = (a: typeof apps[number]) =>
     a.tierId
       ? tiers.find((tt) => tt.id === a.tierId) ?? null
-      : findTierForCp(tiers, parseCp(a.totalPower))
+      : a.totalPower.trim()
+        ? findTierForCp(tiers, parseCp(a.totalPower))
+        : null
 
   const filtered = apps.filter((a) => {
     if (a.status !== tab) return false
@@ -273,7 +275,9 @@ export const TransferPage = () => {
       if (a.status !== 'APPROVED') continue
       const tier = a.tierId
         ? tiers.find((tt) => tt.id === a.tierId) ?? null
-        : findTierForCp(tiers, parseCp(a.totalPower))
+        : a.totalPower.trim()
+          ? findTierForCp(tiers, parseCp(a.totalPower))
+          : null
       if (tier) map.set(tier.id, (map.get(tier.id) ?? 0) + 1)
       else unmatchedApps.push(a)
     }

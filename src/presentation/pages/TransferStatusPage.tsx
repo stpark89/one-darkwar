@@ -8,6 +8,7 @@ import type { TransferApplication, TransferDraft, TransferStatus } from '@/domai
 import { TIER_COLOR_CLASS } from '@/domain/entities/TransferTier'
 import { Input } from '@/presentation/components/ui/input'
 import { Button } from '@/presentation/components/ui/button'
+import { TierReference } from '@/presentation/components/TierReference'
 import { translateText } from '@/lib/translate'
 import { parseCp } from '@/lib/cp'
 import { cn } from '@/lib/utils'
@@ -291,6 +292,9 @@ export const TransferStatusPage = () => {
                             </p>
                           ) : null
                         })()}
+                        <div className="mt-2">
+                          <TierReference />
+                        </div>
                       </div>
 
                       <div className="flex gap-2 pt-1">

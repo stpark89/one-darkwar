@@ -17,6 +17,7 @@ import { TIER_COLOR_CLASS } from '@/domain/entities/TransferTier'
 import { parseCp } from '@/lib/cp'
 import { Input } from '@/presentation/components/ui/input'
 import { Button } from '@/presentation/components/ui/button'
+import { TierReference } from '@/presentation/components/TierReference'
 import { cn } from '@/lib/utils'
 
 // 동맹 옵션 (코드값) 와 라벨
@@ -279,6 +280,9 @@ export const TransferSubmitForm = () => {
           />
         )}
       </div>
+
+      {/* 이주 등급표 참조 (합산 전투력 기준 구간) */}
+      <TierReference />
 
       {/* === 본인 만 === */}
       {mode === 'solo' && (
