@@ -193,6 +193,7 @@ export default {
     group_card_title: '{{leader}} group ({{count}} members)',
     no_visible_members: 'No public member info.',
     go_submit: 'Submit a request',
+    go_manage: 'Manage requests',
   },
   transfer_status: {
     title: 'My Application',

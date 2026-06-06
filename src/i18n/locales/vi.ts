@@ -193,6 +193,7 @@ export default {
     group_card_title: 'Nhóm {{leader}} ({{count}} người)',
     no_visible_members: 'Không có thông tin thành viên công khai.',
     go_submit: 'Gửi đơn',
+    go_manage: 'Quản lý đơn',
   },
   transfer_status: {
     title: 'Tra cứu đơn của tôi',

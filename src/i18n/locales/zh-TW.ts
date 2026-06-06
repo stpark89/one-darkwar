@@ -193,6 +193,7 @@ export default {
     group_card_title: '{{leader}} 團體（{{count}} 人）',
     no_visible_members: '無公開成員資訊。',
     go_submit: '前往申請',
+    go_manage: '管理申請',
   },
   transfer_status: {
     title: '查詢我的申請',

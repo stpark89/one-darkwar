@@ -9,11 +9,13 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Loader2, ChevronDown, Users, User, Clock, CheckCircle2, ChevronRight, Filter } from 'lucide-react'
+import { Loader2, ChevronDown, Users, User, Clock, CheckCircle2, ChevronRight, Filter, X, MessageSquare, Settings } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { useTransferStore } from '@/infrastructure/stores/transferStore'
 import { useTransferTierStore } from '@/infrastructure/stores/transferTierStore'
 import type { DesiredAlliance, TransferApplication, TransferStatus } from '@/domain/entities/Transfer'
+import { Button } from '@/presentation/components/ui/button'
 import { cn } from '@/lib/utils'
 
 const ALLIANCE_FILTERS: Array<{ code: 'ALL' | DesiredAlliance; label: string }> = [
@@ -36,16 +38,22 @@ const COUNTRY_FLAGS: Record<string, string> = {
 export const TransferListPage = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { apps, groups, loading, loadPublic } = useTransferStore()
+  const { user } = useAuthStore()
+  const isAdmin = user?.role === 'ROLE_ADMIN'
+  const { apps, groups, loading, loadPublic, loadAll } = useTransferStore()
   const { tiers, loadAll: loadTiers } = useTransferTierStore()
 
   const [filter, setFilter] = useState<'ALL' | DesiredAlliance>('ALL')
   const [expandedGroupId, setExpandedGroupId] = useState<string | null>(null)
+  // 관리자 상세 모달 — 클릭한 신청서
+  const [detail, setDetail] = useState<TransferApplication | null>(null)
 
   useEffect(() => {
-    loadPublic(true)  // 게스트 조회용 — 매번 fresh
+    // 관리자는 admin_message 등 전체 정보 필요 → loadAll, 그 외 게스트 공개 조회 → loadPublic
+    if (isAdmin) loadAll(true)
+    else loadPublic(true)
     loadTiers()
-  }, [loadPublic, loadTiers])
+  }, [isAdmin, loadAll, loadPublic, loadTiers])
 
   // 필터 적용 후 그룹/단독 분리
   const { groupItems, soloItems } = useMemo(() => {
@@ -173,7 +181,13 @@ export const TransferListPage = () => {
                       </p>
                     ) : (
                       members.map((m, i) => (
-                        <ApplicantRow key={m.id} idx={i} app={m} tierName={tierName(m.tierId)} />
+                        <ApplicantRow
+                          key={m.id}
+                          idx={i}
+                          app={m}
+                          tierName={tierName(m.tierId)}
+                          onClick={isAdmin ? () => setDetail(m) : undefined}
+                        />
                       ))
                     )}
                   </div>
@@ -184,7 +198,14 @@ export const TransferListPage = () => {
 
           {/* 단독 카드 */}
           {soloItems.map((a) => (
-            <div key={a.id} className="bg-[var(--color-bg-surface)] border border-[var(--color-border-subtle)] rounded-xl">
+            <div
+              key={a.id}
+              onClick={isAdmin ? () => setDetail(a) : undefined}
+              className={cn(
+                'bg-[var(--color-bg-surface)] border border-[var(--color-border-subtle)] rounded-xl',
+                isAdmin && 'cursor-pointer hover:border-[var(--color-brand)]/40 transition-colors',
+              )}
+            >
               <div className="px-4 py-3 flex items-start gap-3">
                 <div className="w-9 h-9 rounded-full bg-[var(--color-bg-elevated)] flex items-center justify-center flex-shrink-0">
                   <User className="w-4 h-4 text-[var(--color-text-secondary)]" />
@@ -210,14 +231,84 @@ export const TransferListPage = () => {
                     )}
                   </p>
                 </div>
+                {isAdmin && <ChevronRight className="w-4 h-4 text-[var(--color-text-muted)] flex-shrink-0 mt-1" />}
               </div>
             </div>
           ))}
         </div>
       )}
+
+      {/* 관리자 상세 모달 */}
+      {detail && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={() => setDetail(null)}>
+          <div
+            className="bg-[var(--color-bg-surface)] rounded-xl border border-[var(--color-border)] w-full max-w-sm p-5 space-y-3"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between">
+              <h2 className="text-base font-bold text-[var(--color-text-primary)] truncate">{detail.inGameName}</h2>
+              <button onClick={() => setDetail(null)} className="p-1 rounded text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* 상태/동맹 배지 */}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <StatusBadge status={detail.status} />
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[var(--color-brand)]/15 text-[var(--color-brand)]">
+                → {allianceLabel(detail.desiredAlliance, detail.desiredAllianceOther)}
+              </span>
+              {tierName(detail.tierId) && (
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--color-bg-elevated)] text-[var(--color-text-secondary)]">
+                  {tierName(detail.tierId)}
+                </span>
+              )}
+            </div>
+
+            {/* 상세 정보 */}
+            <div className="space-y-1.5 text-xs text-[var(--color-text-secondary)]">
+              <DetailRow label={t('transfer.field_uid')} value={detail.uid || '—'} mono />
+              <DetailRow label={t('transfer.field_server')} value={detail.currentServer || '—'} />
+              <DetailRow
+                label={t('transfer.field_country')}
+                value={detail.country ? `${COUNTRY_FLAGS[detail.country] ?? ''} ${detail.country}` : '—'}
+              />
+              <DetailRow label={t('transfer.field_cp')} value={detail.cp || '—'} />
+              <DetailRow label={t('transfer_status.submitted_at')} value={new Date(detail.createdAt).toLocaleString()} />
+            </div>
+
+            {/* 관리자 메시지 */}
+            {detail.adminMessage && (
+              <div className="bg-[var(--color-bg-elevated)] border border-[var(--color-border-subtle)] rounded-lg p-3">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <MessageSquare className="w-3.5 h-3.5 text-[var(--color-brand)]" />
+                  <p className="text-[11px] font-semibold text-[var(--color-brand)]">{t('transfer_status.admin_message_label')}</p>
+                </div>
+                <p className="text-sm text-[var(--color-text-primary)] whitespace-pre-wrap leading-relaxed break-words">
+                  {detail.adminMessage}
+                </p>
+              </div>
+            )}
+
+            {/* 관리 페이지로 이동 */}
+            <Button size="full" onClick={() => navigate('/transfer')}>
+              <Settings className="w-4 h-4" />
+              {t('transfer_list.go_manage')}
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
+
+// 상세 모달 한 줄
+const DetailRow = ({ label, value, mono }: { label: string; value: string; mono?: boolean }) => (
+  <div className="flex gap-2">
+    <span className="text-[var(--color-text-muted)] w-16 flex-shrink-0">{label}</span>
+    <span className={cn('text-[var(--color-text-primary)] break-all', mono && 'font-mono')}>{value}</span>
+  </div>
+)
 
 // ─────────────────────────────────────────────────────────
 // ApplicantRow — 그룹 안의 한 명 표시
@@ -227,11 +318,15 @@ interface ApplicantRowProps {
   idx: number
   app: TransferApplication
   tierName: string | null
+  onClick?: () => void
 }
 
-const ApplicantRow = ({ idx, app, tierName }: ApplicantRowProps) => {
+const ApplicantRow = ({ idx, app, tierName, onClick }: ApplicantRowProps) => {
   return (
-    <div className="flex items-center gap-3 px-4 py-2.5">
+    <div
+      onClick={onClick}
+      className={cn('flex items-center gap-3 px-4 py-2.5', onClick && 'cursor-pointer hover:bg-[var(--color-bg-elevated)] transition-colors')}
+    >
       <span className="text-[11px] font-mono text-[var(--color-text-muted)] w-6 flex-shrink-0">#{idx + 1}</span>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-[var(--color-text-primary)] truncate">{app.inGameName}</p>

@@ -193,6 +193,7 @@ export default {
     group_card_title: '{{leader}} 단체 ({{count}}명)',
     no_visible_members: '공개된 멤버 정보가 없습니다.',
     go_submit: '신청하러 가기',
+    go_manage: '이주 신청 관리하기',
   },
   transfer_status: {
     title: '내 신청 조회',
