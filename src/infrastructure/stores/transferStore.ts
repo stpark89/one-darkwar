@@ -55,6 +55,8 @@ interface TransferStore {
   /** 게스트 조회용 — 대기/승인 상태만 (RLS) */
   loadPublic: (force?: boolean) => Promise<void>
   updateStatus: (id: string, status: TransferStatus, reviewerId: string, adminMessage?: string) => Promise<void>
+  /** 그룹 전체 멤버 상태 일괄 변경 */
+  updateGroupStatus: (groupId: string, status: TransferStatus, reviewerId: string) => Promise<void>
   updateAdminMessage: (id: string, adminMessage: string) => Promise<void>
   updateTier: (id: string, tierId: string | null) => Promise<void>
   remove: (id: string) => Promise<void>
@@ -247,6 +249,26 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
               reviewedBy: reviewerId,
               ...(typeof adminMessage === 'string' ? { adminMessage } : {}),
             }
+          : a,
+      ),
+    }))
+  },
+
+  updateGroupStatus: async (groupId, status, reviewerId) => {
+    const now = new Date().toISOString()
+    const { error } = await supabase
+      .from('transfer_applications')
+      .update({ status, reviewed_at: now, reviewed_by: reviewerId })
+      .eq('group_id', groupId)
+    if (error) {
+      console.error('transfer group update error', error)
+      toast.error('그룹 상태 변경 중 오류가 발생했습니다.')
+      return
+    }
+    set((s) => ({
+      apps: s.apps.map((a) =>
+        a.groupId === groupId
+          ? { ...a, status, reviewedAt: now, reviewedBy: reviewerId }
           : a,
       ),
     }))

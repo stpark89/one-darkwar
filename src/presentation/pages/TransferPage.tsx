@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+﻿import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, Navigate } from 'react-router-dom'
-import { Loader2, CheckCircle2, XCircle, Clock, Trash2, RotateCcw, Layers, Pencil, Plus, Save, X, Search, Bell, BellOff } from 'lucide-react'
+import { Loader2, CheckCircle2, XCircle, Clock, Trash2, RotateCcw, Layers, Pencil, Plus, Save, X, Search, Bell, BellOff, Users, ChevronDown } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { useTransferStore } from '@/infrastructure/stores/transferStore'
@@ -63,12 +63,16 @@ export const TransferPage = () => {
   const { user, isGuest } = useAuthStore()
   const isAdmin = user?.role === 'ROLE_ADMIN'
 
-  const { apps, loading, loadAll, updateStatus, updateAdminMessage, updateTier, remove } = useTransferStore()
+  const { apps, groups, loading, loadAll, updateStatus, updateGroupStatus, updateAdminMessage, updateTier, remove, removeGroup } = useTransferStore()
   const { tiers, loadAll: loadTiers, upsert: upsertTier, remove: removeTier } = useTransferTierStore()
 
   // 게스트 신청 폼은 <TransferSubmitForm /> 에서 자체 state 관리 (분리됨)
   const [tab, setTab] = useState<TransferStatus>('PENDING')
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
+  // 그룹 카드 펼침 + 그룹 일괄 처리 confirm
+  const [expandedGroupId, setExpandedGroupId] = useState<string | null>(null)
+  const [groupAction, setGroupAction] = useState<{ groupId: string; action: TransferStatus } | null>(null)
+  const [deleteGroupId, setDeleteGroupId] = useState<string | null>(null)
 
   // 검색·필터 (관리자만 사용)
   const [searchQuery, setSearchQuery] = useState('')
@@ -222,6 +226,22 @@ export const TransferPage = () => {
     return true
   })
 
+  // filtered 를 그룹/단독으로 분리
+  const { groupBlocks, soloApps } = useMemo(() => {
+    const soloApps = filtered.filter((a) => !a.groupId)
+    const byGroup = new Map<string, typeof filtered>()
+    for (const a of filtered) {
+      if (!a.groupId) continue
+      const arr = byGroup.get(a.groupId) ?? []
+      arr.push(a)
+      byGroup.set(a.groupId, arr)
+    }
+    const groupBlocks = groups
+      .filter((g) => byGroup.has(g.id))
+      .map((g) => ({ group: g, members: byGroup.get(g.id)! }))
+    return { groupBlocks, soloApps }
+  }, [filtered, groups])
+
   // 동맹별 통계 (전체 apps 기준 — 현재 탭과 무관하게 표시)
   const allianceStats = useMemo(() => {
     const stats: Record<string, number> = { ONE: 0, NXO: 0, NH_D: 0, OTHER: 0 }
@@ -265,6 +285,195 @@ export const TransferPage = () => {
   // 게스트도 관리자도 아닌 일반 회원이 직접 URL로 접근하면 홈으로
   if (!isGuest && !isAdmin) {
     return <Navigate to="/" replace />
+  }
+
+
+
+  // 관리자 신청 카드 — 단독/그룹 멤버 공통 렌더
+  const renderCard = (a: typeof apps[number]) => {
+    const meta = STATUS_META[a.status]
+    const Icon = meta.icon
+    return (
+      <div key={a.id} className="bg-[var(--color-bg-surface)] border border-[var(--color-border-subtle)] rounded-xl p-4">
+                    <div className="flex items-start justify-between mb-3 gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <h3 className="text-sm font-bold text-[var(--color-text-primary)] truncate">{a.inGameName}</h3>
+                          {/* 희망 동맹 배지 */}
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[var(--color-brand)]/15 text-[var(--color-brand)] flex-shrink-0">
+                            → {a.desiredAlliance === 'OTHER'
+                              ? (a.desiredAllianceOther || t('transfer.alliance_other'))
+                              : a.desiredAlliance === 'NH_D' ? 'NH-D' : a.desiredAlliance}
+                          </span>
+                          {/* 단체 신청 배지 */}
+                          {a.groupId && (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-400 flex-shrink-0">
+                              {t('transfer.group_badge')}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-[var(--color-text-muted)] mt-0.5">
+                          {new Date(a.createdAt).toLocaleString()}
+                        </p>
+                      </div>
+                      <span className={cn('flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded flex-shrink-0', meta.bg, meta.color)}>
+                        <Icon className="w-3 h-3" />
+                        {t(`transfer.status_${a.status.toLowerCase()}`)}
+                      </span>
+                    </div>
+
+                    <div className="space-y-1.5 text-xs text-[var(--color-text-secondary)] mb-3">
+                      <div className="flex gap-2">
+                        <span className="text-[var(--color-text-muted)] w-16 flex-shrink-0">{t('transfer.field_uid')}</span>
+                        <span className="text-[var(--color-text-primary)] font-mono">{a.uid || '—'}</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <span className="text-[var(--color-text-muted)] w-16 flex-shrink-0">{t('transfer.field_server')}</span>
+                        <span className="text-[var(--color-text-primary)]">{a.currentServer || '—'}</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <span className="text-[var(--color-text-muted)] w-16 flex-shrink-0">{t('transfer.field_country')}</span>
+                        <span className="text-[var(--color-text-primary)]">
+                          {a.country
+                            ? (COUNTRY_OPTIONS.includes(a.country as typeof COUNTRY_OPTIONS[number])
+                                ? `${COUNTRY_FLAGS[a.country]} ${t(`transfer.country_${a.country.toLowerCase()}`)}`
+                                : a.country)
+                            : '—'}
+                        </span>
+                      </div>
+                      <div className="flex gap-2">
+                        <span className="text-[var(--color-text-muted)] w-16 flex-shrink-0">{t('transfer.field_tier')}</span>
+                        <span className="text-[var(--color-text-primary)] flex items-center gap-1.5 flex-wrap">
+                          {(() => {
+                            const userTier = a.tierId ? tiers.find((tt) => tt.id === a.tierId) : null
+                            return userTier ? (
+                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[var(--color-brand)]/15 text-[var(--color-brand)]">{userTier.name}</span>
+                            ) : (
+                              <span className="text-[var(--color-text-muted)]">—</span>
+                            )
+                          })()}
+                          {tiers.length > 0 && (
+                            <div className="relative">
+                              <button
+                                type="button"
+                                onClick={() => setAdminTierEditId((cur) => (cur === a.id ? null : a.id))}
+                                className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-border)] transition-colors"
+                              >
+                                {t('transfer.tier_edit_btn')}
+                              </button>
+                              {adminTierEditId === a.id && (
+                                <>
+                                  <div className="fixed inset-0 z-10" onClick={() => setAdminTierEditId(null)} />
+                                  <div className="absolute left-0 mt-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-surface)] shadow-xl overflow-hidden z-20 min-w-[140px]">
+                                    <button
+                                      type="button"
+                                      onClick={async () => { await updateTier(a.id, null); setAdminTierEditId(null) }}
+                                      className={cn(
+                                        'w-full flex items-center gap-2 px-3 py-2 text-xs transition-colors text-left',
+                                        !a.tierId ? 'bg-[var(--color-brand)]/15 text-[var(--color-brand)] font-semibold' : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-elevated)]',
+                                      )}
+                                    >
+                                      <span className="flex-1">{t('transfer.tier_none')}</span>
+                                    </button>
+                                    {tiers.map((tier) => (
+                                      <button
+                                        key={tier.id}
+                                        type="button"
+                                        onClick={async () => { await updateTier(a.id, tier.id); setAdminTierEditId(null) }}
+                                        className={cn(
+                                          'w-full flex items-center gap-2 px-3 py-2 text-xs transition-colors text-left',
+                                          a.tierId === tier.id ? 'bg-[var(--color-brand)]/15 text-[var(--color-brand)] font-semibold' : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-elevated)]',
+                                        )}
+                                      >
+                                        <span className="w-2 h-2 rounded-full bg-[var(--color-brand)]" />
+                                        <span className="flex-1">{tier.name}</span>
+                                      </button>
+                                    ))}
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          )}
+                        </span>
+                      </div>
+                      <div className="flex gap-2">
+                        <span className="text-[var(--color-text-muted)] w-16 flex-shrink-0">{t('transfer.field_cp')}</span>
+                        <span className="text-[var(--color-text-primary)] flex items-center gap-1.5">
+                          {a.cp || '—'}
+                          {(() => {
+                            const tier = findTierForCp(tiers, parseCp(a.cp))
+                            return tier
+                              ? <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)]" title={t('transfer.cp_suggested_tooltip')}>~ {tier.name}</span>
+                              : null
+                          })()}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* 신청자에게 보여줄 메시지 */}
+                    <div className="pt-3 border-t border-[var(--color-border-subtle)]">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-[11px] font-semibold text-[var(--color-text-muted)]">
+                          {t('transfer.admin_message_label')}
+                        </label>
+                        {messageDrafts[a.id] !== undefined && messageDrafts[a.id] !== a.adminMessage && (
+                          <button
+                            onClick={() => handleSaveMessage(a.id)}
+                            disabled={savingMessageId === a.id}
+                            className="text-[10px] font-semibold text-[var(--color-brand)] hover:underline disabled:opacity-50"
+                          >
+                            {savingMessageId === a.id
+                              ? <Loader2 className="w-3 h-3 animate-spin inline" />
+                              : t('common.save')}
+                          </button>
+                        )}
+                      </div>
+                      <textarea
+                        value={getMessageDraft(a)}
+                        onChange={(e) => setMessageDraft(a.id, e.target.value)}
+                        placeholder={t('transfer.admin_message_placeholder')}
+                        rows={2}
+                        className="w-full px-2 py-1.5 text-xs rounded bg-[var(--color-bg-elevated)] border border-[var(--color-border-subtle)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] outline-none focus:border-[var(--color-brand)] resize-none"
+                      />
+                      <p className="text-[10px] text-[var(--color-text-muted)] mt-1">{t('transfer.admin_message_hint')}</p>
+                    </div>
+
+                    {/* 액션 버튼 — 클릭 시 메시지도 함께 저장됨 */}
+                    <div className="flex gap-2 pt-3">
+                      {a.status !== 'APPROVED' && (
+                        <button
+                          onClick={() => handleStatusChange(a.id, 'APPROVED')}
+                          className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded text-xs font-semibold bg-[var(--color-success)]/15 text-[var(--color-success)] hover:bg-[var(--color-success)]/25 transition-colors"
+                        >
+                          <CheckCircle2 className="w-3 h-3" /> {t('transfer.approve_btn')}
+                        </button>
+                      )}
+                      {a.status !== 'REJECTED' && (
+                        <button
+                          onClick={() => handleStatusChange(a.id, 'REJECTED')}
+                          className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded text-xs font-semibold bg-[var(--color-danger)]/15 text-[var(--color-danger)] hover:bg-[var(--color-danger)]/25 transition-colors"
+                        >
+                          <XCircle className="w-3 h-3" /> {t('transfer.reject_btn')}
+                        </button>
+                      )}
+                      {a.status !== 'PENDING' && (
+                        <button
+                          onClick={() => handleStatusChange(a.id, 'PENDING')}
+                          className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded text-xs font-semibold bg-yellow-400/15 text-yellow-400 hover:bg-yellow-400/25 transition-colors"
+                        >
+                          <Clock className="w-3 h-3" /> {t('transfer.reopen_btn')}
+                        </button>
+                      )}
+                      <button
+                        onClick={() => setDeleteConfirmId(a.id)}
+                        className="px-2 py-1.5 rounded text-xs font-semibold bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:bg-[var(--color-danger)]/15 hover:text-[var(--color-danger)] transition-colors"
+                        title={t('common.delete')}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+    )
   }
 
   return (
@@ -581,196 +790,127 @@ export const TransferPage = () => {
           ) : filtered.length === 0 ? (
             <p className="text-sm text-[var(--color-text-muted)] py-8 text-center">{t('transfer.no_data')}</p>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {filtered.map((a) => {
-                const meta = STATUS_META[a.status]
-                const Icon = meta.icon
+            <div className="space-y-3">
+              {/* 단체(그룹) 신청 — 대표자 카드 + 펼침 멤버 + 일괄 액션 */}
+              {groupBlocks.map(({ group, members }) => {
+                const isOpen = expandedGroupId === group.id
+                const allianceText = group.desiredAlliance === 'OTHER'
+                  ? (group.desiredAllianceOther || t('transfer.alliance_other'))
+                  : group.desiredAlliance === 'NH_D' ? 'NH-D' : group.desiredAlliance
                 return (
-                  <div key={a.id} className="bg-[var(--color-bg-surface)] border border-[var(--color-border-subtle)] rounded-xl p-4">
-                    <div className="flex items-start justify-between mb-3 gap-2">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <h3 className="text-sm font-bold text-[var(--color-text-primary)] truncate">{a.inGameName}</h3>
-                          {/* 희망 동맹 배지 */}
-                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[var(--color-brand)]/15 text-[var(--color-brand)] flex-shrink-0">
-                            → {a.desiredAlliance === 'OTHER'
-                              ? (a.desiredAllianceOther || t('transfer.alliance_other'))
-                              : a.desiredAlliance === 'NH_D' ? 'NH-D' : a.desiredAlliance}
-                          </span>
-                          {/* 단체 신청 배지 */}
-                          {a.groupId && (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-400 flex-shrink-0">
-                              {t('transfer.group_badge')}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-[11px] text-[var(--color-text-muted)] mt-0.5">
-                          {new Date(a.createdAt).toLocaleString()}
+                  <div key={group.id} className="bg-[var(--color-bg-surface)] border border-purple-500/30 rounded-xl overflow-hidden">
+                    <button
+                      onClick={() => setExpandedGroupId(isOpen ? null : group.id)}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-left"
+                    >
+                      <div className="w-9 h-9 rounded-full bg-purple-500/15 flex items-center justify-center flex-shrink-0">
+                        <Users className="w-4 h-4 text-purple-400" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-[var(--color-text-primary)] truncate">
+                          {t('transfer_list.group_card_title', { leader: group.leaderName, count: members.length })}
                         </p>
+                        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[var(--color-brand)]/15 text-[var(--color-brand)]">→ {allianceText}</span>
+                          {group.leaderContact && <span className="text-[10px] text-[var(--color-text-muted)]">{group.leaderContact}</span>}
+                        </div>
                       </div>
-                      <span className={cn('flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded flex-shrink-0', meta.bg, meta.color)}>
-                        <Icon className="w-3 h-3" />
-                        {t(`transfer.status_${a.status.toLowerCase()}`)}
-                      </span>
-                    </div>
-
-                    <div className="space-y-1.5 text-xs text-[var(--color-text-secondary)] mb-3">
-                      <div className="flex gap-2">
-                        <span className="text-[var(--color-text-muted)] w-16 flex-shrink-0">{t('transfer.field_uid')}</span>
-                        <span className="text-[var(--color-text-primary)] font-mono">{a.uid || '—'}</span>
-                      </div>
-                      <div className="flex gap-2">
-                        <span className="text-[var(--color-text-muted)] w-16 flex-shrink-0">{t('transfer.field_server')}</span>
-                        <span className="text-[var(--color-text-primary)]">{a.currentServer || '—'}</span>
-                      </div>
-                      <div className="flex gap-2">
-                        <span className="text-[var(--color-text-muted)] w-16 flex-shrink-0">{t('transfer.field_country')}</span>
-                        <span className="text-[var(--color-text-primary)]">
-                          {a.country
-                            ? (COUNTRY_OPTIONS.includes(a.country as typeof COUNTRY_OPTIONS[number])
-                                ? `${COUNTRY_FLAGS[a.country]} ${t(`transfer.country_${a.country.toLowerCase()}`)}`
-                                : a.country)
-                            : '—'}
-                        </span>
-                      </div>
-                      <div className="flex gap-2">
-                        <span className="text-[var(--color-text-muted)] w-16 flex-shrink-0">{t('transfer.field_tier')}</span>
-                        <span className="text-[var(--color-text-primary)] flex items-center gap-1.5 flex-wrap">
-                          {(() => {
-                            const userTier = a.tierId ? tiers.find((tt) => tt.id === a.tierId) : null
-                            return userTier ? (
-                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[var(--color-brand)]/15 text-[var(--color-brand)]">{userTier.name}</span>
-                            ) : (
-                              <span className="text-[var(--color-text-muted)]">—</span>
-                            )
-                          })()}
-                          {tiers.length > 0 && (
-                            <div className="relative">
-                              <button
-                                type="button"
-                                onClick={() => setAdminTierEditId((cur) => (cur === a.id ? null : a.id))}
-                                className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-border)] transition-colors"
-                              >
-                                {t('transfer.tier_edit_btn')}
-                              </button>
-                              {adminTierEditId === a.id && (
-                                <>
-                                  <div className="fixed inset-0 z-10" onClick={() => setAdminTierEditId(null)} />
-                                  <div className="absolute left-0 mt-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-surface)] shadow-xl overflow-hidden z-20 min-w-[140px]">
-                                    <button
-                                      type="button"
-                                      onClick={async () => { await updateTier(a.id, null); setAdminTierEditId(null) }}
-                                      className={cn(
-                                        'w-full flex items-center gap-2 px-3 py-2 text-xs transition-colors text-left',
-                                        !a.tierId ? 'bg-[var(--color-brand)]/15 text-[var(--color-brand)] font-semibold' : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-elevated)]',
-                                      )}
-                                    >
-                                      <span className="flex-1">{t('transfer.tier_none')}</span>
-                                    </button>
-                                    {tiers.map((tier) => (
-                                      <button
-                                        key={tier.id}
-                                        type="button"
-                                        onClick={async () => { await updateTier(a.id, tier.id); setAdminTierEditId(null) }}
-                                        className={cn(
-                                          'w-full flex items-center gap-2 px-3 py-2 text-xs transition-colors text-left',
-                                          a.tierId === tier.id ? 'bg-[var(--color-brand)]/15 text-[var(--color-brand)] font-semibold' : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-elevated)]',
-                                        )}
-                                      >
-                                        <span className="w-2 h-2 rounded-full bg-[var(--color-brand)]" />
-                                        <span className="flex-1">{tier.name}</span>
-                                      </button>
-                                    ))}
-                                  </div>
-                                </>
-                              )}
-                            </div>
-                          )}
-                        </span>
-                      </div>
-                      <div className="flex gap-2">
-                        <span className="text-[var(--color-text-muted)] w-16 flex-shrink-0">{t('transfer.field_cp')}</span>
-                        <span className="text-[var(--color-text-primary)] flex items-center gap-1.5">
-                          {a.cp || '—'}
-                          {(() => {
-                            const tier = findTierForCp(tiers, parseCp(a.cp))
-                            return tier
-                              ? <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)]" title={t('transfer.cp_suggested_tooltip')}>~ {tier.name}</span>
-                              : null
-                          })()}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* 신청자에게 보여줄 메시지 */}
-                    <div className="pt-3 border-t border-[var(--color-border-subtle)]">
-                      <div className="flex items-center justify-between mb-1.5">
-                        <label className="text-[11px] font-semibold text-[var(--color-text-muted)]">
-                          {t('transfer.admin_message_label')}
-                        </label>
-                        {messageDrafts[a.id] !== undefined && messageDrafts[a.id] !== a.adminMessage && (
-                          <button
-                            onClick={() => handleSaveMessage(a.id)}
-                            disabled={savingMessageId === a.id}
-                            className="text-[10px] font-semibold text-[var(--color-brand)] hover:underline disabled:opacity-50"
-                          >
-                            {savingMessageId === a.id
-                              ? <Loader2 className="w-3 h-3 animate-spin inline" />
-                              : t('common.save')}
-                          </button>
-                        )}
-                      </div>
-                      <textarea
-                        value={getMessageDraft(a)}
-                        onChange={(e) => setMessageDraft(a.id, e.target.value)}
-                        placeholder={t('transfer.admin_message_placeholder')}
-                        rows={2}
-                        className="w-full px-2 py-1.5 text-xs rounded bg-[var(--color-bg-elevated)] border border-[var(--color-border-subtle)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] outline-none focus:border-[var(--color-brand)] resize-none"
-                      />
-                      <p className="text-[10px] text-[var(--color-text-muted)] mt-1">{t('transfer.admin_message_hint')}</p>
-                    </div>
-
-                    {/* 액션 버튼 — 클릭 시 메시지도 함께 저장됨 */}
-                    <div className="flex gap-2 pt-3">
-                      {a.status !== 'APPROVED' && (
-                        <button
-                          onClick={() => handleStatusChange(a.id, 'APPROVED')}
-                          className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded text-xs font-semibold bg-[var(--color-success)]/15 text-[var(--color-success)] hover:bg-[var(--color-success)]/25 transition-colors"
-                        >
-                          <CheckCircle2 className="w-3 h-3" /> {t('transfer.approve_btn')}
-                        </button>
-                      )}
-                      {a.status !== 'REJECTED' && (
-                        <button
-                          onClick={() => handleStatusChange(a.id, 'REJECTED')}
-                          className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded text-xs font-semibold bg-[var(--color-danger)]/15 text-[var(--color-danger)] hover:bg-[var(--color-danger)]/25 transition-colors"
-                        >
-                          <XCircle className="w-3 h-3" /> {t('transfer.reject_btn')}
-                        </button>
-                      )}
-                      {a.status !== 'PENDING' && (
-                        <button
-                          onClick={() => handleStatusChange(a.id, 'PENDING')}
-                          className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded text-xs font-semibold bg-yellow-400/15 text-yellow-400 hover:bg-yellow-400/25 transition-colors"
-                        >
-                          <Clock className="w-3 h-3" /> {t('transfer.reopen_btn')}
-                        </button>
-                      )}
+                      <ChevronDown className={cn('w-4 h-4 text-[var(--color-text-muted)] transition-transform flex-shrink-0', isOpen && 'rotate-180')} />
+                    </button>
+                    <div className="flex gap-2 px-4 pb-3">
                       <button
-                        onClick={() => setDeleteConfirmId(a.id)}
+                        onClick={() => setGroupAction({ groupId: group.id, action: 'APPROVED' })}
+                        className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded text-xs font-semibold bg-[var(--color-success)]/15 text-[var(--color-success)] hover:bg-[var(--color-success)]/25 transition-colors"
+                      >
+                        <CheckCircle2 className="w-3 h-3" /> {t('transfer.group_approve_all')}
+                      </button>
+                      <button
+                        onClick={() => setGroupAction({ groupId: group.id, action: 'REJECTED' })}
+                        className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded text-xs font-semibold bg-[var(--color-danger)]/15 text-[var(--color-danger)] hover:bg-[var(--color-danger)]/25 transition-colors"
+                      >
+                        <XCircle className="w-3 h-3" /> {t('transfer.group_reject_all')}
+                      </button>
+                      <button
+                        onClick={() => setDeleteGroupId(group.id)}
                         className="px-2 py-1.5 rounded text-xs font-semibold bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:bg-[var(--color-danger)]/15 hover:text-[var(--color-danger)] transition-colors"
                         title={t('common.delete')}
                       >
                         <Trash2 className="w-3 h-3" />
                       </button>
                     </div>
+                    {isOpen && (
+                      <div className="border-t border-[var(--color-border-subtle)] p-3 grid grid-cols-1 md:grid-cols-2 gap-3 bg-[var(--color-bg-base)]/40">
+                        {members.map((a) => renderCard(a))}
+                      </div>
+                    )}
                   </div>
                 )
               })}
+
+              {/* 단독 신청 */}
+              {soloApps.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {soloApps.map((a) => renderCard(a))}
+                </div>
+              )}
             </div>
           )}
         </div>
       )}
+
+      {/* === 그룹 일괄 처리 확인 모달 === */}
+      {groupAction && (() => {
+        const g = groups.find((x) => x.id === groupAction.groupId)
+        const isApprove = groupAction.action === 'APPROVED'
+        return (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+            <div className="bg-[var(--color-bg-surface)] rounded-xl border border-[var(--color-border)] w-full max-w-sm p-6">
+              <h2 className="text-base font-bold text-[var(--color-text-primary)] mb-2">
+                {isApprove ? t('transfer.group_approve_all') : t('transfer.group_reject_all')}
+              </h2>
+              <p className="text-sm text-[var(--color-text-secondary)] mb-5 break-keep">
+                {t('transfer.group_action_confirm', { leader: g?.leaderName ?? '', count: g?.memberCount ?? 0 })}
+              </p>
+              <div className="flex gap-2">
+                <Button variant="outline" size="full" onClick={() => setGroupAction(null)}>{t('common.cancel')}</Button>
+                <Button
+                  size="full"
+                  className={isApprove ? '' : 'bg-[var(--color-danger)] hover:bg-red-700 text-white'}
+                  onClick={async () => {
+                    if (user) await updateGroupStatus(groupAction.groupId, groupAction.action, user.id)
+                    setGroupAction(null)
+                  }}
+                >
+                  {isApprove ? t('transfer.approve_btn') : t('transfer.reject_btn')}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
+
+      {/* === 그룹 삭제 확인 모달 === */}
+      {deleteGroupId && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-[var(--color-bg-surface)] rounded-xl border border-[var(--color-border)] w-full max-w-sm p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-[var(--color-danger)]/15 flex items-center justify-center flex-shrink-0">
+                <Trash2 className="w-5 h-5 text-[var(--color-danger)]" />
+              </div>
+              <h2 className="text-base font-bold text-[var(--color-text-primary)]">{t('transfer.group_delete_title')}</h2>
+            </div>
+            <p className="text-sm text-[var(--color-text-secondary)] mb-5 break-keep">{t('transfer.group_delete_desc')}</p>
+            <div className="flex gap-2">
+              <Button variant="outline" size="full" onClick={() => setDeleteGroupId(null)}>{t('common.cancel')}</Button>
+              <Button size="full" className="bg-[var(--color-danger)] hover:bg-red-700 text-white"
+                onClick={async () => { await removeGroup(deleteGroupId); setDeleteGroupId(null) }}>
+                {t('common.delete')}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
 
       {/* DELETE CONFIRM MODAL */}
       {deleteConfirmId && (
