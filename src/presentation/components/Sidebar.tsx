@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { Home, Users, Swords, CalendarDays, FileSpreadsheet, BarChart3, Megaphone, ChevronUp, ChevronLeft, ChevronRight, X, LogOut, ShieldCheck, User, KeyRound, UserX, UserCheck, MessageSquare, Target, UserPlus, MessageCircleQuestion, Eye, EyeOff, ListChecks } from 'lucide-react'
+import { Home, Users, Swords, CalendarDays, FileSpreadsheet, BarChart3, Megaphone, ChevronUp, ChevronLeft, ChevronRight, X, LogOut, ShieldCheck, User, KeyRound, UserX, UserCheck, MessageSquare, Target, UserPlus, MessageCircleQuestion, Eye, EyeOff, ListChecks, Castle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { LANGUAGES, type LangCode } from '@/i18n'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
@@ -59,6 +59,7 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
     key: 'server',
     title: t('nav.section_server'),
     items: [
+      { to: '/occupation', icon: Castle, label: t('nav.occupation') },
       { to: '/transfer/list', icon: ListChecks, label: t('nav.transfer_list') },
     ],
   }
@@ -69,6 +70,7 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
     title: t('nav.section_server'),
     items: [
       { to: '/', icon: Home, label: t('nav.home'), end: true },
+      { to: '/occupation', icon: Castle, label: t('nav.occupation') },
       { to: '/transfer', icon: UserPlus, label: t('nav.transfer'), end: true },
       { to: '/transfer/list', icon: ListChecks, label: t('nav.transfer_list') },
       { to: '/questions', icon: MessageCircleQuestion, label: t('nav.questions') },
