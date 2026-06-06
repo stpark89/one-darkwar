@@ -47,16 +47,17 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
   const NAV_GUEST = [
     { to: '/', icon: Home, label: t('nav.home'), end: true },
     { to: '/questions', icon: MessageCircleQuestion, label: t('nav.questions'), end: false },
-    { to: '/transfer', icon: UserPlus, label: t('nav.transfer'), end: false },
+    { to: '/transfer', icon: UserPlus, label: t('nav.transfer'), end: true },
     { to: '/transfer/list', icon: ListChecks, label: t('nav.transfer_list'), end: false },
   ]
 
   const NAV_ADMIN = [
-    { to: '/contribution', icon: BarChart3, label: t('nav.contribution'), badge: 0 },
-    { to: '/excel', icon: FileSpreadsheet, label: t('nav.excel'), badge: 0 },
-    { to: '/approval', icon: UserCheck, label: t('nav.join_management'), badge: pendingCount },
-    { to: '/questions', icon: MessageCircleQuestion, label: t('nav.questions'), badge: 0 },
-    { to: '/transfer', icon: UserPlus, label: t('nav.transfer'), badge: 0 },
+    { to: '/contribution', icon: BarChart3, label: t('nav.contribution'), badge: 0, end: false },
+    { to: '/excel', icon: FileSpreadsheet, label: t('nav.excel'), badge: 0, end: false },
+    { to: '/approval', icon: UserCheck, label: t('nav.join_management'), badge: pendingCount, end: false },
+    { to: '/questions', icon: MessageCircleQuestion, label: t('nav.questions'), badge: 0, end: false },
+    // end:true — /transfer/list 와 prefix 충돌 방지 (정확히 /transfer 일 때만 active)
+    { to: '/transfer', icon: UserPlus, label: t('nav.transfer'), badge: 0, end: true },
     // '이주 신청 내역' 은 NAV_GENERAL 에 있어 모두에게 노출됨 → 관리자 중복 방지 위해 제거
   ]
 
@@ -141,10 +142,11 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
               <p className="px-3 text-[10px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">{t('nav.admin_section')}</p>
             </div>
             {!collapsed && <div className="mx-3 border-t border-[var(--color-border-subtle)] md:block hidden" />}
-            {NAV_ADMIN.map(({ to, icon: Icon, label, badge }) => (
+            {NAV_ADMIN.map(({ to, icon: Icon, label, badge, end }) => (
               <NavLink
                 key={to}
                 to={to}
+                end={end}
                 title={collapsed ? label : undefined}
                 onClick={onCloseMobile}
                 className={({ isActive }) =>
