@@ -11,6 +11,7 @@ import { useOccupationStore } from '@/infrastructure/stores/occupationStore'
 import type { Facility } from '@/domain/entities/Occupation'
 import { RecruitmentWidget } from '@/presentation/components/server/RecruitmentWidget'
 import { RecentQuestionsWidget } from '@/presentation/components/server/RecentQuestionsWidget'
+import { ServerEventsWidget } from '@/presentation/components/server/ServerEventsWidget'
 
 export const ServerHomePage = () => {
   const { t } = useTranslation()
@@ -39,6 +40,9 @@ export const ServerHomePage = () => {
           {t('server_home.hero_subtitle')}
         </p>
       </div>
+
+      {/* 서버 일정/이벤트 + 다음 일정 카운트다운 */}
+      <ServerEventsWidget />
 
       {/* 점령 현황 (291 공용 정보 — 모두에게 표시) */}
       <div>
