@@ -41,6 +41,7 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
     { to: '/war', icon: Swords, label: t('nav.war'), end: false },
     { to: '/vs-point', icon: Target, label: t('nav.vs_point'), end: false },
     { to: '/events', icon: CalendarDays, label: t('nav.events'), end: false },
+    { to: '/transfer/list', icon: ListChecks, label: t('nav.transfer_list'), end: false },
   ]
 
   const NAV_GUEST = [
