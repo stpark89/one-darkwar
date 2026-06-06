@@ -225,7 +225,6 @@ export const TransferListPage = () => {
                   </div>
                   <p className="text-[11px] text-[var(--color-text-muted)] mt-1">
                     UID: <span className="font-mono">{a.uid || '—'}</span>
-                    {a.cp && <span className="ml-2">CP: {a.cp}</span>}
                     {a.country && (
                       <span className="ml-2">{COUNTRY_FLAGS[a.country] ?? ''}</span>
                     )}
@@ -332,7 +331,6 @@ const ApplicantRow = ({ idx, app, tierName, onClick }: ApplicantRowProps) => {
         <p className="text-sm font-medium text-[var(--color-text-primary)] truncate">{app.inGameName}</p>
         <p className="text-[10px] text-[var(--color-text-muted)] mt-0.5 truncate">
           UID: <span className="font-mono">{app.uid || '—'}</span>
-          {app.cp && <span className="ml-2">CP {app.cp}</span>}
           {tierName && <span className="ml-2">· {tierName}</span>}
           {app.country && <span className="ml-2">{COUNTRY_FLAGS[app.country] ?? ''}</span>}
         </p>
