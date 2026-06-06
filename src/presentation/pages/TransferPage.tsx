@@ -4,14 +4,14 @@ import { Loader2, CheckCircle2, XCircle, Clock, Trash2, RotateCcw, Layers, Penci
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { useTransferStore } from '@/infrastructure/stores/transferStore'
-import { useTransferTierStore, findTierForCp } from '@/infrastructure/stores/transferTierStore'
+import { useTransferTierStore } from '@/infrastructure/stores/transferTierStore'
 import type { TransferStatus } from '@/domain/entities/Transfer'
 import { type TierColor, TIER_COLOR_CLASS } from '@/domain/entities/TransferTier'
 import { Input } from '@/presentation/components/ui/input'
 import { Button } from '@/presentation/components/ui/button'
 import { TransferSubmitForm } from '@/presentation/components/TransferSubmitForm'
 import { TransferStatsPanel } from '@/presentation/components/TransferStatsPanel'
-import { parseCp, formatCp } from '@/lib/cp'
+import { formatCp } from '@/lib/cp'
 import { isPushSupported, isCurrentlySubscribed, subscribeToPush, unsubscribeFromPush } from '@/lib/push'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
@@ -206,13 +206,11 @@ export const TransferPage = () => {
     if (ok) setTierDraft(null)
   }
 
-  // 신청서의 effective tier:
-  //   1) 사용자가 직접 선택한 tier_id 가 있으면 그것
-  //   2) 없으면 CP 기반 자동 매칭
-  const getEffectiveTier = (a: typeof apps[number]) => {
-    if (a.tierId) return tiers.find((tt) => tt.id === a.tierId) ?? null
-    return findTierForCp(tiers, parseCp(a.cp))
-  }
+  // 신청서의 등급 = 신청자가 직접 선택한 tier_id 만 사용한다.
+  // 이주 등급은 (건물+과학기술+영웅+개조차) 합산값으로, 부대 전투력(cp)
+  // 으로는 계산할 수 없으므로 CP 기반 자동 매칭은 하지 않는다.
+  const getEffectiveTier = (a: typeof apps[number]) =>
+    a.tierId ? tiers.find((tt) => tt.id === a.tierId) ?? null : null
 
   const filtered = apps.filter((a) => {
     if (a.status !== tab) return false
@@ -264,15 +262,13 @@ export const TransferPage = () => {
   }
 
   // 승인된 신청자들의 등급별 집계 + 잔여/종합 통계
-  // tier_id 가 있으면 그것 우선, 없으면 CP 기반 자동 매칭
+  // 등급은 신청자가 직접 선택한 tier_id 만 사용 (CP 자동 매칭 안 함)
   const approvedByTier = useMemo(() => {
     const map = new Map<string, number>()
     const unmatchedApps: typeof apps = []
     for (const a of apps) {
       if (a.status !== 'APPROVED') continue
-      const tier = a.tierId
-        ? tiers.find((tt) => tt.id === a.tierId) ?? null
-        : findTierForCp(tiers, parseCp(a.cp))
+      const tier = a.tierId ? tiers.find((tt) => tt.id === a.tierId) ?? null : null
       if (tier) map.set(tier.id, (map.get(tier.id) ?? 0) + 1)
       else unmatchedApps.push(a)
     }
@@ -407,12 +403,6 @@ export const TransferPage = () => {
                         <span className="text-[var(--color-text-muted)] w-16 flex-shrink-0">{t('transfer.field_cp')}</span>
                         <span className="text-[var(--color-text-primary)] flex items-center gap-1.5">
                           {a.cp || '—'}
-                          {(() => {
-                            const tier = findTierForCp(tiers, parseCp(a.cp))
-                            return tier
-                              ? <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)]" title={t('transfer.cp_suggested_tooltip')}>~ {tier.name}</span>
-                              : null
-                          })()}
                         </span>
                       </div>
                     </div>

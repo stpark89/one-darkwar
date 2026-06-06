@@ -3,12 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { Search, Loader2, CheckCircle2, XCircle, Clock, ArrowLeft, MessageSquare, Languages, Pencil, ChevronDown } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useTransferStore } from '@/infrastructure/stores/transferStore'
-import { useTransferTierStore, findTierForCp } from '@/infrastructure/stores/transferTierStore'
+import { useTransferTierStore } from '@/infrastructure/stores/transferTierStore'
 import type { TransferApplication, TransferDraft, TransferStatus } from '@/domain/entities/Transfer'
+import { TIER_COLOR_CLASS } from '@/domain/entities/TransferTier'
 import { Input } from '@/presentation/components/ui/input'
 import { Button } from '@/presentation/components/ui/button'
 import { translateText } from '@/lib/translate'
-import { parseCp } from '@/lib/cp'
 import { cn } from '@/lib/utils'
 
 const STATUS_META: Record<TransferStatus, { icon: typeof Clock; color: string; bg: string }> = {
@@ -263,28 +263,51 @@ export const TransferStatusPage = () => {
                           )}
                         </div>
                       </div>
-                      {/* CP */}
+                      {/* CP — 부대 전투력 (등급과 무관, 참고용) */}
                       <div>
                         <label className="text-[11px] text-[var(--color-text-muted)] mb-1 block">{t('transfer.field_cp')}</label>
                         <Input
                           value={editDraft.cp}
-                          onChange={(e) => {
-                            const cp = e.target.value
-                            const suggested = tiers.length > 0 ? findTierForCp(tiers, parseCp(cp)) : null
-                            setEditDraft((d) => d && ({ ...d, cp, tierId: suggested?.id ?? d.tierId }))
-                          }}
+                          onChange={(e) => setEditDraft((d) => d && ({ ...d, cp: e.target.value }))}
                           placeholder={t('transfer.field_cp_placeholder')}
                         />
-                        {/* 티어 자동 매칭 표시 */}
-                        {editDraft.tierId && tiers.length > 0 && (() => {
-                          const tier = tiers.find((tt) => tt.id === editDraft.tierId)
-                          return tier ? (
-                            <p className="text-[11px] text-[var(--color-brand)] mt-1">
-                              {t('transfer.auto_tier')}: <span className="font-bold">{tier.name}</span>
-                            </p>
-                          ) : null
-                        })()}
                       </div>
+                      {/* 등급 — 본인이 직접 선택 (건물+과학기술+영웅+개조차 합산 등급) */}
+                      {tiers.length > 0 && (
+                        <div>
+                          <label className="text-[11px] text-[var(--color-text-muted)] mb-1 block">{t('transfer.field_tier')}</label>
+                          <div className="flex flex-wrap gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => setEditDraft((d) => d && ({ ...d, tierId: null }))}
+                              className={cn(
+                                'text-[11px] font-semibold px-2.5 py-1.5 rounded-lg border transition-colors',
+                                !editDraft.tierId
+                                  ? 'bg-[var(--color-brand)] text-white border-[var(--color-brand)]'
+                                  : 'border-[var(--color-border-subtle)] text-[var(--color-text-muted)]',
+                              )}
+                            >
+                              {t('transfer.tier_none')}
+                            </button>
+                            {tiers.map((tier) => (
+                              <button
+                                key={tier.id}
+                                type="button"
+                                onClick={() => setEditDraft((d) => d && ({ ...d, tierId: tier.id }))}
+                                className={cn(
+                                  'text-[11px] font-semibold px-2.5 py-1.5 rounded-lg border flex items-center gap-1.5 transition-colors',
+                                  editDraft.tierId === tier.id
+                                    ? 'bg-[var(--color-brand)] text-white border-[var(--color-brand)]'
+                                    : 'border-[var(--color-border-subtle)] text-[var(--color-text-secondary)]',
+                                )}
+                              >
+                                <span className={cn('w-2 h-2 rounded-full', TIER_COLOR_CLASS[tier.color].dot)} />
+                                {tier.name}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
 
                       <div className="flex gap-2 pt-1">
                         <Button variant="outline" size="full" onClick={() => { setEditingId(null); setEditDraft(null) }} disabled={editSaving}>
