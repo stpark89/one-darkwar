@@ -15,7 +15,7 @@ export const SignInPage = () => {
 
   const handleGuestLogin = () => {
     guestLogin()
-    navigate('/', { replace: true })
+    navigate('/server', { replace: true })
   }
 
   const [name, setName] = useState('')

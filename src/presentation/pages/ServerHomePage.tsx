@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
-  UserPlus, MessageCircleQuestion, ChevronRight, Eye, Search,
+  UserPlus, MessageCircleQuestion, ChevronRight, Search,
   Swords, Crown, ListChecks, Castle,
 } from 'lucide-react'
 import { getSessionAvatar } from '@/lib/avatars'
@@ -13,7 +13,7 @@ import type { Facility } from '@/domain/entities/Occupation'
 export const ServerHomePage = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { isGuest, enterTourMode } = useAuthStore()
+  const { isGuest } = useAuthStore()
   const { turns, loadAll } = useOccupationStore()
 
   useEffect(() => { loadAll() }, [loadAll])
@@ -22,11 +22,6 @@ export const ServerHomePage = () => {
     turns.find((tn) => tn.facility === facility && tn.isCurrent) ?? null
   const armory = currentOf('armory')
   const castle = currentOf('castle')
-
-  const handleStartTour = () => {
-    enterTourMode()
-    navigate('/')
-  }
 
   return (
     <div className="p-4 sm:p-8 max-w-2xl mx-auto space-y-6 break-keep">
@@ -83,21 +78,6 @@ export const ServerHomePage = () => {
       {/* 게스트: 진입 CTA / 멤버: 291 메뉴 바로가기 */}
       {isGuest ? (
         <div className="space-y-3">
-          {/* ONE 둘러보기 */}
-          <button
-            onClick={handleStartTour}
-            className="w-full group flex items-start gap-4 bg-gradient-to-br from-purple-600 to-fuchsia-500 text-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all"
-          >
-            <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
-              <Eye className="w-6 h-6" />
-            </div>
-            <div className="flex-1 text-left min-w-0">
-              <div className="text-base font-bold leading-snug">{t('guest_home.cta_tour_title')}</div>
-              <div className="text-xs opacity-90 mt-1 leading-relaxed">{t('guest_home.cta_tour_desc')}</div>
-            </div>
-            <ChevronRight className="w-5 h-5 flex-shrink-0 mt-1 group-hover:translate-x-1 transition-transform" />
-          </button>
-
           <button
             onClick={() => navigate('/transfer')}
             className="w-full group flex items-start gap-4 bg-gradient-to-br from-[var(--color-brand)] to-blue-600 text-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all"

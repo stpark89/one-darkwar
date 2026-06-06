@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { Home, Users, Swords, CalendarDays, FileSpreadsheet, BarChart3, Megaphone, ChevronUp, ChevronLeft, ChevronRight, X, LogOut, ShieldCheck, User, KeyRound, UserX, UserCheck, MessageSquare, Target, UserPlus, MessageCircleQuestion, Eye, EyeOff, ListChecks, Castle } from 'lucide-react'
+import { Home, Users, Swords, CalendarDays, FileSpreadsheet, BarChart3, Megaphone, ChevronUp, ChevronLeft, ChevronRight, X, LogOut, ShieldCheck, User, KeyRound, UserX, UserCheck, MessageSquare, Target, UserPlus, MessageCircleQuestion, ListChecks, Castle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { LANGUAGES, type LangCode } from '@/i18n'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
@@ -17,7 +17,7 @@ interface SidebarProps {
 
 export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile }: SidebarProps) => {
   const { t, i18n } = useTranslation()
-  const { user, signOut, isGuest, isTourMode, exitTourMode } = useAuthStore()
+  const { user, signOut, isGuest } = useAuthStore()
   const { pendingCount, loadPending } = useApprovalStore()
   const navigate = useNavigate()
   const [langOpen, setLangOpen] = useState(false)
@@ -93,25 +93,15 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
 
   const isAdmin = !isGuest && user?.role === 'ROLE_ADMIN'
 
-  // 사용자 유형별 섹션 구성
+  // 사용자 유형별 섹션 구성.
+  // 게스트도 ONE + 291 전체 메뉴를 read-only 로 열람 가능 (메뉴 통일).
+  // ONE 홈은 /(대시보드), 291 홈은 /server 로 URL 이 분리되어 두 홈이
+  // 동시에 활성화되지 않는다.
   const sections: NavSection[] = isGuest
-    ? [SECTION_SERVER_GUEST]
+    ? [SECTION_ONE, SECTION_SERVER_GUEST]
     : isAdmin
       ? [SECTION_ONE, SECTION_SERVER_MEMBER, SECTION_ADMIN]
       : [SECTION_ONE, SECTION_SERVER_MEMBER]
-
-  // 둘러보기(tour) 모드 게스트는 ONE 섹션도 read-only 로 노출.
-  // ONE 홈은 /(대시보드), 291 홈은 /server 로 URL 이 분리되어 두 홈이
-  // 동시에 활성화되지 않는다.
-  const effectiveSections: NavSection[] = isGuest && isTourMode
-    ? [SECTION_ONE, SECTION_SERVER_GUEST]
-    : sections
-
-  const handleExitTour = () => {
-    exitTourMode()
-    navigate('/', { replace: true })
-    onCloseMobile()
-  }
 
   return (
     <aside
@@ -153,7 +143,7 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
 
       {/* 네비게이션 — 섹션(291 서버 / ONE 동맹 / 관리자)으로 그룹화 */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        {effectiveSections.map((section, si) => (
+        {sections.map((section, si) => (
           <div key={section.key} className={cn(si > 0 && 'pt-2')}>
             {/* 섹션 헤더 */}
             <div className={cn('pt-1 pb-1', collapsed && 'md:hidden')}>
@@ -252,36 +242,18 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
         {isGuest ? (
           <>
             <div className={cn('flex items-center gap-2 px-2 py-2 rounded-lg', collapsed && 'md:justify-center md:px-0')}>
-              <div className={cn(
-                'w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0',
-                isTourMode ? 'bg-[var(--color-brand)]/20' : 'bg-[var(--color-bg-elevated)]',
-              )}>
-                {isTourMode
-                  ? <Eye className="w-3.5 h-3.5 text-[var(--color-brand)]" />
-                  : <UserX className="w-3.5 h-3.5 text-[var(--color-text-muted)]" />}
+              <div className="w-7 h-7 rounded-full bg-[var(--color-bg-elevated)] flex items-center justify-center flex-shrink-0">
+                <UserX className="w-3.5 h-3.5 text-[var(--color-text-muted)]" />
               </div>
               <div className={cn('flex-1 min-w-0', collapsed && 'md:hidden')}>
                 <p className="text-xs font-semibold text-[var(--color-text-primary)]">
-                  {isTourMode ? t('nav.tour_mode_label') : t('nav.guest_label')}
+                  {t('nav.guest_label')}
                 </p>
                 <p className="text-[10px] text-[var(--color-text-muted)]">
-                  {isTourMode ? t('nav.tour_mode_desc') : t('nav.guest_desc')}
+                  {t('nav.guest_desc')}
                 </p>
               </div>
             </div>
-            {isTourMode && (
-              <button
-                onClick={handleExitTour}
-                title={t('nav.exit_tour')}
-                className={cn(
-                  'w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-[var(--color-text-muted)] hover:bg-[var(--color-bg-elevated)] hover:text-[var(--color-text-primary)] transition-colors mt-0.5',
-                  collapsed && 'md:w-9 md:h-9 md:justify-center md:px-0',
-                )}
-              >
-                <EyeOff className="w-3.5 h-3.5 flex-shrink-0" />
-                <span className={cn(collapsed && 'md:hidden')}>{t('nav.exit_tour')}</span>
-              </button>
-            )}
             <button
               onClick={() => { handleSignOut(); onCloseMobile() }}
               title={t('nav.go_signin')}

@@ -25,14 +25,6 @@ import { useAuthStore } from "@/infrastructure/stores/authStore";
 
 const HEARTBEAT_MS = 2 * 60 * 1000; // 2분마다 갱신
 
-const HomeRouter = () => {
-  const { isGuest, isTourMode } = useAuthStore();
-  // ONE 홈(/)은 ONE 동맹 대시보드. 게스트(둘러보기 아님)는 ONE 대시보드 대신
-  // 291 서버 홈(/server)으로 보낸다 — 게스트의 기본 진입점은 291 서버 홈.
-  if (isGuest && !isTourMode) return <Navigate to="/server" replace />;
-  return <HomePage />;
-};
-
 function App() {
   const { loadSession, updateLastSeen } = useAuthStore();
 
@@ -53,8 +45,8 @@ function App() {
         <Route path="/sign-in" element={<SignInPage />} />
         <Route path="/sign-up" element={<SignUpPage />} />
         <Route element={<Layout />}>
-          <Route index element={<HomeRouter />} />
-          <Route path="/home" element={<HomeRouter />} />
+          <Route index element={<HomePage />} />
+          <Route path="/home" element={<HomePage />} />
           <Route path="/members" element={<MembersPage />} />
           <Route path="/war" element={<WarPage />} />
           <Route path="/vs-point" element={<VsPointPage />} />

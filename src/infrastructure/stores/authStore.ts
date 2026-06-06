@@ -14,8 +14,6 @@ interface AuthStore {
   user: AuthUser | null
   loading: boolean
   isGuest: boolean
-  /** 게스트가 일반 메뉴를 read-only 로 둘러볼 수 있는 모드 (게스트 한정) */
-  isTourMode: boolean
   /** 거절된 사용자 로그인 시 표시할 관리자 메시지 */
   rejectMessage: string | null
   loadSession: () => Promise<void>
@@ -23,8 +21,6 @@ interface AuthStore {
   signUp: (inGameName: string, password: string) => Promise<string | null>
   signOut: () => Promise<void>
   guestLogin: () => void
-  enterTourMode: () => void
-  exitTourMode: () => void
   clearRejectMessage: () => void
   updateLastSeen: () => Promise<void>
 }
@@ -40,8 +36,6 @@ export const REJECTED_ERROR = 'REJECTED'
 
 // 게스트 상태를 새로고침 후에도 유지하기 위한 localStorage 키
 const GUEST_FLAG_KEY = 'odw_guest'
-// 게스트 '둘러보기' 모드 새로고침 후 유지용
-const TOUR_FLAG_KEY = 'odw_tour'
 
 // supabase 가 localStorage 에 저장하는 auth 토큰 키를 강제로 정리하는 헬퍼.
 // 일부 환경에서 supabase.auth.signOut() 이 토큰을 완전히 지우지 못해 새로고침
@@ -72,7 +66,6 @@ export const useAuthStore = create<AuthStore>((set) => ({
   user: null,
   loading: true,
   isGuest: false,
-  isTourMode: typeof window !== 'undefined' && localStorage.getItem(TOUR_FLAG_KEY) === '1',
   rejectMessage: null,
 
   loadSession: async () => {
@@ -235,8 +228,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
     // signOut 이 토큰을 완전히 못 지운 경우 대비 — 직접 청소
     purgeSupabaseAuthStorage()
     localStorage.removeItem(GUEST_FLAG_KEY)
-    localStorage.removeItem(TOUR_FLAG_KEY)
-    set({ user: null, isGuest: false, isTourMode: false })
+    set({ user: null, isGuest: false })
   },
 
   guestLogin: () => {
@@ -244,19 +236,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
     // 덮어쓰는 문제를 막기 위해 sb-*-auth-token 토큰도 함께 청소.
     purgeSupabaseAuthStorage()
     localStorage.setItem(GUEST_FLAG_KEY, '1')
-    // 게스트 로그인 시 tour mode 는 OFF 로 시작 — 명시적 진입 필요
-    localStorage.removeItem(TOUR_FLAG_KEY)
-    set({ isGuest: true, user: null, loading: false, isTourMode: false })
-  },
-
-  enterTourMode: () => {
-    localStorage.setItem(TOUR_FLAG_KEY, '1')
-    set({ isTourMode: true })
-  },
-
-  exitTourMode: () => {
-    localStorage.removeItem(TOUR_FLAG_KEY)
-    set({ isTourMode: false })
+    set({ isGuest: true, user: null, loading: false })
   },
 
   clearRejectMessage: () => set({ rejectMessage: null }),
