@@ -46,11 +46,15 @@ WITH parsed AS (
     ta.id,
     ROUND(
       CASE
+        -- "3G45" / "3B45": G/B 가 소수점 역할 → 3.45G = 3450M
+        WHEN upper(COALESCE(ta.cp, '')) ~ '^[0-9]+[GB][0-9]+$'
+          THEN regexp_replace(upper(ta.cp), '^([0-9]+)[GB]([0-9]+)$', '\1.\2')::numeric * 1000
+        -- 일반 숫자 (+ 선택적 G/B/M 단위)
         WHEN regexp_replace(upper(COALESCE(ta.cp, '')), '[^0-9.]', '', 'g') ~ '^[0-9]+(\.[0-9]+)?$'
           THEN regexp_replace(upper(ta.cp), '[^0-9.]', '', 'g')::numeric
+               * CASE WHEN upper(ta.cp) ~ '[GB]' THEN 1000 ELSE 1 END
         ELSE 0
       END
-      * CASE WHEN upper(COALESCE(ta.cp, '')) ~ '[GB]' THEN 1000 ELSE 1 END
     )::int AS cp_mega
   FROM public.transfer_applications ta
 ),

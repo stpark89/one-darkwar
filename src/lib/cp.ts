@@ -6,6 +6,12 @@ export function parseCp(raw: string | null | undefined): number {
   if (!raw) return 0
   const s = String(raw).trim().toUpperCase()
   if (!s) return 0
+  // "3G45" / "3B45" 처럼 G/B 가 소수점 구분자로 쓰인 경우 → 3.45G 로 해석
+  const mid = s.match(/^(\d+)[GB](\d+)$/)
+  if (mid) {
+    const v = parseFloat(`${mid[1]}.${mid[2]}`)
+    return isNaN(v) ? 0 : Math.round(v * 1000)
+  }
   const num = parseFloat(s.replace(/[^0-9.]/g, ''))
   if (isNaN(num)) return 0
   if (s.includes('G') || s.includes('B')) return Math.round(num * 1000)
