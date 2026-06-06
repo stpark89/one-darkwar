@@ -8,6 +8,8 @@ export default {
     excel: 'Quản lý Excel',
     join_management: 'Quản lý đăng ký',
     admin_section: 'Quản trị',
+    section_one: 'Liên minh ONE',
+    section_server: 'Server 291',
     language: 'Ngôn ngữ',
     online: 'Trực tuyến',
     vs_point: 'Điểm VS',

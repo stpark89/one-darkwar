@@ -8,6 +8,8 @@ export default {
     excel: '엑셀 관리',
     join_management: '가입 관리',
     admin_section: '관리자',
+    section_one: 'ONE 동맹',
+    section_server: '291 서버',
     language: '언어',
     online: '접속 현황',
     vs_point: 'VS 포인트',

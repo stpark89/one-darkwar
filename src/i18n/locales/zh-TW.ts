@@ -8,6 +8,8 @@ export default {
     excel: 'Excel 管理',
     join_management: '加入管理',
     admin_section: '管理員',
+    section_one: 'ONE 聯盟',
+    section_server: 'Server 291',
     language: '語言',
     online: '上線狀況',
     vs_point: 'VS 積分',

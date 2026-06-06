@@ -33,38 +33,74 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
 
   const currentLang = LANGUAGES.find((l) => l.code === i18n.language) ?? LANGUAGES[0]
 
-  const NAV_GENERAL = [
-    { to: '/', icon: Home, label: t('nav.home'), end: true },
-    { to: '/notices', icon: Megaphone, label: t('notice.nav'), end: false },
-    { to: '/board', icon: MessageSquare, label: t('board.nav'), end: false },
-    { to: '/members', icon: Users, label: t('nav.members'), end: false },
-    { to: '/war', icon: Swords, label: t('nav.war'), end: false },
-    { to: '/vs-point', icon: Target, label: t('nav.vs_point'), end: false },
-    { to: '/events', icon: CalendarDays, label: t('nav.events'), end: false },
-    { to: '/transfer/list', icon: ListChecks, label: t('nav.transfer_list'), end: false },
-  ]
+  // ── 섹션 정의 ────────────────────────────────────────────────
+  // 앱이 "ONE 동맹 내부 운영" + "291 서버 공용" 두 성격을 갖게 되어
+  // 사이드바를 섹션으로 그룹화해 영역을 명확히 구분한다.
+  type NavItem = { to: string; icon: typeof Home; label: string; end?: boolean; badge?: number }
+  type NavSection = { key: string; title: string; items: NavItem[] }
 
-  const NAV_GUEST = [
-    { to: '/', icon: Home, label: t('nav.home'), end: true },
-    { to: '/questions', icon: MessageCircleQuestion, label: t('nav.questions'), end: false },
-    { to: '/transfer', icon: UserPlus, label: t('nav.transfer'), end: true },
-    { to: '/transfer/list', icon: ListChecks, label: t('nav.transfer_list'), end: false },
-  ]
+  // ONE 동맹 내부 (로그인 멤버)
+  const SECTION_ONE: NavSection = {
+    key: 'one',
+    title: t('nav.section_one'),
+    items: [
+      { to: '/', icon: Home, label: t('nav.home'), end: true },
+      { to: '/notices', icon: Megaphone, label: t('notice.nav') },
+      { to: '/board', icon: MessageSquare, label: t('board.nav') },
+      { to: '/members', icon: Users, label: t('nav.members') },
+      { to: '/war', icon: Swords, label: t('nav.war') },
+      { to: '/vs-point', icon: Target, label: t('nav.vs_point') },
+      { to: '/events', icon: CalendarDays, label: t('nav.events') },
+    ],
+  }
 
-  const NAV_ADMIN = [
-    { to: '/contribution', icon: BarChart3, label: t('nav.contribution'), badge: 0, end: false },
-    { to: '/excel', icon: FileSpreadsheet, label: t('nav.excel'), badge: 0, end: false },
-    { to: '/approval', icon: UserCheck, label: t('nav.join_management'), badge: pendingCount, end: false },
-    { to: '/questions', icon: MessageCircleQuestion, label: t('nav.questions'), badge: 0, end: false },
-    // end:true — /transfer/list 와 prefix 충돌 방지 (정확히 /transfer 일 때만 active)
-    { to: '/transfer', icon: UserPlus, label: t('nav.transfer'), badge: 0, end: true },
-    // '이주 신청 내역' 은 NAV_GENERAL 에 있어 모두에게 노출됨 → 관리자 중복 방지 위해 제거
-  ]
+  // 291 서버 공용 (멤버용 — 이주 내역만)
+  const SECTION_SERVER_MEMBER: NavSection = {
+    key: 'server',
+    title: t('nav.section_server'),
+    items: [
+      { to: '/transfer/list', icon: ListChecks, label: t('nav.transfer_list') },
+    ],
+  }
 
-  // 게스트가 둘러보기 모드면 NAV_GENERAL 을 read-only 로 노출
-  const navItems = isGuest
-    ? (isTourMode ? NAV_GENERAL : NAV_GUEST)
-    : NAV_GENERAL
+  // 291 서버 공용 (게스트 진입로)
+  const SECTION_SERVER_GUEST: NavSection = {
+    key: 'server',
+    title: t('nav.section_server'),
+    items: [
+      { to: '/', icon: Home, label: t('nav.home'), end: true },
+      { to: '/transfer', icon: UserPlus, label: t('nav.transfer'), end: true },
+      { to: '/transfer/list', icon: ListChecks, label: t('nav.transfer_list') },
+      { to: '/questions', icon: MessageCircleQuestion, label: t('nav.questions') },
+    ],
+  }
+
+  // 관리자 전용
+  const SECTION_ADMIN: NavSection = {
+    key: 'admin',
+    title: t('nav.admin_section'),
+    items: [
+      { to: '/contribution', icon: BarChart3, label: t('nav.contribution') },
+      { to: '/excel', icon: FileSpreadsheet, label: t('nav.excel') },
+      { to: '/approval', icon: UserCheck, label: t('nav.join_management'), badge: pendingCount },
+      { to: '/questions', icon: MessageCircleQuestion, label: t('nav.questions') },
+      { to: '/transfer', icon: UserPlus, label: t('nav.transfer'), end: true },
+    ],
+  }
+
+  const isAdmin = !isGuest && user?.role === 'ROLE_ADMIN'
+
+  // 사용자 유형별 섹션 구성
+  const sections: NavSection[] = isGuest
+    ? [SECTION_SERVER_GUEST]
+    : isAdmin
+      ? [SECTION_ONE, SECTION_SERVER_MEMBER, SECTION_ADMIN]
+      : [SECTION_ONE, SECTION_SERVER_MEMBER]
+
+  // 둘러보기(tour) 모드 게스트는 ONE 섹션도 read-only 로 노출
+  const effectiveSections: NavSection[] = isGuest && isTourMode
+    ? [SECTION_ONE, SECTION_SERVER_GUEST]
+    : sections
 
   const handleExitTour = () => {
     exitTourMode()
@@ -110,39 +146,18 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
         </button>
       </div>
 
-      {/* 네비게이션 */}
+      {/* 네비게이션 — 섹션(291 서버 / ONE 동맹 / 관리자)으로 그룹화 */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        {/* 일반 메뉴 (게스트면 NAV_GUEST, 아니면 NAV_GENERAL) */}
-        {navItems.map(({ to, icon: Icon, label, end }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={end}
-            title={collapsed ? label : undefined}
-            onClick={onCloseMobile}
-            className={({ isActive }) =>
-              cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all',
-                collapsed && 'md:justify-center md:px-0',
-                isActive
-                  ? 'bg-[var(--color-brand)]/15 text-[var(--color-brand)] font-semibold'
-                  : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-elevated)] hover:text-[var(--color-text-primary)]',
-              )
-            }
-          >
-            <Icon className="w-4 h-4 flex-shrink-0" />
-            <span className={cn(collapsed && 'md:hidden')}>{label}</span>
-          </NavLink>
-        ))}
-
-        {/* 관리자 전용 섹션 (게스트는 표시 안 함) */}
-        {!isGuest && user?.role === 'ROLE_ADMIN' && (
-          <>
-            <div className={cn('pt-3 pb-1', collapsed && 'md:hidden')}>
-              <p className="px-3 text-[10px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">{t('nav.admin_section')}</p>
+        {effectiveSections.map((section, si) => (
+          <div key={section.key} className={cn(si > 0 && 'pt-2')}>
+            {/* 섹션 헤더 */}
+            <div className={cn('pt-1 pb-1', collapsed && 'md:hidden')}>
+              <p className="px-3 text-[10px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">
+                {section.title}
+              </p>
             </div>
-            {!collapsed && <div className="mx-3 border-t border-[var(--color-border-subtle)] md:block hidden" />}
-            {NAV_ADMIN.map(({ to, icon: Icon, label, badge, end }) => (
+            {collapsed && si > 0 && <div className="mx-3 my-2 border-t border-[var(--color-border-subtle)] hidden md:block" />}
+            {section.items.map(({ to, icon: Icon, label, end, badge }) => (
               <NavLink
                 key={to}
                 to={to}
@@ -161,22 +176,22 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
               >
                 <div className="relative flex-shrink-0">
                   <Icon className="w-4 h-4" />
-                  {badge > 0 && (
+                  {!!badge && badge > 0 && (
                     <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-[var(--color-danger)] text-white text-[9px] font-bold flex items-center justify-center">
                       {badge > 9 ? '9+' : badge}
                     </span>
                   )}
                 </div>
                 <span className={cn('flex-1', collapsed && 'md:hidden')}>{label}</span>
-                {badge > 0 && !collapsed && (
+                {!!badge && badge > 0 && !collapsed && (
                   <span className="md:flex hidden items-center justify-center px-1.5 py-0.5 rounded-full bg-[var(--color-danger)] text-white text-[10px] font-bold min-w-[18px]">
                     {badge > 9 ? '9+' : badge}
                   </span>
                 )}
               </NavLink>
             ))}
-          </>
-        )}
+          </div>
+        ))}
       </nav>
 
       {/* 언어 선택 */}

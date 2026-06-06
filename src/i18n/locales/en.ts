@@ -8,6 +8,8 @@ export default {
     excel: 'Excel',
     join_management: 'Join Management',
     admin_section: 'Admin',
+    section_one: 'ONE Alliance',
+    section_server: 'Server 291',
     language: 'Language',
     online: 'Online Users',
     vs_point: 'VS Points',
