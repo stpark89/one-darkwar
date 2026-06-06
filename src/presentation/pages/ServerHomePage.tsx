@@ -12,6 +12,7 @@ import type { Facility } from '@/domain/entities/Occupation'
 import { RecruitmentWidget } from '@/presentation/components/server/RecruitmentWidget'
 import { RecentQuestionsWidget } from '@/presentation/components/server/RecentQuestionsWidget'
 import { ServerEventsWidget } from '@/presentation/components/server/ServerEventsWidget'
+import { AllianceWidget } from '@/presentation/components/server/AllianceWidget'
 
 export const ServerHomePage = () => {
   const { t } = useTranslation()
@@ -83,6 +84,9 @@ export const ServerHomePage = () => {
 
       {/* 이주 모집 현황 */}
       <RecruitmentWidget />
+
+      {/* 291 동맹 목록 (세력도/외교) */}
+      <AllianceWidget />
 
       {/* 게스트: 진입 CTA / 멤버: 291 메뉴 바로가기 */}
       {isGuest ? (
