@@ -71,6 +71,14 @@ export default {
     delete_title: '순번 삭제',
     delete_desc: '이 순번을 영구 삭제합니다. 되돌릴 수 없습니다.',
   },
+  server_home: {
+    badge: '291 서버',
+    hero_title: 'DARK WAR · Server 291',
+    hero_subtitle: '291 서버 공용 정보와 동맹 소식을 한눈에. 이주·점령 순번·문의를 여기서 확인하세요.',
+    occupation_status: '점령 현황',
+    view_all: '전체 보기',
+    member_menu: '291 서버 메뉴',
+  },
   guest_home: {
     hero_title: 'ONE 동맹에 오신 것을 환영합니다',
     hero_subtitle: 'DARK WAR 291 서버에서 활동하는 동맹입니다. 이주를 고민 중이시거나 궁금한 점이 있으시면 편하게 남겨주세요.',

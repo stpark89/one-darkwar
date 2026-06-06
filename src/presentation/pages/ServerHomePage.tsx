@@ -1,0 +1,178 @@
+import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import {
+  Server, UserPlus, MessageCircleQuestion, ChevronRight, Eye, Search,
+  Swords, Crown, ListChecks, Castle,
+} from 'lucide-react'
+import { getSessionAvatar } from '@/lib/avatars'
+import { useAuthStore } from '@/infrastructure/stores/authStore'
+import { useOccupationStore } from '@/infrastructure/stores/occupationStore'
+import type { Facility } from '@/domain/entities/Occupation'
+
+export const ServerHomePage = () => {
+  const { t } = useTranslation()
+  const navigate = useNavigate()
+  const { isGuest, enterTourMode } = useAuthStore()
+  const { turns, loadAll } = useOccupationStore()
+
+  useEffect(() => { loadAll() }, [loadAll])
+
+  const currentOf = (facility: Facility) =>
+    turns.find((tn) => tn.facility === facility && tn.isCurrent) ?? null
+  const armory = currentOf('armory')
+  const castle = currentOf('castle')
+
+  const handleStartTour = () => {
+    enterTourMode()
+    navigate('/')
+  }
+
+  return (
+    <div className="p-4 sm:p-8 max-w-2xl mx-auto space-y-6 break-keep">
+      {/* Hero */}
+      <div className="text-center pt-4 sm:pt-6">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--color-brand)]/15 text-[var(--color-brand)] text-xs font-bold mb-4">
+          <Server className="w-3.5 h-3.5" /> {t('server_home.badge')}
+        </div>
+        <div className="inline-block w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden mb-4 shadow-xl bg-[var(--color-bg-elevated)]">
+          <img src={getSessionAvatar()} alt="ONE" className="w-full h-full object-cover" />
+        </div>
+        <h1 className="text-2xl sm:text-3xl font-black text-[var(--color-text-primary)] mb-2 leading-tight">
+          {t('server_home.hero_title')}
+        </h1>
+        <p className="text-sm sm:text-base text-[var(--color-text-secondary)] leading-relaxed max-w-md mx-auto px-2">
+          {t('server_home.hero_subtitle')}
+        </p>
+      </div>
+
+      {/* 점령 현황 (291 공용 정보 — 모두에게 표시) */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-sm font-bold text-[var(--color-text-primary)] flex items-center gap-1.5">
+            <Castle className="w-4 h-4 text-[var(--color-brand)]" /> {t('server_home.occupation_status')}
+          </h2>
+          <button
+            onClick={() => navigate('/occupation')}
+            className="flex items-center gap-0.5 text-xs text-[var(--color-brand)] hover:underline"
+          >
+            {t('server_home.view_all')} <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { icon: Swords, label: t('occupation.armory'), turn: armory },
+            { icon: Crown, label: t('occupation.castle'), turn: castle },
+          ].map(({ icon: Icon, label, turn }) => (
+            <button
+              key={label}
+              onClick={() => navigate('/occupation')}
+              className="text-left bg-[var(--color-bg-surface)] border border-[var(--color-border-subtle)] rounded-xl p-4 hover:border-[var(--color-brand)]/40 transition-colors"
+            >
+              <div className="flex items-center gap-1.5 text-[var(--color-text-muted)] mb-2">
+                <Icon className="w-4 h-4" />
+                <span className="text-xs font-semibold">{label}</span>
+              </div>
+              {turn ? (
+                <p className="text-lg font-black text-[var(--color-text-primary)] truncate">{turn.allianceName}</p>
+              ) : (
+                <p className="text-sm font-semibold text-[var(--color-text-muted)]">{t('occupation.no_current')}</p>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* 게스트: 진입 CTA / 멤버: 291 메뉴 바로가기 */}
+      {isGuest ? (
+        <div className="space-y-3">
+          {/* ONE 둘러보기 */}
+          <button
+            onClick={handleStartTour}
+            className="w-full group flex items-start gap-4 bg-gradient-to-br from-purple-600 to-fuchsia-500 text-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all"
+          >
+            <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+              <Eye className="w-6 h-6" />
+            </div>
+            <div className="flex-1 text-left min-w-0">
+              <div className="text-base font-bold leading-snug">{t('guest_home.cta_tour_title')}</div>
+              <div className="text-xs opacity-90 mt-1 leading-relaxed">{t('guest_home.cta_tour_desc')}</div>
+            </div>
+            <ChevronRight className="w-5 h-5 flex-shrink-0 mt-1 group-hover:translate-x-1 transition-transform" />
+          </button>
+
+          <button
+            onClick={() => navigate('/transfer')}
+            className="w-full group flex items-start gap-4 bg-gradient-to-br from-[var(--color-brand)] to-blue-600 text-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all"
+          >
+            <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+              <UserPlus className="w-6 h-6" />
+            </div>
+            <div className="flex-1 text-left min-w-0">
+              <div className="text-base font-bold leading-snug">{t('guest_home.cta_transfer_title')}</div>
+              <div className="text-xs opacity-90 mt-1 leading-relaxed">{t('guest_home.cta_transfer_desc')}</div>
+            </div>
+            <ChevronRight className="w-5 h-5 flex-shrink-0 mt-1 group-hover:translate-x-1 transition-transform" />
+          </button>
+
+          <button
+            onClick={() => navigate('/questions')}
+            className="w-full group flex items-start gap-4 bg-[var(--color-bg-surface)] border border-[var(--color-border-subtle)] text-[var(--color-text-primary)] rounded-2xl p-5 hover:border-[var(--color-brand)]/40 hover:bg-[var(--color-bg-elevated)] transition-all"
+          >
+            <div className="w-12 h-12 rounded-xl bg-[var(--color-brand)]/15 flex items-center justify-center flex-shrink-0">
+              <MessageCircleQuestion className="w-6 h-6 text-[var(--color-brand)]" />
+            </div>
+            <div className="flex-1 text-left min-w-0">
+              <div className="text-base font-bold leading-snug">{t('guest_home.cta_questions_title')}</div>
+              <div className="text-xs text-[var(--color-text-muted)] mt-1 leading-relaxed">{t('guest_home.cta_questions_desc')}</div>
+            </div>
+            <ChevronRight className="w-5 h-5 text-[var(--color-text-muted)] flex-shrink-0 mt-1 group-hover:translate-x-1 transition-transform" />
+          </button>
+
+          <button
+            onClick={() => navigate('/transfer/status')}
+            className="w-full group flex items-start gap-4 bg-[var(--color-bg-surface)] border border-[var(--color-border-subtle)] text-[var(--color-text-primary)] rounded-2xl p-5 hover:border-[var(--color-brand)]/40 hover:bg-[var(--color-bg-elevated)] transition-all"
+          >
+            <div className="w-12 h-12 rounded-xl bg-[var(--color-text-muted)]/15 flex items-center justify-center flex-shrink-0">
+              <Search className="w-6 h-6 text-[var(--color-text-secondary)]" />
+            </div>
+            <div className="flex-1 text-left min-w-0">
+              <div className="text-base font-bold leading-snug">{t('guest_home.cta_status_title')}</div>
+              <div className="text-xs text-[var(--color-text-muted)] mt-1 leading-relaxed">{t('guest_home.cta_status_desc')}</div>
+            </div>
+            <ChevronRight className="w-5 h-5 text-[var(--color-text-muted)] flex-shrink-0 mt-1 group-hover:translate-x-1 transition-transform" />
+          </button>
+
+          <p className="text-center text-xs text-[var(--color-text-muted)] leading-relaxed px-4 pt-1">
+            {t('guest_home.signup_hint')}
+          </p>
+        </div>
+      ) : (
+        <div>
+          <p className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2 px-1">
+            {t('server_home.member_menu')}
+          </p>
+          <div className="space-y-2">
+            {[
+              { to: '/occupation', icon: Castle, label: t('nav.occupation') },
+              { to: '/transfer/list', icon: ListChecks, label: t('nav.transfer_list') },
+              { to: '/questions', icon: MessageCircleQuestion, label: t('nav.questions') },
+            ].map(({ to, icon: Icon, label }) => (
+              <button
+                key={to}
+                onClick={() => navigate(to)}
+                className="w-full group flex items-center gap-3 bg-[var(--color-bg-surface)] border border-[var(--color-border-subtle)] text-[var(--color-text-primary)] rounded-xl p-4 hover:border-[var(--color-brand)]/40 hover:bg-[var(--color-bg-elevated)] transition-all"
+              >
+                <div className="w-10 h-10 rounded-lg bg-[var(--color-brand)]/15 flex items-center justify-center flex-shrink-0">
+                  <Icon className="w-5 h-5 text-[var(--color-brand)]" />
+                </div>
+                <span className="flex-1 text-left text-sm font-semibold">{label}</span>
+                <ChevronRight className="w-4 h-4 text-[var(--color-text-muted)] group-hover:translate-x-1 transition-transform" />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

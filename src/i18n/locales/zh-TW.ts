@@ -71,6 +71,14 @@ export default {
     delete_title: '刪除順序',
     delete_desc: '將永久刪除此順序，無法復原。',
   },
+  server_home: {
+    badge: 'Server 291',
+    hero_title: 'DARK WAR · Server 291',
+    hero_subtitle: '一覽伺服器公用資訊與聯盟消息。在此查看轉服、佔領順序與提問。',
+    occupation_status: '佔領狀況',
+    view_all: '查看全部',
+    member_menu: 'Server 291 選單',
+  },
   guest_home: {
     hero_title: '歡迎來到 ONE 聯盟',
     hero_subtitle: '我們是 DARK WAR 291 伺服器的活躍聯盟。如果您正考慮轉服或有任何疑問，歡迎留言。',

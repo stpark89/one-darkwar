@@ -59,6 +59,7 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
     key: 'server',
     title: t('nav.section_server'),
     items: [
+      { to: '/server', icon: Home, label: t('nav.home'), end: true },
       { to: '/occupation', icon: Castle, label: t('nav.occupation') },
       { to: '/transfer/list', icon: ListChecks, label: t('nav.transfer_list') },
     ],
@@ -69,7 +70,7 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
     key: 'server',
     title: t('nav.section_server'),
     items: [
-      { to: '/', icon: Home, label: t('nav.home'), end: true },
+      { to: '/server', icon: Home, label: t('nav.home'), end: true },
       { to: '/occupation', icon: Castle, label: t('nav.occupation') },
       { to: '/transfer', icon: UserPlus, label: t('nav.transfer'), end: true },
       { to: '/transfer/list', icon: ListChecks, label: t('nav.transfer_list') },
@@ -100,10 +101,10 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
       : [SECTION_ONE, SECTION_SERVER_MEMBER]
 
   // 둘러보기(tour) 모드 게스트는 ONE 섹션도 read-only 로 노출.
-  // 이때 ONE 섹션이 이미 홈(/)을 제공하므로, 291 서버 섹션의 중복 홈은 제거해
-  // 홈 메뉴가 두 군데서 동시에 활성화되는 문제를 막는다.
+  // ONE 홈은 /(대시보드), 291 홈은 /server 로 URL 이 분리되어 두 홈이
+  // 동시에 활성화되지 않는다.
   const effectiveSections: NavSection[] = isGuest && isTourMode
-    ? [SECTION_ONE, { ...SECTION_SERVER_GUEST, items: SECTION_SERVER_GUEST.items.filter((i) => i.to !== '/') }]
+    ? [SECTION_ONE, SECTION_SERVER_GUEST]
     : sections
 
   const handleExitTour = () => {

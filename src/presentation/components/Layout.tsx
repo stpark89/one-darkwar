@@ -82,7 +82,7 @@ export const Layout = () => {
 
   // 게스트는 허용된 경로 외 접근 시 게스트 홈으로 돌려보냄
   // 둘러보기(tour) 모드 시 일반 메뉴 경로 추가 허용 (read-only)
-  const GUEST_ALLOWED_BASE = ['/', '/home', '/transfer', '/transfer/status', '/transfer/list', '/occupation', '/questions']
+  const GUEST_ALLOWED_BASE = ['/', '/home', '/server', '/transfer', '/transfer/status', '/transfer/list', '/occupation', '/questions']
   const GUEST_ALLOWED_TOUR = [
     ...GUEST_ALLOWED_BASE,
     '/notices', '/board', '/members', '/war', '/vs-point', '/events',

@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "sonner";
 import { Layout } from "@/presentation/components/Layout";
 import { HomePage } from "@/presentation/pages/HomePage";
-import { GuestHomePage } from "@/presentation/pages/GuestHomePage";
+import { ServerHomePage } from "@/presentation/pages/ServerHomePage";
 import { GuestQuestionsPage } from "@/presentation/pages/GuestQuestionsPage";
 import { MembersPage } from "@/presentation/pages/MembersPage";
 import { WarPage } from "@/presentation/pages/WarPage";
@@ -27,8 +27,10 @@ const HEARTBEAT_MS = 2 * 60 * 1000; // 2분마다 갱신
 
 const HomeRouter = () => {
   const { isGuest, isTourMode } = useAuthStore();
-  // 게스트 + 둘러보기 모드면 실제 HomePage 노출 (read-only)
-  return isGuest && !isTourMode ? <GuestHomePage /> : <HomePage />;
+  // ONE 홈(/)은 ONE 동맹 대시보드. 게스트(둘러보기 아님)는 ONE 대시보드 대신
+  // 291 서버 홈(/server)으로 보낸다 — 게스트의 기본 진입점은 291 서버 홈.
+  if (isGuest && !isTourMode) return <Navigate to="/server" replace />;
+  return <HomePage />;
 };
 
 function App() {
@@ -66,6 +68,7 @@ function App() {
           <Route path="/transfer" element={<TransferPage />} />
           <Route path="/transfer/status" element={<TransferStatusPage />} />
           <Route path="/transfer/list" element={<TransferListPage />} />
+          <Route path="/server" element={<ServerHomePage />} />
           <Route path="/occupation" element={<OccupationPage />} />
           <Route path="/questions" element={<GuestQuestionsPage />} />
           {/* 존재하지 않는 경로는 홈으로 (오타 등) */}

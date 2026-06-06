@@ -71,6 +71,14 @@ export default {
     delete_title: 'Delete Turn',
     delete_desc: 'This turn will be permanently deleted. This cannot be undone.',
   },
+  server_home: {
+    badge: 'Server 291',
+    hero_title: 'DARK WAR · Server 291',
+    hero_subtitle: 'Server-wide info and alliance news at a glance. Check transfers, occupation turns and questions here.',
+    occupation_status: 'Occupation Status',
+    view_all: 'View all',
+    member_menu: 'Server 291 Menu',
+  },
   guest_home: {
     hero_title: 'Welcome to the ONE Alliance',
     hero_subtitle: 'We are an active alliance on DARK WAR Server 291. If you are considering a transfer or have any questions, feel free to reach out.',

@@ -71,6 +71,14 @@ export default {
     delete_title: 'Xóa lượt',
     delete_desc: 'Lượt này sẽ bị xóa vĩnh viễn. Không thể hoàn tác.',
   },
+  server_home: {
+    badge: 'Server 291',
+    hero_title: 'DARK WAR · Server 291',
+    hero_subtitle: 'Thông tin chung của server và tin tức liên minh. Xem chuyển server, lượt chiếm đóng và hỏi đáp tại đây.',
+    occupation_status: 'Tình trạng chiếm đóng',
+    view_all: 'Xem tất cả',
+    member_menu: 'Menu Server 291',
+  },
   guest_home: {
     hero_title: 'Chào mừng bạn đến với Liên minh ONE',
     hero_subtitle: 'Chúng tôi là liên minh hoạt động trên DARK WAR Server 291. Nếu bạn đang cân nhắc chuyển server hoặc có câu hỏi, hãy thoải mái để lại lời nhắn.',
