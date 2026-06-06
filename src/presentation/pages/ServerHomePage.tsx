@@ -9,6 +9,8 @@ import { getSessionAvatar } from '@/lib/avatars'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { useOccupationStore } from '@/infrastructure/stores/occupationStore'
 import type { Facility } from '@/domain/entities/Occupation'
+import { RecruitmentWidget } from '@/presentation/components/server/RecruitmentWidget'
+import { RecentQuestionsWidget } from '@/presentation/components/server/RecentQuestionsWidget'
 
 export const ServerHomePage = () => {
   const { t } = useTranslation()
@@ -74,6 +76,9 @@ export const ServerHomePage = () => {
           ))}
         </div>
       </div>
+
+      {/* 이주 모집 현황 */}
+      <RecruitmentWidget />
 
       {/* 게스트: 진입 CTA / 멤버: 291 메뉴 바로가기 */}
       {isGuest ? (
@@ -150,6 +155,9 @@ export const ServerHomePage = () => {
           </div>
         </div>
       )}
+
+      {/* 궁금한 점 최근/미답변 글 */}
+      <RecentQuestionsWidget />
     </div>
   )
 }

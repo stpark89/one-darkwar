@@ -78,6 +78,12 @@ export default {
     occupation_status: '점령 현황',
     view_all: '전체 보기',
     member_menu: '291 서버 메뉴',
+    recruitment: '이주 모집 현황',
+    apply_now: '신청하기',
+    applied_count: '{{count}}명 신청',
+    recent_questions: '최근 문의',
+    answered: '답변완료',
+    unanswered: '미답변',
   },
   guest_home: {
     hero_title: 'ONE 동맹에 오신 것을 환영합니다',

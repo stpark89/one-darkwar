@@ -78,6 +78,12 @@ export default {
     occupation_status: 'Tình trạng chiếm đóng',
     view_all: 'Xem tất cả',
     member_menu: 'Menu Server 291',
+    recruitment: 'Tình hình tuyển',
+    apply_now: 'Nộp đơn',
+    applied_count: '{{count}} đã nộp',
+    recent_questions: 'Hỏi đáp gần đây',
+    answered: 'Đã trả lời',
+    unanswered: 'Chưa trả lời',
   },
   guest_home: {
     hero_title: 'Chào mừng bạn đến với Liên minh ONE',

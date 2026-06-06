@@ -78,6 +78,12 @@ export default {
     occupation_status: 'Occupation Status',
     view_all: 'View all',
     member_menu: 'Server 291 Menu',
+    recruitment: 'Recruitment',
+    apply_now: 'Apply',
+    applied_count: '{{count}} applied',
+    recent_questions: 'Recent Questions',
+    answered: 'Answered',
+    unanswered: 'Pending',
   },
   guest_home: {
     hero_title: 'Welcome to the ONE Alliance',

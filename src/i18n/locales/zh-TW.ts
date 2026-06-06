@@ -78,6 +78,12 @@ export default {
     occupation_status: '佔領狀況',
     view_all: '查看全部',
     member_menu: 'Server 291 選單',
+    recruitment: '招募狀況',
+    apply_now: '申請',
+    applied_count: '{{count}} 已申請',
+    recent_questions: '最近提問',
+    answered: '已回覆',
+    unanswered: '未回覆',
   },
   guest_home: {
     hero_title: '歡迎來到 ONE 聯盟',
