@@ -6,6 +6,7 @@ import {
   Swords, Crown, Castle,
 } from 'lucide-react'
 import { getSessionAvatar } from '@/lib/avatars'
+import { LangSelector } from '@/presentation/components/ui/lang-selector'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { useOccupationStore } from '@/infrastructure/stores/occupationStore'
 import type { Facility } from '@/domain/entities/Occupation'
@@ -29,8 +30,13 @@ export const ServerHomePage = () => {
 
   return (
     <div className="p-4 sm:p-8 max-w-2xl mx-auto space-y-6 break-keep">
+      {/* 언어 선택 — 게스트가 사이드바 없이도 바로 변경 가능하게 */}
+      <div className="flex justify-end">
+        <LangSelector />
+      </div>
+
       {/* Hero */}
-      <div className="text-center pt-4 sm:pt-6">
+      <div className="text-center pt-1 sm:pt-2">
         <div className="inline-block w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden mb-4 shadow-xl bg-[var(--color-bg-elevated)]">
           <img src={getSessionAvatar()} alt="ONE" className="w-full h-full object-cover" />
         </div>
