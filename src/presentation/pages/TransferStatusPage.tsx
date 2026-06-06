@@ -99,6 +99,8 @@ export const TransferStatusPage = () => {
       country: a.country,
       cp: a.cp,
       tierId: a.tierId,
+      desiredAlliance: a.desiredAlliance,
+      desiredAllianceOther: a.desiredAllianceOther,
     })
     setEditingId(a.id)
   }

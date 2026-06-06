@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { Home, Users, Swords, CalendarDays, FileSpreadsheet, BarChart3, Megaphone, ChevronUp, ChevronLeft, ChevronRight, X, LogOut, ShieldCheck, User, KeyRound, UserX, UserCheck, MessageSquare, Target, UserPlus, MessageCircleQuestion, Eye, EyeOff } from 'lucide-react'
+import { Home, Users, Swords, CalendarDays, FileSpreadsheet, BarChart3, Megaphone, ChevronUp, ChevronLeft, ChevronRight, X, LogOut, ShieldCheck, User, KeyRound, UserX, UserCheck, MessageSquare, Target, UserPlus, MessageCircleQuestion, Eye, EyeOff, ListChecks } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { LANGUAGES, type LangCode } from '@/i18n'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
@@ -47,6 +47,7 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
     { to: '/', icon: Home, label: t('nav.home'), end: true },
     { to: '/questions', icon: MessageCircleQuestion, label: t('nav.questions'), end: false },
     { to: '/transfer', icon: UserPlus, label: t('nav.transfer'), end: false },
+    { to: '/transfer/list', icon: ListChecks, label: t('nav.transfer_list'), end: false },
   ]
 
   const NAV_ADMIN = [
@@ -55,6 +56,7 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
     { to: '/approval', icon: UserCheck, label: t('nav.join_management'), badge: pendingCount },
     { to: '/questions', icon: MessageCircleQuestion, label: t('nav.questions'), badge: 0 },
     { to: '/transfer', icon: UserPlus, label: t('nav.transfer'), badge: 0 },
+    { to: '/transfer/list', icon: ListChecks, label: t('nav.transfer_list'), badge: 0 },
   ]
 
   // 게스트가 둘러보기 모드면 NAV_GENERAL 을 read-only 로 노출

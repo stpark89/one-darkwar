@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, Navigate } from 'react-router-dom'
-import { Send, Loader2, CheckCircle2, XCircle, Clock, Trash2, RotateCcw, Home, Layers, Pencil, Plus, Save, X, ChevronDown, Search, Bell, BellOff } from 'lucide-react'
+import { Loader2, CheckCircle2, XCircle, Clock, Trash2, RotateCcw, Layers, Pencil, Plus, Save, X, Search, Bell, BellOff } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { useTransferStore } from '@/infrastructure/stores/transferStore'
@@ -8,6 +8,7 @@ import { useTransferTierStore, findTierForCp } from '@/infrastructure/stores/tra
 import type { TransferStatus } from '@/domain/entities/Transfer'
 import { Input } from '@/presentation/components/ui/input'
 import { Button } from '@/presentation/components/ui/button'
+import { TransferSubmitForm } from '@/presentation/components/TransferSubmitForm'
 import { parseCp, formatCp } from '@/lib/cp'
 import { isPushSupported, isCurrentlySubscribed, subscribeToPush, unsubscribeFromPush } from '@/lib/push'
 import { toast } from 'sonner'
@@ -62,27 +63,17 @@ export const TransferPage = () => {
   const { user, isGuest } = useAuthStore()
   const isAdmin = user?.role === 'ROLE_ADMIN'
 
-  const { apps, loading, submit, loadAll, updateStatus, updateAdminMessage, updateTier, remove } = useTransferStore()
+  const { apps, loading, loadAll, updateStatus, updateAdminMessage, updateTier, remove } = useTransferStore()
   const { tiers, loadAll: loadTiers, upsert: upsertTier, remove: removeTier } = useTransferTierStore()
 
-  const [inGameName, setInGameName] = useState('')
-  const [uid, setUid] = useState('')
-  const [currentServer, setCurrentServer] = useState('')
-  const [country, setCountry] = useState('')
-  const [cp, setCp] = useState('')
-  const [selectedTierId, setSelectedTierId] = useState<string | null>(null)
-  const [submitting, setSubmitting] = useState(false)
-  const [submitted, setSubmitted] = useState(false)
+  // 게스트 신청 폼은 <TransferSubmitForm /> 에서 자체 state 관리 (분리됨)
   const [tab, setTab] = useState<TransferStatus>('PENDING')
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
 
   // 검색·필터 (관리자만 사용)
   const [searchQuery, setSearchQuery] = useState('')
   const [tierFilter, setTierFilter] = useState<string>('all') // 'all' | tier.id | 'unmatched'
-
-  // 국가 / 등급 셀렉터 드롭다운
-  const [countryOpen, setCountryOpen] = useState(false)
-  const [tierSelectOpen, setTierSelectOpen] = useState(false)
+  const [allianceFilter, setAllianceFilter] = useState<'all' | 'ONE' | 'NXO' | 'NH_D' | 'OTHER'>('all')
 
   // 관리자: 신청서 카드에서 등급 변경 드롭다운 열림 상태
   const [adminTierEditId, setAdminTierEditId] = useState<string | null>(null)
@@ -166,33 +157,7 @@ export const TransferPage = () => {
     }
   }, [isAdmin, loadAll, loadTiers])
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!inGameName.trim() || submitting) return
-    setSubmitting(true)
-    let ok = false
-    try {
-      ok = await submit({ inGameName, uid, currentServer, country, cp, tierId: selectedTierId })
-    } catch (err) {
-      console.error('[TransferPage] submit exception:', err)
-    } finally {
-      // 어떤 경로로 끝나도 spinner 풀림 (무한 로딩 방지)
-      setSubmitting(false)
-    }
-    if (ok) {
-      setSubmitted(true)
-      setInGameName('')
-      setUid('')
-      setCurrentServer('')
-      setCountry('')
-      setCp('')
-      setSelectedTierId(null)
-      // 새 신청 직후엔 force=true 로 강제 갱신해서 방금 등록된 항목 노출
-      if (isAdmin) loadAll(true)
-    }
-  }
-
-  const handleResetForm = () => setSubmitted(false)
+  // 게스트 신청 폼 로직은 TransferSubmitForm 컴포넌트로 분리됨.
 
   // ── 등급 편집 핸들러 ──
   const startEditTier = (id: string) => {
@@ -240,6 +205,7 @@ export const TransferPage = () => {
 
   const filtered = apps.filter((a) => {
     if (a.status !== tab) return false
+    if (allianceFilter !== 'all' && a.desiredAlliance !== allianceFilter) return false
     const q = searchQuery.trim().toLowerCase()
     if (q) {
       const hit = a.inGameName.toLowerCase().includes(q) || (a.uid ?? '').toLowerCase().includes(q)
@@ -255,6 +221,15 @@ export const TransferPage = () => {
     }
     return true
   })
+
+  // 동맹별 통계 (전체 apps 기준 — 현재 탭과 무관하게 표시)
+  const allianceStats = useMemo(() => {
+    const stats: Record<string, number> = { ONE: 0, NXO: 0, NH_D: 0, OTHER: 0 }
+    for (const a of apps) {
+      if (a.desiredAlliance in stats) stats[a.desiredAlliance] += 1
+    }
+    return stats
+  }, [apps])
   const counts = {
     PENDING: apps.filter((a) => a.status === 'PENDING').length,
     APPROVED: apps.filter((a) => a.status === 'APPROVED').length,
@@ -317,178 +292,9 @@ export const TransferPage = () => {
         </div>
       )}
 
-      {/* 신청 폼 또는 완료 카드 — 게스트에게만 노출 */}
-      {isGuest && (
-      <div className="bg-[var(--color-bg-surface)] border border-[var(--color-border-subtle)] rounded-xl p-4 sm:p-5 max-w-xl">
-        {submitted ? (
-          <div className="text-center py-6">
-            <CheckCircle2 className="w-12 h-12 text-[var(--color-success)] mx-auto mb-3" />
-            <h2 className="text-base font-bold text-[var(--color-text-primary)] mb-1">{t('transfer.success_title')}</h2>
-            <p className="text-sm text-[var(--color-text-muted)] mb-2">{t('transfer.success_desc')}</p>
-            <p className="text-xs text-[var(--color-text-muted)] mb-5">{t('transfer.success_check_hint')}</p>
-            <div className="flex gap-2 justify-center flex-wrap">
-              <Button variant="outline" size="sm" onClick={handleResetForm}>
-                {t('transfer.write_another')}
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => navigate('/transfer/status')}>
-                <Search className="w-4 h-4" />
-                {t('transfer.check_status')}
-              </Button>
-              <Button size="sm" onClick={() => navigate('/')}>
-                <Home className="w-4 h-4" />
-                {t('transfer.go_home')}
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <h2 className="text-sm font-bold text-[var(--color-text-primary)] mb-1">{t('transfer.form_title')}</h2>
-            <p className="text-xs text-[var(--color-text-muted)] mb-3">{t('transfer.form_hint')}</p>
+      {/* 게스트 신청 폼 — 본인/단체 토글 */}
+      {isGuest && <TransferSubmitForm />}
 
-            <div>
-              <label className="text-xs text-[var(--color-text-muted)] mb-1 block">{t('transfer.field_name')} *</label>
-              <Input
-                value={inGameName}
-                onChange={(e) => setInGameName(e.target.value)}
-                placeholder={t('transfer.field_name_placeholder')}
-                required
-              />
-            </div>
-
-            <div>
-              <label className="text-xs text-[var(--color-text-muted)] mb-1 block">{t('transfer.field_uid')}</label>
-              <Input
-                value={uid}
-                onChange={(e) => setUid(e.target.value)}
-                placeholder={t('transfer.field_uid_placeholder')}
-              />
-            </div>
-
-            <div>
-              <label className="text-xs text-[var(--color-text-muted)] mb-1 block">{t('transfer.field_server')}</label>
-              <Input
-                value={currentServer}
-                onChange={(e) => setCurrentServer(e.target.value)}
-                placeholder={t('transfer.field_server_placeholder')}
-              />
-            </div>
-
-            <div>
-              <label className="text-xs text-[var(--color-text-muted)] mb-1 block">{t('transfer.field_country')}</label>
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setCountryOpen((v) => !v)}
-                  className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-[var(--color-bg-elevated)] border border-[var(--color-border-subtle)] hover:border-[var(--color-brand)]/40 transition-colors"
-                >
-                  {country ? (
-                    <span className="flex items-center gap-2 text-sm text-[var(--color-text-primary)]">
-                      <span className="text-base leading-none">{COUNTRY_FLAGS[country]}</span>
-                      <span>{t(`transfer.country_${country.toLowerCase()}`)}</span>
-                    </span>
-                  ) : (
-                    <span className="text-sm text-[var(--color-text-muted)]">
-                      {t('transfer.field_country_placeholder')}
-                    </span>
-                  )}
-                  <ChevronDown className={cn('w-4 h-4 text-[var(--color-text-muted)] transition-transform flex-shrink-0', countryOpen && 'rotate-180')} />
-                </button>
-                {countryOpen && (
-                  <>
-                    <div className="fixed inset-0 z-10" onClick={() => setCountryOpen(false)} />
-                    <div className="absolute left-0 right-0 mt-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-surface)] shadow-xl overflow-hidden z-20">
-                      {COUNTRY_OPTIONS.map((code) => (
-                        <button
-                          key={code}
-                          type="button"
-                          onClick={() => { setCountry(code); setCountryOpen(false) }}
-                          className={cn(
-                            'w-full flex items-center gap-2.5 px-3 py-2.5 text-sm transition-colors text-left',
-                            country === code
-                              ? 'bg-[var(--color-brand)]/15 text-[var(--color-brand)] font-semibold'
-                              : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-elevated)]',
-                          )}
-                        >
-                          <span className="text-base leading-none">{COUNTRY_FLAGS[code]}</span>
-                          {t(`transfer.country_${code.toLowerCase()}`)}
-                          {country === code && <span className="ml-auto text-[10px]">✓</span>}
-                        </button>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-
-            <div>
-              <label className="text-xs text-[var(--color-text-muted)] mb-1 block">{t('transfer.field_tier')}</label>
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setTierSelectOpen((v) => !v)}
-                  disabled={tiers.length === 0}
-                  className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-[var(--color-bg-elevated)] border border-[var(--color-border-subtle)] hover:border-[var(--color-brand)]/40 transition-colors disabled:opacity-50"
-                >
-                  {selectedTierId ? (
-                    <span className="flex items-center gap-2 text-sm text-[var(--color-text-primary)]">
-                      <span className="w-2 h-2 rounded-full bg-[var(--color-brand)]" />
-                      <span>{tiers.find((tt) => tt.id === selectedTierId)?.name ?? '—'}</span>
-                    </span>
-                  ) : (
-                    <span className="text-sm text-[var(--color-text-muted)]">
-                      {tiers.length === 0
-                        ? t('transfer.field_tier_empty')
-                        : t('transfer.field_tier_placeholder')}
-                    </span>
-                  )}
-                  <ChevronDown className={cn('w-4 h-4 text-[var(--color-text-muted)] transition-transform flex-shrink-0', tierSelectOpen && 'rotate-180')} />
-                </button>
-                {tierSelectOpen && tiers.length > 0 && (
-                  <>
-                    <div className="fixed inset-0 z-10" onClick={() => setTierSelectOpen(false)} />
-                    <div className="absolute left-0 right-0 mt-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-surface)] shadow-xl overflow-hidden z-20">
-                      {tiers.map((tier) => (
-                        <button
-                          key={tier.id}
-                          type="button"
-                          onClick={() => { setSelectedTierId(tier.id); setTierSelectOpen(false) }}
-                          className={cn(
-                            'w-full flex items-center gap-2 px-3 py-2.5 text-sm transition-colors text-left',
-                            selectedTierId === tier.id
-                              ? 'bg-[var(--color-brand)]/15 text-[var(--color-brand)] font-semibold'
-                              : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-elevated)]',
-                          )}
-                        >
-                          <span className="w-2 h-2 rounded-full bg-[var(--color-brand)]" />
-                          <span className="flex-1">{tier.name}</span>
-                          {selectedTierId === tier.id && <span className="text-[10px]">✓</span>}
-                        </button>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-              <p className="text-[11px] text-[var(--color-text-muted)] mt-1">{t('transfer.field_tier_hint')}</p>
-            </div>
-
-            <div>
-              <label className="text-xs text-[var(--color-text-muted)] mb-1 block">{t('transfer.field_cp')}</label>
-              <Input
-                value={cp}
-                onChange={(e) => setCp(e.target.value)}
-                placeholder={t('transfer.field_cp_placeholder')}
-              />
-              <p className="text-[11px] text-[var(--color-text-muted)] mt-1">{t('transfer.field_cp_hint')}</p>
-            </div>
-
-            <Button type="submit" size="full" disabled={!inGameName.trim() || submitting} className="mt-2">
-              {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-              {t('transfer.submit_btn')}
-            </Button>
-          </form>
-        )}
-      </div>
-      )}
 
       {/* 관리자 전용: 신청서 목록 */}
       {isAdmin && (
@@ -718,6 +524,32 @@ export const TransferPage = () => {
                 </button>
               </div>
             )}
+            {/* 동맹별 필터 칩 */}
+            <div className="flex gap-1 flex-wrap">
+              {(['all', 'ONE', 'NXO', 'NH_D', 'OTHER'] as const).map((code) => (
+                <button
+                  key={code}
+                  onClick={() => setAllianceFilter(code)}
+                  className={cn(
+                    'px-2.5 py-1 rounded text-[11px] font-semibold transition-colors flex items-center gap-1',
+                    allianceFilter === code
+                      ? 'bg-[var(--color-brand)] text-white'
+                      : 'bg-[var(--color-bg-elevated)] text-[var(--color-text-secondary)] hover:bg-[var(--color-border)]',
+                  )}
+                >
+                  {code === 'all'
+                    ? t('transfer.filter_all')
+                    : code === 'NH_D'
+                      ? 'NH-D'
+                      : code === 'OTHER'
+                        ? t('transfer.alliance_other')
+                        : code}
+                  {code !== 'all' && (
+                    <span className="text-[9px] opacity-70">{allianceStats[code] ?? 0}</span>
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* 탭 */}
@@ -755,14 +587,28 @@ export const TransferPage = () => {
                 const Icon = meta.icon
                 return (
                   <div key={a.id} className="bg-[var(--color-bg-surface)] border border-[var(--color-border-subtle)] rounded-xl p-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="min-w-0">
-                        <h3 className="text-sm font-bold text-[var(--color-text-primary)] truncate">{a.inGameName}</h3>
+                    <div className="flex items-start justify-between mb-3 gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <h3 className="text-sm font-bold text-[var(--color-text-primary)] truncate">{a.inGameName}</h3>
+                          {/* 희망 동맹 배지 */}
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[var(--color-brand)]/15 text-[var(--color-brand)] flex-shrink-0">
+                            → {a.desiredAlliance === 'OTHER'
+                              ? (a.desiredAllianceOther || t('transfer.alliance_other'))
+                              : a.desiredAlliance === 'NH_D' ? 'NH-D' : a.desiredAlliance}
+                          </span>
+                          {/* 단체 신청 배지 */}
+                          {a.groupId && (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-400 flex-shrink-0">
+                              {t('transfer.group_badge')}
+                            </span>
+                          )}
+                        </div>
                         <p className="text-[11px] text-[var(--color-text-muted)] mt-0.5">
                           {new Date(a.createdAt).toLocaleString()}
                         </p>
                       </div>
-                      <span className={cn('flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded', meta.bg, meta.color)}>
+                      <span className={cn('flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded flex-shrink-0', meta.bg, meta.color)}>
                         <Icon className="w-3 h-3" />
                         {t(`transfer.status_${a.status.toLowerCase()}`)}
                       </span>
