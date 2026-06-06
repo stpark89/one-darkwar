@@ -19,6 +19,7 @@ const toApp = (r: any): TransferApplication => ({
   currentServer: r.current_server ?? '',
   country: r.country ?? '',
   cp: r.cp ?? '',
+  totalPower: r.total_power ?? '',
   tierId: r.tier_id ?? null,
   status: r.status,
   adminMessage: r.admin_message ?? '',
@@ -86,6 +87,7 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
       current_server: draft.currentServer.trim(),
       country: draft.country.trim(),
       cp: draft.cp.trim(),
+      total_power: draft.totalPower.trim(),
       tier_id: draft.tierId,
       desired_alliance: draft.desiredAlliance,
       desired_alliance_other: draft.desiredAllianceOther.trim(),
@@ -115,6 +117,7 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
       current_server: m.currentServer.trim(),
       country: m.country.trim(),
       cp: m.cp.trim(),
+      total_power: m.totalPower.trim(),
       tier_id: m.tierId ?? null,
     }))
 
@@ -181,7 +184,7 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
       const [appsRes, groupsRes] = await Promise.all([
         supabase
           .from('transfer_applications')
-          .select('id, in_game_name, uid, current_server, country, cp, tier_id, status, group_id, desired_alliance, desired_alliance_other, created_at')
+          .select('id, in_game_name, uid, current_server, country, cp, total_power, tier_id, status, group_id, desired_alliance, desired_alliance_other, created_at')
           .order('created_at', { ascending: false }),
         supabase
           .from('application_groups')
@@ -298,6 +301,7 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
         current_server: draft.currentServer.trim(),
         country: draft.country.trim(),
         cp: draft.cp.trim(),
+        total_power: draft.totalPower.trim(),
         tier_id: draft.tierId,
         desired_alliance: draft.desiredAlliance,
         desired_alliance_other: draft.desiredAllianceOther.trim(),

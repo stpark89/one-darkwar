@@ -9,7 +9,10 @@ export interface TransferApplication {
   uid: string
   currentServer: string
   country: string
+  /** 부대 전투력 (1팀 최대 파워) — 참고용, 등급 산출에는 쓰지 않음 */
   cp: string
+  /** 합산 전투력 (건물+과학기술+영웅+개조차) — 등급 매칭 기준 */
+  totalPower: string
   tierId: string | null
   status: TransferStatus
   adminMessage: string
@@ -28,6 +31,7 @@ export interface TransferDraft {
   currentServer: string
   country: string
   cp: string
+  totalPower: string
   tierId: string | null
   desiredAlliance: DesiredAlliance
   desiredAllianceOther: string
@@ -58,6 +62,7 @@ export interface GroupSubmitDraft {
     currentServer: string
     country: string
     cp: string
+    totalPower: string
     tierId: string | null
   }>
 }

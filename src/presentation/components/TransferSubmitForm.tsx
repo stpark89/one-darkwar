@@ -10,8 +10,11 @@ import { Send, Loader2, CheckCircle2, Home, Search, ChevronDown, Plus, X, Users,
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { useTransferStore } from '@/infrastructure/stores/transferStore'
-import { useTransferTierStore } from '@/infrastructure/stores/transferTierStore'
+import { useTransferTierStore, findTierForCp } from '@/infrastructure/stores/transferTierStore'
 import type { DesiredAlliance } from '@/domain/entities/Transfer'
+import type { TransferTier } from '@/domain/entities/TransferTier'
+import { TIER_COLOR_CLASS } from '@/domain/entities/TransferTier'
+import { parseCp } from '@/lib/cp'
 import { Input } from '@/presentation/components/ui/input'
 import { Button } from '@/presentation/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -30,6 +33,7 @@ interface MemberRow {
   currentServer: string
   country: string
   cp: string
+  totalPower: string
   tierId: string | null
 }
 
@@ -39,6 +43,7 @@ const emptyMember = (): MemberRow => ({
   currentServer: '',
   country: '',
   cp: '',
+  totalPower: '',
   tierId: null,
 })
 
@@ -62,7 +67,6 @@ export const TransferSubmitForm = () => {
   // 본인 만
   const [soloMember, setSoloMember] = useState<MemberRow>(emptyMember())
   const [soloCountryOpen, setSoloCountryOpen] = useState(false)
-  const [soloTierOpen, setSoloTierOpen] = useState(false)
 
   // 단체 — 대표자
   const [leaderName, setLeaderName] = useState('')
@@ -131,6 +135,7 @@ export const TransferSubmitForm = () => {
           currentServer: soloMember.currentServer,
           country: soloMember.country,
           cp: soloMember.cp,
+          totalPower: soloMember.totalPower,
           tierId: soloMember.tierId,
           desiredAlliance,
           desiredAllianceOther,
@@ -283,8 +288,6 @@ export const TransferSubmitForm = () => {
           tiers={tiers}
           countryOpen={soloCountryOpen}
           setCountryOpen={setSoloCountryOpen}
-          tierOpen={soloTierOpen}
-          setTierOpen={setSoloTierOpen}
           showLabel={false}
         />
       )}
@@ -365,13 +368,12 @@ interface MemberCardProps {
   onRemove: () => void
   removable: boolean
   isLeader: boolean
-  tiers: Array<{ id: string; name: string }>
+  tiers: TransferTier[]
 }
 
 const MemberCard = ({ index, value, onChange, onRemove, removable, isLeader, tiers }: MemberCardProps) => {
   const { t } = useTranslation()
   const [countryOpen, setCountryOpen] = useState(false)
-  const [tierOpen, setTierOpen] = useState(false)
 
   return (
     <div className="p-3 rounded-lg bg-[var(--color-bg-elevated)] border border-[var(--color-border-subtle)] space-y-2">
@@ -396,8 +398,6 @@ const MemberCard = ({ index, value, onChange, onRemove, removable, isLeader, tie
         tiers={tiers}
         countryOpen={countryOpen}
         setCountryOpen={setCountryOpen}
-        tierOpen={tierOpen}
-        setTierOpen={setTierOpen}
         showLabel={false}
         // 대표자 행에선 인게임명/UID 가 readOnly (대표자 입력란이 source of truth)
         disabledNameUid={isLeader}
@@ -413,17 +413,15 @@ const MemberCard = ({ index, value, onChange, onRemove, removable, isLeader, tie
 interface MemberFieldsProps {
   value: MemberRow
   onChange: (patch: Partial<MemberRow>) => void
-  tiers: Array<{ id: string; name: string }>
+  tiers: TransferTier[]
   countryOpen: boolean
   setCountryOpen: (v: boolean) => void
-  tierOpen: boolean
-  setTierOpen: (v: boolean) => void
   showLabel?: boolean
   disabledNameUid?: boolean
 }
 
 const MemberFields = ({
-  value, onChange, tiers, countryOpen, setCountryOpen, tierOpen, setTierOpen, disabledNameUid,
+  value, onChange, tiers, countryOpen, setCountryOpen, disabledNameUid,
 }: MemberFieldsProps) => {
   const { t } = useTranslation()
 
@@ -492,51 +490,28 @@ const MemberFields = ({
         )}
       </div>
 
-      {/* 등급 */}
-      {tiers.length > 0 && (
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => setTierOpen(!tierOpen)}
-            className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-[var(--color-bg-base)] border border-[var(--color-border-subtle)] hover:border-[var(--color-brand)]/40 transition-colors text-sm"
-          >
-            {value.tierId ? (
-              <span className="text-[var(--color-text-primary)]">{tiers.find((tt) => tt.id === value.tierId)?.name ?? '—'}</span>
-            ) : (
-              <span className="text-[var(--color-text-muted)]">{t('transfer.field_tier_placeholder')}</span>
-            )}
-            <ChevronDown className={cn('w-4 h-4 text-[var(--color-text-muted)] transition-transform flex-shrink-0', tierOpen && 'rotate-180')} />
-          </button>
-          {tierOpen && (
-            <>
-              <div className="fixed inset-0 z-10" onClick={() => setTierOpen(false)} />
-              <div className="absolute left-0 right-0 mt-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-surface)] shadow-xl overflow-hidden z-20">
-                {tiers.map((tier) => (
-                  <button
-                    key={tier.id}
-                    type="button"
-                    onClick={() => { onChange({ tierId: tier.id }); setTierOpen(false) }}
-                    className={cn(
-                      'w-full flex items-center px-3 py-2 text-sm transition-colors text-left',
-                      value.tierId === tier.id
-                        ? 'bg-[var(--color-brand)]/15 text-[var(--color-brand)] font-semibold'
-                        : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-elevated)]',
-                    )}
-                  >
-                    {tier.name}
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-      )}
-
+      {/* 부대 전투력 (1팀 최대 파워 — 참고용) */}
       <Input
         value={value.cp}
         onChange={(e) => onChange({ cp: e.target.value })}
         placeholder={t('transfer.field_cp_placeholder')}
       />
+
+      {/* 합산 전투력 (건물+과학기술+영웅+개조차) → 등급 자동 매칭 */}
+      <Input
+        value={value.totalPower}
+        onChange={(e) => onChange({ totalPower: e.target.value })}
+        placeholder={t('transfer.field_total_power_placeholder')}
+      />
+      {value.totalPower.trim() !== '' && tiers.length > 0 && (() => {
+        const tier = findTierForCp(tiers, parseCp(value.totalPower))
+        return tier ? (
+          <p className="text-[11px] text-[var(--color-text-muted)] flex items-center gap-1.5">
+            {t('transfer.auto_tier')}:
+            <span className={cn('font-bold px-1.5 py-0.5 rounded', TIER_COLOR_CLASS[tier.color].badge)}>{tier.name}</span>
+          </p>
+        ) : null
+      })()}
     </div>
   )
 }

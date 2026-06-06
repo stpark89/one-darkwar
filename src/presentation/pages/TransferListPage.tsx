@@ -13,8 +13,9 @@ import { Loader2, ChevronDown, Users, User, Clock, CheckCircle2, ChevronRight, F
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { useTransferStore } from '@/infrastructure/stores/transferStore'
-import { useTransferTierStore } from '@/infrastructure/stores/transferTierStore'
+import { useTransferTierStore, findTierForCp } from '@/infrastructure/stores/transferTierStore'
 import type { DesiredAlliance, TransferApplication, TransferStatus } from '@/domain/entities/Transfer'
+import { parseCp } from '@/lib/cp'
 import { Button } from '@/presentation/components/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -83,9 +84,12 @@ export const TransferListPage = () => {
     return { groupItems, soloItems }
   }, [apps, groups, filter])
 
-  const tierName = (tierId: string | null): string | null => {
-    if (!tierId) return null
-    return tiers.find((tt) => tt.id === tierId)?.name ?? null
+  // 등급명: tier_id(관리자 지정) 우선, 없으면 합산 전투력(total_power) 매칭
+  const tierName = (a: { tierId: string | null; totalPower: string }): string | null => {
+    const tier = a.tierId
+      ? tiers.find((tt) => tt.id === a.tierId) ?? null
+      : findTierForCp(tiers, parseCp(a.totalPower))
+    return tier?.name ?? null
   }
 
   const allianceLabel = (a: DesiredAlliance, other: string) => {
@@ -185,7 +189,7 @@ export const TransferListPage = () => {
                           key={m.id}
                           idx={i}
                           app={m}
-                          tierName={tierName(m.tierId)}
+                          tierName={tierName(m)}
                           onClick={isAdmin ? () => setDetail(m) : undefined}
                         />
                       ))
@@ -217,9 +221,9 @@ export const TransferListPage = () => {
                       {allianceLabel(a.desiredAlliance, a.desiredAllianceOther)}
                     </span>
                     <StatusBadge status={a.status} />
-                    {tierName(a.tierId) && (
+                    {tierName(a) && (
                       <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--color-bg-elevated)] text-[var(--color-text-secondary)]">
-                        {tierName(a.tierId)}
+                        {tierName(a)}
                       </span>
                     )}
                   </div>
@@ -257,9 +261,9 @@ export const TransferListPage = () => {
               <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[var(--color-brand)]/15 text-[var(--color-brand)]">
                 → {allianceLabel(detail.desiredAlliance, detail.desiredAllianceOther)}
               </span>
-              {tierName(detail.tierId) && (
+              {tierName(detail) && (
                 <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--color-bg-elevated)] text-[var(--color-text-secondary)]">
-                  {tierName(detail.tierId)}
+                  {tierName(detail)}
                 </span>
               )}
             </div>
@@ -272,6 +276,7 @@ export const TransferListPage = () => {
                 label={t('transfer.field_country')}
                 value={detail.country ? `${COUNTRY_FLAGS[detail.country] ?? ''} ${detail.country}` : '—'}
               />
+              <DetailRow label={t('transfer.field_total_power')} value={detail.totalPower || '—'} />
               <DetailRow label={t('transfer.field_cp')} value={detail.cp || '—'} />
               <DetailRow label={t('transfer_status.submitted_at')} value={new Date(detail.createdAt).toLocaleString()} />
             </div>

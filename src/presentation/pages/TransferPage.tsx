@@ -4,14 +4,14 @@ import { Loader2, CheckCircle2, XCircle, Clock, Trash2, RotateCcw, Layers, Penci
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { useTransferStore } from '@/infrastructure/stores/transferStore'
-import { useTransferTierStore } from '@/infrastructure/stores/transferTierStore'
+import { useTransferTierStore, findTierForCp } from '@/infrastructure/stores/transferTierStore'
 import type { TransferStatus } from '@/domain/entities/Transfer'
 import { type TierColor, TIER_COLOR_CLASS } from '@/domain/entities/TransferTier'
 import { Input } from '@/presentation/components/ui/input'
 import { Button } from '@/presentation/components/ui/button'
 import { TransferSubmitForm } from '@/presentation/components/TransferSubmitForm'
 import { TransferStatsPanel } from '@/presentation/components/TransferStatsPanel'
-import { formatCp } from '@/lib/cp'
+import { parseCp, formatCp } from '@/lib/cp'
 import { isPushSupported, isCurrentlySubscribed, subscribeToPush, unsubscribeFromPush } from '@/lib/push'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
@@ -206,11 +206,14 @@ export const TransferPage = () => {
     if (ok) setTierDraft(null)
   }
 
-  // 신청서의 등급 = 신청자가 직접 선택한 tier_id 만 사용한다.
-  // 이주 등급은 (건물+과학기술+영웅+개조차) 합산값으로, 부대 전투력(cp)
-  // 으로는 계산할 수 없으므로 CP 기반 자동 매칭은 하지 않는다.
+  // 신청서의 등급:
+  //   1) 관리자가 직접 지정한 tier_id 가 있으면 그것 (override)
+  //   2) 없으면 합산 전투력(total_power)을 등급 CP 구간에 매칭
+  //   ※ 부대 전투력(cp)이 아니라 합산 전투력(건물+과학기술+영웅+개조차)으로 매칭
   const getEffectiveTier = (a: typeof apps[number]) =>
-    a.tierId ? tiers.find((tt) => tt.id === a.tierId) ?? null : null
+    a.tierId
+      ? tiers.find((tt) => tt.id === a.tierId) ?? null
+      : findTierForCp(tiers, parseCp(a.totalPower))
 
   const filtered = apps.filter((a) => {
     if (a.status !== tab) return false
@@ -262,13 +265,15 @@ export const TransferPage = () => {
   }
 
   // 승인된 신청자들의 등급별 집계 + 잔여/종합 통계
-  // 등급은 신청자가 직접 선택한 tier_id 만 사용 (CP 자동 매칭 안 함)
+  // tier_id 우선, 없으면 합산 전투력(total_power) 기반 매칭
   const approvedByTier = useMemo(() => {
     const map = new Map<string, number>()
     const unmatchedApps: typeof apps = []
     for (const a of apps) {
       if (a.status !== 'APPROVED') continue
-      const tier = a.tierId ? tiers.find((tt) => tt.id === a.tierId) ?? null : null
+      const tier = a.tierId
+        ? tiers.find((tt) => tt.id === a.tierId) ?? null
+        : findTierForCp(tiers, parseCp(a.totalPower))
       if (tier) map.set(tier.id, (map.get(tier.id) ?? 0) + 1)
       else unmatchedApps.push(a)
     }
@@ -348,9 +353,9 @@ export const TransferPage = () => {
                         <span className="text-[var(--color-text-muted)] w-16 flex-shrink-0">{t('transfer.field_tier')}</span>
                         <span className="text-[var(--color-text-primary)] flex items-center gap-1.5 flex-wrap">
                           {(() => {
-                            const userTier = a.tierId ? tiers.find((tt) => tt.id === a.tierId) : null
-                            return userTier ? (
-                              <span className={cn('text-[10px] font-bold px-1.5 py-0.5 rounded', TIER_COLOR_CLASS[userTier.color].badge)}>{userTier.name}</span>
+                            const effTier = getEffectiveTier(a)
+                            return effTier ? (
+                              <span className={cn('text-[10px] font-bold px-1.5 py-0.5 rounded', TIER_COLOR_CLASS[effTier.color].badge)}>{effTier.name}</span>
                             ) : (
                               <span className="text-[var(--color-text-muted)]">—</span>
                             )
@@ -398,6 +403,10 @@ export const TransferPage = () => {
                             </div>
                           )}
                         </span>
+                      </div>
+                      <div className="flex gap-2">
+                        <span className="text-[var(--color-text-muted)] w-16 flex-shrink-0">{t('transfer.field_total_power')}</span>
+                        <span className="text-[var(--color-text-primary)]">{a.totalPower || '—'}</span>
                       </div>
                       <div className="flex gap-2">
                         <span className="text-[var(--color-text-muted)] w-16 flex-shrink-0">{t('transfer.field_cp')}</span>

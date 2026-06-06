@@ -3,12 +3,13 @@ import { useNavigate } from 'react-router-dom'
 import { Search, Loader2, CheckCircle2, XCircle, Clock, ArrowLeft, MessageSquare, Languages, Pencil, ChevronDown } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useTransferStore } from '@/infrastructure/stores/transferStore'
-import { useTransferTierStore } from '@/infrastructure/stores/transferTierStore'
+import { useTransferTierStore, findTierForCp } from '@/infrastructure/stores/transferTierStore'
 import type { TransferApplication, TransferDraft, TransferStatus } from '@/domain/entities/Transfer'
 import { TIER_COLOR_CLASS } from '@/domain/entities/TransferTier'
 import { Input } from '@/presentation/components/ui/input'
 import { Button } from '@/presentation/components/ui/button'
 import { translateText } from '@/lib/translate'
+import { parseCp } from '@/lib/cp'
 import { cn } from '@/lib/utils'
 
 const STATUS_META: Record<TransferStatus, { icon: typeof Clock; color: string; bg: string }> = {
@@ -98,6 +99,7 @@ export const TransferStatusPage = () => {
       currentServer: a.currentServer,
       country: a.country,
       cp: a.cp,
+      totalPower: a.totalPower,
       tierId: a.tierId,
       desiredAlliance: a.desiredAlliance,
       desiredAllianceOther: a.desiredAllianceOther,
@@ -263,7 +265,7 @@ export const TransferStatusPage = () => {
                           )}
                         </div>
                       </div>
-                      {/* CP — 부대 전투력 (등급과 무관, 참고용) */}
+                      {/* 부대 전투력 (참고용) */}
                       <div>
                         <label className="text-[11px] text-[var(--color-text-muted)] mb-1 block">{t('transfer.field_cp')}</label>
                         <Input
@@ -272,42 +274,24 @@ export const TransferStatusPage = () => {
                           placeholder={t('transfer.field_cp_placeholder')}
                         />
                       </div>
-                      {/* 등급 — 본인이 직접 선택 (건물+과학기술+영웅+개조차 합산 등급) */}
-                      {tiers.length > 0 && (
-                        <div>
-                          <label className="text-[11px] text-[var(--color-text-muted)] mb-1 block">{t('transfer.field_tier')}</label>
-                          <div className="flex flex-wrap gap-1.5">
-                            <button
-                              type="button"
-                              onClick={() => setEditDraft((d) => d && ({ ...d, tierId: null }))}
-                              className={cn(
-                                'text-[11px] font-semibold px-2.5 py-1.5 rounded-lg border transition-colors',
-                                !editDraft.tierId
-                                  ? 'bg-[var(--color-brand)] text-white border-[var(--color-brand)]'
-                                  : 'border-[var(--color-border-subtle)] text-[var(--color-text-muted)]',
-                              )}
-                            >
-                              {t('transfer.tier_none')}
-                            </button>
-                            {tiers.map((tier) => (
-                              <button
-                                key={tier.id}
-                                type="button"
-                                onClick={() => setEditDraft((d) => d && ({ ...d, tierId: tier.id }))}
-                                className={cn(
-                                  'text-[11px] font-semibold px-2.5 py-1.5 rounded-lg border flex items-center gap-1.5 transition-colors',
-                                  editDraft.tierId === tier.id
-                                    ? 'bg-[var(--color-brand)] text-white border-[var(--color-brand)]'
-                                    : 'border-[var(--color-border-subtle)] text-[var(--color-text-secondary)]',
-                                )}
-                              >
-                                <span className={cn('w-2 h-2 rounded-full', TIER_COLOR_CLASS[tier.color].dot)} />
-                                {tier.name}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+                      {/* 합산 전투력 (건물+과학기술+영웅+개조차) → 등급 자동 매칭 */}
+                      <div>
+                        <label className="text-[11px] text-[var(--color-text-muted)] mb-1 block">{t('transfer.field_total_power')}</label>
+                        <Input
+                          value={editDraft.totalPower}
+                          onChange={(e) => setEditDraft((d) => d && ({ ...d, totalPower: e.target.value }))}
+                          placeholder={t('transfer.field_total_power_placeholder')}
+                        />
+                        {editDraft.totalPower.trim() !== '' && tiers.length > 0 && (() => {
+                          const tier = findTierForCp(tiers, parseCp(editDraft.totalPower))
+                          return tier ? (
+                            <p className="text-[11px] text-[var(--color-text-muted)] mt-1 flex items-center gap-1.5">
+                              {t('transfer.auto_tier')}:
+                              <span className={cn('font-bold px-1.5 py-0.5 rounded', TIER_COLOR_CLASS[tier.color].badge)}>{tier.name}</span>
+                            </p>
+                          ) : null
+                        })()}
+                      </div>
 
                       <div className="flex gap-2 pt-1">
                         <Button variant="outline" size="full" onClick={() => { setEditingId(null); setEditDraft(null) }} disabled={editSaving}>
