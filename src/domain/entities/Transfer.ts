@@ -13,6 +13,8 @@ export interface TransferApplication {
   cp: string
   /** 합산 전투력 (건물+과학기술+영웅+개조차) — 등급 매칭 기준 */
   totalPower: string
+  /** 신청자가 직접 남기는 메모 (admin_message 와 별개) */
+  note: string
   tierId: string | null
   status: TransferStatus
   adminMessage: string
@@ -32,6 +34,7 @@ export interface TransferDraft {
   country: string
   cp: string
   totalPower: string
+  note: string
   tierId: string | null
   desiredAlliance: DesiredAlliance
   desiredAllianceOther: string
@@ -63,6 +66,7 @@ export interface GroupSubmitDraft {
     country: string
     cp: string
     totalPower: string
+    note: string
     tierId: string | null
   }>
 }

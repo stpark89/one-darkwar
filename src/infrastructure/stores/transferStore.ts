@@ -20,6 +20,7 @@ const toApp = (r: any): TransferApplication => ({
   country: r.country ?? '',
   cp: r.cp ?? '',
   totalPower: r.total_power ?? '',
+  note: r.note ?? '',
   tierId: r.tier_id ?? null,
   status: r.status,
   adminMessage: r.admin_message ?? '',
@@ -88,6 +89,7 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
       country: draft.country.trim(),
       cp: draft.cp.trim(),
       total_power: draft.totalPower.trim(),
+      note: draft.note.trim(),
       tier_id: draft.tierId,
       desired_alliance: draft.desiredAlliance,
       desired_alliance_other: draft.desiredAllianceOther.trim(),
@@ -118,6 +120,7 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
       country: m.country.trim(),
       cp: m.cp.trim(),
       total_power: m.totalPower.trim(),
+      note: m.note.trim(),
       tier_id: m.tierId ?? null,
     }))
 
@@ -302,6 +305,7 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
         country: draft.country.trim(),
         cp: draft.cp.trim(),
         total_power: draft.totalPower.trim(),
+        note: draft.note.trim(),
         tier_id: draft.tierId,
         desired_alliance: draft.desiredAlliance,
         desired_alliance_other: draft.desiredAllianceOther.trim(),

@@ -418,6 +418,12 @@ export const TransferPage = () => {
                           {a.cp || '—'}
                         </span>
                       </div>
+                      {a.note && (
+                        <div className="flex gap-2">
+                          <span className="text-[var(--color-text-muted)] w-16 flex-shrink-0">{t('transfer.field_note')}</span>
+                          <span className="text-[var(--color-text-primary)] whitespace-pre-wrap break-keep flex-1 min-w-0">{a.note}</span>
+                        </div>
+                      )}
                     </div>
 
                     {/* 신청자에게 보여줄 메시지 */}

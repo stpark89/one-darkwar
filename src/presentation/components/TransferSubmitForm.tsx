@@ -35,6 +35,7 @@ interface MemberRow {
   country: string
   cp: string
   totalPower: string
+  note: string
   tierId: string | null
 }
 
@@ -45,6 +46,7 @@ const emptyMember = (): MemberRow => ({
   country: '',
   cp: '',
   totalPower: '',
+  note: '',
   tierId: null,
 })
 
@@ -137,6 +139,7 @@ export const TransferSubmitForm = () => {
           country: soloMember.country,
           cp: soloMember.cp,
           totalPower: soloMember.totalPower,
+          note: soloMember.note,
           tierId: soloMember.tierId,
           desiredAlliance,
           desiredAllianceOther,
@@ -517,6 +520,15 @@ const MemberFields = ({
           </p>
         ) : null
       })()}
+
+      {/* 신청자 메모 (선택) */}
+      <textarea
+        value={value.note}
+        onChange={(e) => onChange({ note: e.target.value })}
+        placeholder={t('transfer.field_note_placeholder')}
+        rows={2}
+        className="w-full px-3 py-2 rounded-lg bg-[var(--color-bg-base)] border border-[var(--color-border-subtle)] text-base sm:text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-brand)]/40 resize-none break-keep"
+      />
     </div>
   )
 }
