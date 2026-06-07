@@ -62,7 +62,8 @@ export const VsPointPage = () => {
         pointsMap[r.id] = val
         totalVs += parseVsNum(val)
       })
-      return { memberId: m.id, inGameName: m.inGameName, pointsMap, totalVs }
+      // float 합산 시 IEEE754 오차(예: 62.400000000000006) 제거 — 노이즈만 반올림
+      return { memberId: m.id, inGameName: m.inGameName, pointsMap, totalVs: Math.round(totalVs * 1e6) / 1e6 }
     })
 
     return rows.sort((a, b) => {
