@@ -431,18 +431,19 @@ const MemberFields = ({
 
   return (
     <div className="space-y-2">
+      {/* UID — 사람을 구분하는 고유 PK 값이라 최상단에 배치 */}
+      <Input
+        value={value.uid}
+        onChange={(e) => onChange({ uid: e.target.value })}
+        placeholder={t('transfer.field_uid_placeholder')}
+        disabled={disabledNameUid}
+        className={disabledNameUid ? 'opacity-60 cursor-not-allowed' : ''}
+      />
       <Input
         value={value.inGameName}
         onChange={(e) => onChange({ inGameName: e.target.value })}
         placeholder={t('transfer.field_name_placeholder')}
         required
-        disabled={disabledNameUid}
-        className={disabledNameUid ? 'opacity-60 cursor-not-allowed' : ''}
-      />
-      <Input
-        value={value.uid}
-        onChange={(e) => onChange({ uid: e.target.value })}
-        placeholder={t('transfer.field_uid_placeholder')}
         disabled={disabledNameUid}
         className={disabledNameUid ? 'opacity-60 cursor-not-allowed' : ''}
       />
