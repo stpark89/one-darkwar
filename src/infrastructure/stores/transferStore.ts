@@ -296,27 +296,36 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
   },
 
   updateApplication: async (id, draft) => {
-    const { error } = await supabase
-      .from('transfer_applications')
-      .update({
-        in_game_name: draft.inGameName.trim(),
-        uid: draft.uid.trim(),
-        current_server: draft.currentServer.trim(),
-        country: draft.country.trim(),
-        cp: draft.cp.trim(),
-        total_power: draft.totalPower.trim(),
-        note: draft.note.trim(),
-        tier_id: draft.tierId,
-        desired_alliance: draft.desiredAlliance,
-        desired_alliance_other: draft.desiredAllianceOther.trim(),
-        status: 'PENDING',
-        reviewed_at: null,
-        reviewed_by: null,
-      })
-      .eq('id', id)
+    // anon 사용자는 RLS 로 인해 직접 .update() 불가 → SECURITY DEFINER RPC 사용
+    // RPC: update_my_transfer — uid 일치 확인 후 status=PENDING 으로 재설정
+    const { data, error } = await supabase.rpc('update_my_transfer', {
+      p_id: id,
+      p_uid: draft.uid.trim(),           // 본인 확인용 (현재 저장된 uid)
+      p_in_game_name: draft.inGameName.trim(),
+      p_uid_new: draft.uid.trim(),        // 수정할 uid 값 (같을 수도 있음)
+      p_current_server: draft.currentServer.trim(),
+      p_country: draft.country.trim(),
+      p_cp: draft.cp.trim(),
+      p_total_power: draft.totalPower.trim(),
+      p_note: draft.note.trim(),
+      p_tier_id: draft.tierId ?? null,
+      p_desired_alliance: draft.desiredAlliance,
+      p_desired_alliance_other: draft.desiredAllianceOther.trim(),
+    })
     if (error) {
-      console.error('transfer updateApplication error', error)
+      console.error('transfer updateApplication RPC error', error)
       toast.error('수정 중 오류가 발생했습니다.')
+      return false
+    }
+    const result = (data ?? {}) as { ok: boolean; reason?: string }
+    if (!result.ok) {
+      if (result.reason === 'already_approved') {
+        toast.error('이미 승인된 신청서는 수정할 수 없습니다.')
+      } else if (result.reason === 'not_found') {
+        toast.error('신청서를 찾을 수 없습니다. UID를 확인해주세요.')
+      } else {
+        toast.error('수정 중 오류가 발생했습니다.')
+      }
       return false
     }
     set((s) => ({
