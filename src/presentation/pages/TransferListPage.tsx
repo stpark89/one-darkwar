@@ -16,6 +16,7 @@ import { useTransferStore } from '@/infrastructure/stores/transferStore'
 import { useTransferTierStore, findTierForCp } from '@/infrastructure/stores/transferTierStore'
 import type { DesiredAlliance, TransferApplication, TransferStatus } from '@/domain/entities/Transfer'
 import { TIER_COLOR_CLASS } from '@/domain/entities/TransferTier'
+import type { TransferTier } from '@/domain/entities/TransferTier'
 import { parseCp } from '@/lib/cp'
 import { Button } from '@/presentation/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -357,7 +358,7 @@ const ApplicantRow = ({ idx, app, tierName, onClick }: ApplicantRowProps) => {
 
 interface TierSlotsPanelProps {
   apps: TransferApplication[]
-  tiers: ReturnType<typeof useTransferTierStore>['tiers']
+  tiers: TransferTier[]
 }
 
 const TierSlotsPanel = ({ apps, tiers }: TierSlotsPanelProps) => {
