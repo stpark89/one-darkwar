@@ -9,12 +9,13 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Loader2, ChevronDown, Users, User, Clock, CheckCircle2, ChevronRight, Filter, X, MessageSquare, Settings } from 'lucide-react'
+import { Loader2, ChevronDown, Users, User, Clock, CheckCircle2, ChevronRight, Filter, X, MessageSquare, Settings, Ticket } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { useTransferStore } from '@/infrastructure/stores/transferStore'
 import { useTransferTierStore, findTierForCp } from '@/infrastructure/stores/transferTierStore'
 import type { DesiredAlliance, TransferApplication, TransferStatus } from '@/domain/entities/Transfer'
+import { TIER_COLOR_CLASS } from '@/domain/entities/TransferTier'
 import { parseCp } from '@/lib/cp'
 import { Button } from '@/presentation/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -116,6 +117,9 @@ export const TransferListPage = () => {
           <ChevronRight className="w-4 h-4" />
         </button>
       </div>
+
+      {/* 티켓 등급 잔여 현황 */}
+      <TierSlotsPanel apps={apps} tiers={tiers} />
 
       {/* 동맹 필터 */}
       <div className="flex items-center gap-2 flex-wrap">
@@ -343,6 +347,93 @@ const ApplicantRow = ({ idx, app, tierName, onClick }: ApplicantRowProps) => {
         </p>
       </div>
       <StatusBadge status={app.status} />
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────
+// TierSlotsPanel — 티켓 등급 잔여 현황 (게스트 공개)
+// ─────────────────────────────────────────────────────────
+
+interface TierSlotsPanelProps {
+  apps: TransferApplication[]
+  tiers: ReturnType<typeof useTransferTierStore>['tiers']
+}
+
+const TierSlotsPanel = ({ apps, tiers }: TierSlotsPanelProps) => {
+  const { t } = useTranslation()
+  const [open, setOpen] = useState(true)
+
+  // 등급별 승인 인원 집계 (tierId 기준)
+  const approvedByTier = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const a of apps) {
+      if (a.status === 'APPROVED' && a.tierId) {
+        map.set(a.tierId, (map.get(a.tierId) ?? 0) + 1)
+      }
+    }
+    return map
+  }, [apps])
+
+  if (tiers.length === 0) return null
+
+  return (
+    <div className="bg-[var(--color-bg-surface)] border border-[var(--color-border-subtle)] rounded-xl">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between px-4 py-3"
+      >
+        <h3 className="text-sm font-bold text-[var(--color-text-primary)] flex items-center gap-1.5">
+          <Ticket className="w-4 h-4 text-[var(--color-brand)]" />
+          {t('transfer_list.tier_slots')}
+          <span className="text-[10px] font-normal text-[var(--color-text-muted)] ml-1">
+            {t('transfer_list.tier_slots_hint')}
+          </span>
+        </h3>
+        <ChevronDown className={cn('w-4 h-4 text-[var(--color-text-muted)] transition-transform', open && 'rotate-180')} />
+      </button>
+
+      {open && (
+        <div className="px-4 pb-4 space-y-2">
+          {tiers.map((tier) => {
+            const approved = approvedByTier.get(tier.id) ?? 0
+            const remaining = tier.capacity - approved
+            const pct = Math.min(100, (approved / tier.capacity) * 100)
+            const isFull = remaining <= 0
+            const colorClass = TIER_COLOR_CLASS[tier.color]
+
+            return (
+              <div key={tier.id} className="space-y-1">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <span className={cn('text-xs font-bold px-2 py-0.5 rounded', colorClass.badge)}>
+                      {tier.name}
+                    </span>
+                    <span className="text-[11px] text-[var(--color-text-muted)]">
+                      {approved} / {tier.capacity}
+                    </span>
+                  </div>
+                  <span className={cn(
+                    'text-[11px] font-bold flex-shrink-0',
+                    isFull ? 'text-[var(--color-danger)]' : 'text-[var(--color-success)]',
+                  )}>
+                    {isFull
+                      ? t('transfer_list.tier_full')
+                      : t('transfer_list.tier_remaining', { n: remaining })}
+                  </span>
+                </div>
+                {/* 진행률 바 */}
+                <div className="h-1.5 rounded-full bg-[var(--color-bg-elevated)] overflow-hidden">
+                  <div
+                    className={cn('h-full rounded-full transition-all', isFull ? 'bg-[var(--color-danger)]' : colorClass.bar)}
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }

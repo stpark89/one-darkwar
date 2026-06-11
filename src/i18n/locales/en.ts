@@ -296,6 +296,10 @@ export default {
     no_visible_members: 'No public member info.',
     go_submit: 'Submit a request',
     go_manage: 'Manage requests',
+    tier_slots: 'Tier Availability',
+    tier_slots_hint: 'Based on approved count',
+    tier_full: 'Full',
+    tier_remaining: '{{n}} left',
   },
   transfer_status: {
     title: 'My Application',

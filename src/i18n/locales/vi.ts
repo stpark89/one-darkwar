@@ -296,6 +296,10 @@ export default {
     no_visible_members: 'Không có thông tin thành viên công khai.',
     go_submit: 'Gửi đơn',
     go_manage: 'Quản lý đơn',
+    tier_slots: 'Chỗ trống theo hạng vé',
+    tier_slots_hint: 'Dựa trên số đã duyệt',
+    tier_full: 'Hết chỗ',
+    tier_remaining: 'Còn {{n}} chỗ',
   },
   transfer_status: {
     title: 'Tra cứu đơn của tôi',

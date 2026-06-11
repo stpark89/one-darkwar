@@ -296,6 +296,10 @@ export default {
     no_visible_members: '공개된 멤버 정보가 없습니다.',
     go_submit: '신청하러 가기',
     go_manage: '이주 신청 관리하기',
+    tier_slots: '티켓 등급 잔여 현황',
+    tier_slots_hint: '승인 인원 기준',
+    tier_full: '만석',
+    tier_remaining: '잔여 {{n}}명',
   },
   transfer_status: {
     title: '내 신청 조회',
