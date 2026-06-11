@@ -532,18 +532,18 @@ const MemberFields = ({
                 inputMode="decimal"
                 className="flex-1 min-w-0"
               />
-              {/* M / G 단위 선택 */}
-              <div className="flex rounded-lg border border-[var(--color-border-subtle)] overflow-hidden flex-shrink-0">
+              {/* M / G 단위 선택 — 두 버튼 모두 명확한 버튼 형태 */}
+              <div className="flex gap-1 flex-shrink-0">
                 {(['M', 'G'] as const).map((u) => (
                   <button
                     key={u}
                     type="button"
                     onClick={() => setScore(numStr, u)}
                     className={cn(
-                      'px-3 py-2 text-sm font-bold transition-colors',
+                      'w-11 rounded-lg text-sm font-bold border transition-colors',
                       unit === u
-                        ? 'bg-[var(--color-brand)] text-white'
-                        : 'text-[var(--color-text-muted)] hover:bg-[var(--color-bg-elevated)]',
+                        ? 'bg-[var(--color-brand)] border-[var(--color-brand)] text-white'
+                        : 'bg-[var(--color-bg-base)] border-[var(--color-border-subtle)] text-[var(--color-text-secondary)] hover:border-[var(--color-brand)]/60 hover:text-[var(--color-text-primary)]',
                     )}
                   >
                     {u}
