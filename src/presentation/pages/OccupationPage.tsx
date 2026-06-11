@@ -132,18 +132,29 @@ export const OccupationPage = () => {
             const currentWeekIdx = weeks.findIndex((w) => w.some((tn) => tn.isCurrent))
             const facilityLabel = facility === 'armory' ? t('occupation.armory') : t('occupation.castle')
 
+            const LABEL_W = 56   // 주차 라벨 고정 너비(px)
+            const CELL_W  = 64   // 슬롯 셀 고정 너비(px)
+
             return (
               <div className="bg-[var(--color-bg-surface)] border border-[var(--color-border-subtle)] rounded-xl overflow-hidden">
                 <div className="overflow-x-auto">
-                  <table className="border-collapse text-xs w-full">
-                    {/* 헤더: 슬롯 번호 1~8 */}
+                  {/* border-separate + border-spacing-0 → sticky 와 border 충돌 방지 */}
+                  <table className="text-xs border-separate border-spacing-0" style={{ minWidth: LABEL_W + CELL_W * SLOTS }}>
+                    {/* 헤더: 주차 라벨 열 + 슬롯 번호 1~8 */}
                     <thead>
-                      <tr className="bg-[var(--color-bg-elevated)]">
-                        <td className="px-3 py-2 font-bold text-[var(--color-text-muted)] border-r border-b border-[var(--color-border-subtle)] whitespace-nowrap sticky left-0 bg-[var(--color-bg-elevated)] z-10">
+                      <tr>
+                        <th
+                          className="border-r border-b border-[var(--color-border-subtle)] bg-[var(--color-bg-elevated)] sticky left-0 z-20 text-left px-3 py-2 font-bold text-[var(--color-text-muted)]"
+                          style={{ width: LABEL_W, minWidth: LABEL_W }}
+                        >
                           {facilityLabel}
-                        </td>
+                        </th>
                         {Array.from({ length: SLOTS }, (_, i) => (
-                          <th key={i} className="px-3 py-2 font-bold text-center text-[var(--color-text-muted)] border-r border-b border-[var(--color-border-subtle)] last:border-r-0 min-w-[56px]">
+                          <th
+                            key={i}
+                            className="border-r border-b border-[var(--color-border-subtle)] bg-[var(--color-bg-elevated)] text-center px-2 py-2 font-bold text-[var(--color-text-muted)] last:border-r-0"
+                            style={{ width: CELL_W, minWidth: CELL_W }}
+                          >
                             {i + 1}
                           </th>
                         ))}
@@ -154,14 +165,17 @@ export const OccupationPage = () => {
                       {weeks.map((week, wi) => {
                         const isCurrentWeek = wi === currentWeekIdx
                         return (
-                          <tr key={wi} className={cn(isCurrentWeek && 'bg-[var(--color-brand)]/5')}>
-                            {/* 주차 라벨 */}
-                            <td className={cn(
-                              'px-3 py-2.5 font-bold whitespace-nowrap border-r border-b border-[var(--color-border-subtle)] sticky left-0 z-10',
-                              isCurrentWeek
-                                ? 'text-[var(--color-brand)] bg-[var(--color-brand)]/10'
-                                : 'text-[var(--color-text-muted)] bg-[var(--color-bg-surface)]',
-                            )}>
+                          <tr key={wi}>
+                            {/* 주차 라벨 — sticky */}
+                            <td
+                              className={cn(
+                                'border-r border-b border-[var(--color-border-subtle)] sticky left-0 z-10 px-3 py-2.5 font-bold whitespace-nowrap',
+                                isCurrentWeek
+                                  ? 'text-[var(--color-brand)] bg-[var(--color-brand)]/10'
+                                  : 'text-[var(--color-text-muted)] bg-[var(--color-bg-surface)]',
+                              )}
+                              style={{ width: LABEL_W, minWidth: LABEL_W }}
+                            >
                               {wi + 1}{t('occupation.week_suffix')}
                             </td>
                             {/* 슬롯 셀 */}
@@ -171,7 +185,7 @@ export const OccupationPage = () => {
                                 <td
                                   key={si}
                                   className={cn(
-                                    'px-2 py-2.5 text-center border-r border-b border-[var(--color-border-subtle)] last:border-r-0 whitespace-nowrap',
+                                    'border-r border-b border-[var(--color-border-subtle)] last:border-r-0 text-center px-2 py-2.5 whitespace-nowrap',
                                     tn?.isCurrent
                                       ? 'bg-[var(--color-brand)]/20 text-[var(--color-brand)] font-black'
                                       : tn
