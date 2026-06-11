@@ -10,6 +10,12 @@ import { cn } from '@/lib/utils'
 
 const SLOTS = 8
 
+// 무기고 8슬롯 아이템 이름 (이미지 기준: Orange Hero ~ Purple Hero)
+const ARMORY_SLOT_KEYS = [
+  'armory_slot_1', 'armory_slot_2', 'armory_slot_3', 'armory_slot_4',
+  'armory_slot_5', 'armory_slot_6', 'armory_slot_7', 'armory_slot_8',
+] as const
+
 interface EditDraft {
   id?: string
   facility: Facility
@@ -158,8 +164,13 @@ export const OccupationPage = () => {
   ]
 
   const facilityLabel = facility === 'armory' ? t('occupation.armory') : t('occupation.castle')
-  const LABEL_W = 56
-  const CELL_W  = 64
+  const LABEL_W = 60
+  const CELL_W  = 72
+
+  // 무기고: 아이템명 헤더 / 왕성: 숫자 헤더
+  const slotHeaders: string[] = facility === 'armory'
+    ? ARMORY_SLOT_KEYS.map((k) => t(`occupation.${k}`))
+    : Array.from({ length: SLOTS }, (_, i) => String(i + 1))
 
   return (
     <div className="p-3 sm:p-6 max-w-2xl mx-auto space-y-4 break-keep">
@@ -229,13 +240,13 @@ export const OccupationPage = () => {
                         >
                           {facilityLabel}
                         </th>
-                        {Array.from({ length: SLOTS }, (_, i) => (
+                        {slotHeaders.map((label, i) => (
                           <th
                             key={i}
-                            className="border-r border-b border-[var(--color-border-subtle)] bg-[var(--color-bg-elevated)] text-center px-2 py-2 font-bold text-[var(--color-text-muted)] last:border-r-0"
+                            className="border-r border-b border-[var(--color-border-subtle)] bg-[var(--color-bg-elevated)] text-center px-1.5 py-2 font-bold text-[var(--color-text-muted)] last:border-r-0 leading-tight"
                             style={{ width: CELL_W, minWidth: CELL_W }}
                           >
-                            {i + 1}
+                            {label}
                           </th>
                         ))}
                       </tr>
