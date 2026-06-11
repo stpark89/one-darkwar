@@ -505,20 +505,64 @@ const MemberFields = ({
         placeholder={t('transfer.field_cp_placeholder')}
       />
 
-      {/* 합산 전투력 (건물+과학기술+영웅+개조차) → 등급 자동 매칭 */}
-      <Input
-        value={value.totalPower}
-        onChange={(e) => onChange({ totalPower: e.target.value })}
-        placeholder={t('transfer.field_total_power_placeholder')}
-      />
-      {value.totalPower.trim() !== '' && tiers.length > 0 && (() => {
-        const tier = findTierForCp(tiers, parseCp(value.totalPower))
-        return tier ? (
-          <p className="text-[11px] text-[var(--color-text-muted)] flex items-center gap-1.5">
-            {t('transfer.auto_tier')}:
-            <span className={cn('font-bold px-1.5 py-0.5 rounded', TIER_COLOR_CLASS[tier.color].badge)}>{tier.name}</span>
-          </p>
-        ) : null
+      {/* Migration Score → 숫자 입력 + M / G 단위 선택 */}
+      {(() => {
+        // 현재 저장된 값에서 숫자 부분과 단위 분리
+        const raw = value.totalPower.trim().toUpperCase()
+        const unit: 'M' | 'G' = raw.endsWith('G') ? 'G' : 'M'
+        const numStr = raw.replace(/[MmGgBb]/g, '')
+
+        const setScore = (num: string, u: 'M' | 'G') => {
+          const clean = num.replace(/[^0-9.]/g, '')
+          onChange({ totalPower: clean ? `${clean}${u}` : '' })
+        }
+
+        const tier = value.totalPower.trim() !== '' && tiers.length > 0
+          ? findTierForCp(tiers, parseCp(value.totalPower))
+          : null
+
+        return (
+          <div className="space-y-1">
+            <div className="flex gap-1">
+              {/* 숫자 입력 */}
+              <Input
+                value={numStr}
+                onChange={(e) => setScore(e.target.value, unit)}
+                placeholder={t('transfer.field_total_power_placeholder')}
+                inputMode="decimal"
+                className="flex-1 min-w-0"
+              />
+              {/* M / G 단위 선택 */}
+              <div className="flex rounded-lg border border-[var(--color-border-subtle)] overflow-hidden flex-shrink-0">
+                {(['M', 'G'] as const).map((u) => (
+                  <button
+                    key={u}
+                    type="button"
+                    onClick={() => setScore(numStr, u)}
+                    className={cn(
+                      'px-3 py-2 text-sm font-bold transition-colors',
+                      unit === u
+                        ? 'bg-[var(--color-brand)] text-white'
+                        : 'text-[var(--color-text-muted)] hover:bg-[var(--color-bg-elevated)]',
+                    )}
+                  >
+                    {u}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {/* 자동 매칭 등급 프리뷰 */}
+            {tier && (
+              <p className="text-[11px] text-[var(--color-text-muted)] flex items-center gap-1.5">
+                {t('transfer.auto_tier')}:
+                <span className={cn('font-bold px-1.5 py-0.5 rounded', TIER_COLOR_CLASS[tier.color].badge)}>{tier.name}</span>
+              </p>
+            )}
+            {value.totalPower.trim() !== '' && tiers.length > 0 && !tier && (
+              <p className="text-[11px] text-yellow-400">{t('transfer.no_tier_match')}</p>
+            )}
+          </div>
+        )
       })()}
 
       {/* 신청자 메모 (선택) */}
