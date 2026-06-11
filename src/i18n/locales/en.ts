@@ -70,6 +70,7 @@ export default {
     note_placeholder: 'Reason for extension / schedule note (optional)',
     delete_title: 'Delete Turn',
     delete_desc: 'This turn will be permanently deleted. This cannot be undone.',
+    week_suffix: 'W',
   },
   server_home: {
     badge: 'Server 291',

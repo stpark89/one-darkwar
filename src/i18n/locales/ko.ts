@@ -70,6 +70,7 @@ export default {
     note_placeholder: '연임 사유 / 일정 메모 등 (선택)',
     delete_title: '순번 삭제',
     delete_desc: '이 순번을 영구 삭제합니다. 되돌릴 수 없습니다.',
+    week_suffix: '주차',
   },
   server_home: {
     badge: '291 서버',

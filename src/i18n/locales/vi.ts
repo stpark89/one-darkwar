@@ -70,6 +70,7 @@ export default {
     note_placeholder: 'Lý do gia hạn / ghi chú lịch (tùy chọn)',
     delete_title: 'Xóa lượt',
     delete_desc: 'Lượt này sẽ bị xóa vĩnh viễn. Không thể hoàn tác.',
+    week_suffix: 'T',
   },
   server_home: {
     badge: 'Server 291',

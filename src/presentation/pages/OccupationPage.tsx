@@ -120,60 +120,87 @@ export const OccupationPage = () => {
             )}
           </div>
 
-          {/* 순번 테이블 — 가로 스크롤 */}
-          {list.length > 0 && (
-            <div className="bg-[var(--color-bg-surface)] border border-[var(--color-border-subtle)] rounded-xl overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse text-xs">
-                  <thead>
-                    <tr className="bg-[var(--color-bg-elevated)]">
-                      {/* 시설 라벨 셀 */}
-                      <td className="px-3 py-2 font-bold text-[var(--color-text-muted)] border-r border-[var(--color-border-subtle)] whitespace-nowrap sticky left-0 bg-[var(--color-bg-elevated)] z-10">
-                        {facility === 'armory' ? t('occupation.armory') : t('occupation.castle')}
-                      </td>
-                      {list.map((tn, i) => (
-                        <th
-                          key={tn.id}
-                          className={cn(
-                            'px-3 py-2 font-bold text-center border-r border-[var(--color-border-subtle)] last:border-r-0 min-w-[52px]',
-                            tn.isCurrent
-                              ? 'text-[var(--color-brand)]'
-                              : 'text-[var(--color-text-muted)]',
-                          )}
-                        >
-                          {i + 1}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      {/* 빈 라벨 셀 */}
-                      <td className="px-3 py-2 border-r border-[var(--color-border-subtle)] sticky left-0 bg-[var(--color-bg-surface)] z-10" />
-                      {list.map((tn) => (
-                        <td
-                          key={tn.id}
-                          className={cn(
-                            'px-2 py-2.5 text-center font-bold border-r border-[var(--color-border-subtle)] last:border-r-0 whitespace-nowrap',
-                            tn.isCurrent
-                              ? 'bg-[var(--color-brand)]/15 text-[var(--color-brand)]'
-                              : 'text-[var(--color-text-primary)]',
-                          )}
-                        >
-                          {tn.allianceName}
-                          {tn.isCurrent && (
-                            <span className="block text-[9px] font-normal text-[var(--color-brand)] opacity-80 mt-0.5">
-                              {t('occupation.current_badge')}
-                            </span>
-                          )}
+          {/* 순번 테이블 — 주차별 2D (8슬롯/주차) */}
+          {list.length > 0 && (() => {
+            const SLOTS = 8
+            // sort_order 기준으로 8개씩 주차 분리
+            const weeks: typeof list[] = []
+            for (let i = 0; i < list.length; i += SLOTS) {
+              weeks.push(list.slice(i, i + SLOTS))
+            }
+            // 현재 차례가 속한 주차 인덱스
+            const currentWeekIdx = weeks.findIndex((w) => w.some((tn) => tn.isCurrent))
+            const facilityLabel = facility === 'armory' ? t('occupation.armory') : t('occupation.castle')}
+
+            return (
+              <div className="bg-[var(--color-bg-surface)] border border-[var(--color-border-subtle)] rounded-xl overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="border-collapse text-xs w-full">
+                    {/* 헤더: 슬롯 번호 1~8 */}
+                    <thead>
+                      <tr className="bg-[var(--color-bg-elevated)]">
+                        <td className="px-3 py-2 font-bold text-[var(--color-text-muted)] border-r border-b border-[var(--color-border-subtle)] whitespace-nowrap sticky left-0 bg-[var(--color-bg-elevated)] z-10">
+                          {facilityLabel}
                         </td>
-                      ))}
-                    </tr>
-                  </tbody>
-                </table>
+                        {Array.from({ length: SLOTS }, (_, i) => (
+                          <th key={i} className="px-3 py-2 font-bold text-center text-[var(--color-text-muted)] border-r border-b border-[var(--color-border-subtle)] last:border-r-0 min-w-[56px]">
+                            {i + 1}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    {/* 본문: 주차별 행 */}
+                    <tbody>
+                      {weeks.map((week, wi) => {
+                        const isCurrentWeek = wi === currentWeekIdx
+                        return (
+                          <tr key={wi} className={cn(isCurrentWeek && 'bg-[var(--color-brand)]/5')}>
+                            {/* 주차 라벨 */}
+                            <td className={cn(
+                              'px-3 py-2.5 font-bold whitespace-nowrap border-r border-b border-[var(--color-border-subtle)] sticky left-0 z-10',
+                              isCurrentWeek
+                                ? 'text-[var(--color-brand)] bg-[var(--color-brand)]/10'
+                                : 'text-[var(--color-text-muted)] bg-[var(--color-bg-surface)]',
+                            )}>
+                              {wi + 1}{t('occupation.week_suffix')}
+                            </td>
+                            {/* 슬롯 셀 */}
+                            {Array.from({ length: SLOTS }, (_, si) => {
+                              const tn = week[si]
+                              return (
+                                <td
+                                  key={si}
+                                  className={cn(
+                                    'px-2 py-2.5 text-center border-r border-b border-[var(--color-border-subtle)] last:border-r-0 whitespace-nowrap',
+                                    tn?.isCurrent
+                                      ? 'bg-[var(--color-brand)]/20 text-[var(--color-brand)] font-black'
+                                      : tn
+                                        ? 'text-[var(--color-text-primary)] font-semibold'
+                                        : 'text-[var(--color-text-muted)]',
+                                  )}
+                                >
+                                  {tn ? (
+                                    <>
+                                      {tn.allianceName}
+                                      {tn.isCurrent && (
+                                        <span className="block text-[9px] font-normal text-[var(--color-brand)] mt-0.5">
+                                          ▶ {t('occupation.current_badge')}
+                                        </span>
+                                      )}
+                                    </>
+                                  ) : '—'}
+                                </td>
+                              )
+                            })}
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
-          )}
+            )
+          })()}
 
           {/* 순번 리스트 */}
           <div className="space-y-2">

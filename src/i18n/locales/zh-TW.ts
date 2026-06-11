@@ -70,6 +70,7 @@ export default {
     note_placeholder: '連任原因 / 行程備註（選填）',
     delete_title: '刪除順序',
     delete_desc: '將永久刪除此順序，無法復原。',
+    week_suffix: '週',
   },
   server_home: {
     badge: 'Server 291',
