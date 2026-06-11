@@ -401,25 +401,23 @@ const TierSlotsPanel = ({ apps, tiers }: TierSlotsPanelProps) => {
             const pct = Math.min(100, (approved / tier.capacity) * 100)
             const isFull = remaining <= 0
 
-            // Tailwind 퍼지 안전: 색상별 고정 클래스
-            const badgeClass: Record<string, string> = {
-              orange: 'bg-orange-500/30 text-orange-300',
-              purple: 'bg-purple-500/30 text-purple-300',
-              blue:   'bg-blue-500/30 text-blue-300',
-              gray:   'bg-gray-500/30 text-gray-300',
+            // Tailwind 퍼지를 피하기 위해 inline style로 색상 직접 지정
+            const COLOR_STYLES: Record<string, { bg: string; text: string; bar: string }> = {
+              orange: { bg: 'rgba(249,115,22,0.25)', text: 'rgb(253,186,116)',  bar: 'rgb(249,115,22)' },
+              purple: { bg: 'rgba(168,85,247,0.25)',  text: 'rgb(216,180,254)', bar: 'rgb(168,85,247)' },
+              blue:   { bg: 'rgba(59,130,246,0.25)',  text: 'rgb(147,197,253)', bar: 'rgb(59,130,246)' },
+              gray:   { bg: 'rgba(107,114,128,0.25)', text: 'rgb(209,213,219)', bar: 'rgb(156,163,175)' },
             }
-            const barClass: Record<string, string> = {
-              orange: 'bg-orange-500',
-              purple: 'bg-purple-500',
-              blue:   'bg-blue-500',
-              gray:   'bg-gray-500',
-            }
+            const cs = COLOR_STYLES[tier.color] ?? COLOR_STYLES.gray
 
             return (
               <div key={tier.id} className="space-y-1">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-1.5">
-                    <span className={cn('text-xs font-bold px-2 py-0.5 rounded', badgeClass[tier.color])}>
+                    <span
+                      className="text-xs font-bold px-2 py-0.5 rounded"
+                      style={{ backgroundColor: cs.bg, color: cs.text }}
+                    >
                       {tier.name}
                     </span>
                     <span className="text-[11px] text-[var(--color-text-muted)]">
@@ -437,8 +435,8 @@ const TierSlotsPanel = ({ apps, tiers }: TierSlotsPanelProps) => {
                 </div>
                 <div className="h-1.5 rounded-full bg-[var(--color-bg-elevated)] overflow-hidden">
                   <div
-                    className={cn('h-full rounded-full transition-all', isFull ? 'bg-red-500' : barClass[tier.color])}
-                    style={{ width: `${pct}%` }}
+                    className="h-full rounded-full transition-all"
+                    style={{ width: `${pct}%`, backgroundColor: isFull ? 'rgb(239,68,68)' : cs.bar }}
                   />
                 </div>
               </div>
