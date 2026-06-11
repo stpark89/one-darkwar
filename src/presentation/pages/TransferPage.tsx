@@ -206,16 +206,12 @@ export const TransferPage = () => {
     if (ok) setTierDraft(null)
   }
 
-  // 신청서의 등급:
-  //   1) 관리자가 직접 지정한 tier_id 가 있으면 그것 (override)
-  //   2) 없으면 합산 전투력(total_power)을 등급 CP 구간에 매칭
-  //   ※ 부대 전투력(cp)이 아니라 합산 전투력(건물+과학기술+영웅+개조차)으로 매칭
+  // 신청서의 등급: Migration Score(totalPower)만 기준
+  // ※ tierId(관리자 지정값)는 등급 표시에 사용하지 않음
   const getEffectiveTier = (a: typeof apps[number]) =>
-    a.tierId
-      ? tiers.find((tt) => tt.id === a.tierId) ?? null
-      : a.totalPower.trim()
-        ? findTierForCp(tiers, parseCp(a.totalPower))
-        : null
+    a.totalPower.trim()
+      ? findTierForCp(tiers, parseCp(a.totalPower))
+      : null
 
   const filtered = apps.filter((a) => {
     if (a.status !== tab) return false
@@ -267,17 +263,15 @@ export const TransferPage = () => {
   }
 
   // 승인된 신청자들의 등급별 집계 + 잔여/종합 통계
-  // tier_id 우선, 없으면 합산 전투력(total_power) 기반 매칭
+  // Migration Score(totalPower) 기준 — tierId 무시
   const approvedByTier = useMemo(() => {
     const map = new Map<string, number>()
     const unmatchedApps: typeof apps = []
     for (const a of apps) {
       if (a.status !== 'APPROVED') continue
-      const tier = a.tierId
-        ? tiers.find((tt) => tt.id === a.tierId) ?? null
-        : a.totalPower.trim()
-          ? findTierForCp(tiers, parseCp(a.totalPower))
-          : null
+      const tier = a.totalPower.trim()
+        ? findTierForCp(tiers, parseCp(a.totalPower))
+        : null
       if (tier) map.set(tier.id, (map.get(tier.id) ?? 0) + 1)
       else unmatchedApps.push(a)
     }
