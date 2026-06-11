@@ -395,7 +395,7 @@ const TierSlotsPanel = ({ apps, tiers }: TierSlotsPanelProps) => {
       </button>
 
       {open && (
-        <div className="px-4 pb-4 space-y-2">
+        <div className="px-4 pb-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
           {tiers.map((tier) => {
             const approved = approvedByTier.get(tier.id) ?? 0
             const remaining = tier.capacity - approved
@@ -403,20 +403,40 @@ const TierSlotsPanel = ({ apps, tiers }: TierSlotsPanelProps) => {
             const isFull = remaining <= 0
             const colorClass = TIER_COLOR_CLASS[tier.color]
 
+            // 등급별 왼쪽 보더 + 배경 색상 매핑
+            const borderColor: Record<string, string> = {
+              orange: 'border-l-orange-500',
+              purple: 'border-l-purple-500',
+              blue:   'border-l-blue-500',
+              gray:   'border-l-gray-500',
+            }
+            const bgTint: Record<string, string> = {
+              orange: 'bg-orange-500/5',
+              purple: 'bg-purple-500/5',
+              blue:   'bg-blue-500/5',
+              gray:   'bg-gray-500/5',
+            }
+
             return (
-              <div key={tier.id} className="space-y-1">
+              <div
+                key={tier.id}
+                className={cn(
+                  'rounded-lg border border-[var(--color-border-subtle)] border-l-4 p-3 space-y-2',
+                  borderColor[tier.color],
+                  bgTint[tier.color],
+                )}
+              >
+                {/* 등급명 + 잔여 */}
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-1.5">
-                    <span className={cn('text-xs font-bold px-2 py-0.5 rounded', colorClass.badge)}>
-                      {tier.name}
-                    </span>
-                    <span className="text-[11px] text-[var(--color-text-muted)]">
-                      {approved} / {tier.capacity}
-                    </span>
+                    <span className={cn('w-2.5 h-2.5 rounded-full flex-shrink-0', colorClass.dot)} />
+                    <span className="text-sm font-bold text-[var(--color-text-primary)]">{tier.name}</span>
                   </div>
                   <span className={cn(
-                    'text-[11px] font-bold flex-shrink-0',
-                    isFull ? 'text-[var(--color-danger)]' : 'text-[var(--color-success)]',
+                    'text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0',
+                    isFull
+                      ? 'bg-red-500/15 text-red-400'
+                      : 'bg-[var(--color-success)]/15 text-[var(--color-success)]',
                   )}>
                     {isFull
                       ? t('transfer_list.tier_full')
@@ -424,12 +444,18 @@ const TierSlotsPanel = ({ apps, tiers }: TierSlotsPanelProps) => {
                   </span>
                 </div>
                 {/* 진행률 바 */}
-                <div className="h-1.5 rounded-full bg-[var(--color-bg-elevated)] overflow-hidden">
+                <div className="h-2 rounded-full bg-[var(--color-bg-elevated)] overflow-hidden">
                   <div
-                    className={cn('h-full rounded-full transition-all', isFull ? 'bg-[var(--color-danger)]' : colorClass.bar)}
+                    className={cn('h-full rounded-full transition-all', isFull ? 'bg-red-500' : colorClass.bar)}
                     style={{ width: `${pct}%` }}
                   />
                 </div>
+                {/* 승인 / 정원 */}
+                <p className="text-[11px] text-[var(--color-text-muted)]">
+                  {approved}
+                  <span className="mx-0.5">/</span>
+                  {tier.capacity}명 승인
+                </p>
               </div>
             )
           })}
