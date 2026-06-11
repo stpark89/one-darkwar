@@ -71,6 +71,10 @@ export default {
     delete_title: '순번 삭제',
     delete_desc: '이 순번을 영구 삭제합니다. 되돌릴 수 없습니다.',
     week_suffix: '주차',
+    add_week_btn: '주차 추가',
+    add_week_title: '주차 추가',
+    add_week_desc: '새 주차 8슬롯을 한 번에 등록합니다. 이전 주차 순서에서 1칸 로테이션된 순서를 자동 제안합니다.',
+    inline_hint: '표의 빈 셀(—)을 탭하면 바로 동맹명을 입력할 수 있습니다.',
   },
   server_home: {
     badge: '291 서버',

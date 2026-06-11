@@ -71,6 +71,10 @@ export default {
     delete_title: 'Xóa lượt',
     delete_desc: 'Lượt này sẽ bị xóa vĩnh viễn. Không thể hoàn tác.',
     week_suffix: 'T',
+    add_week_btn: 'Thêm tuần',
+    add_week_title: 'Thêm tuần mới',
+    add_week_desc: 'Đăng ký 8 slot cho tuần mới cùng lúc. Thứ tự được đề xuất tự động từ tuần trước với 1 bước xoay.',
+    inline_hint: 'Nhấn vào ô trống (—) để nhập tên liên minh trực tiếp.',
   },
   server_home: {
     badge: 'Server 291',

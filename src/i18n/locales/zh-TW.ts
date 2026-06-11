@@ -71,6 +71,10 @@ export default {
     delete_title: '刪除順序',
     delete_desc: '將永久刪除此順序，無法復原。',
     week_suffix: '週',
+    add_week_btn: '新增週次',
+    add_week_title: '新增週次',
+    add_week_desc: '一次登錄新一週的 8 個插槽。自動從上週順序向前旋轉一格建議順序。',
+    inline_hint: '點擊空白格（—）可直接輸入聯盟名稱。',
   },
   server_home: {
     badge: 'Server 291',

@@ -71,6 +71,10 @@ export default {
     delete_title: 'Delete Turn',
     delete_desc: 'This turn will be permanently deleted. This cannot be undone.',
     week_suffix: 'W',
+    add_week_btn: 'Add Week',
+    add_week_title: 'Add Week',
+    add_week_desc: 'Register 8 slots for a new week at once. Order is auto-suggested from the previous week with 1-step rotation.',
+    inline_hint: 'Tap an empty cell (—) to enter an alliance name directly.',
   },
   server_home: {
     badge: 'Server 291',
