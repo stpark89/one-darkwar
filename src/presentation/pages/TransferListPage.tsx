@@ -364,16 +364,24 @@ const TierSlotsPanel = ({ apps, tiers }: TierSlotsPanelProps) => {
   const { t } = useTranslation()
   const [open, setOpen] = useState(true)
 
-  // 등급별 승인 인원 집계 (tierId 기준)
+  // 등급별 승인 인원 집계
+  // tierId(관리자 지정) 우선 → 없으면 total_power CP 기반 매칭 (tierName() 로직과 동일)
   const approvedByTier = useMemo(() => {
     const map = new Map<string, number>()
     for (const a of apps) {
-      if (a.status === 'APPROVED' && a.tierId) {
-        map.set(a.tierId, (map.get(a.tierId) ?? 0) + 1)
+      if (a.status !== 'APPROVED') continue
+      let matched: TransferTier | null = null
+      if (a.tierId) {
+        matched = tiers.find((tt) => tt.id === a.tierId) ?? null
+      } else {
+        matched = findTierForCp(tiers, parseCp(a.totalPower))
+      }
+      if (matched) {
+        map.set(matched.id, (map.get(matched.id) ?? 0) + 1)
       }
     }
     return map
-  }, [apps])
+  }, [apps, tiers])
 
   if (tiers.length === 0) return null
 
