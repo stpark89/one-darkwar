@@ -130,7 +130,7 @@ export const OccupationPage = () => {
             }
             // 현재 차례가 속한 주차 인덱스
             const currentWeekIdx = weeks.findIndex((w) => w.some((tn) => tn.isCurrent))
-            const facilityLabel = facility === 'armory' ? t('occupation.armory') : t('occupation.castle')}
+            const facilityLabel = facility === 'armory' ? t('occupation.armory') : t('occupation.castle')
 
             return (
               <div className="bg-[var(--color-bg-surface)] border border-[var(--color-border-subtle)] rounded-xl overflow-hidden">
