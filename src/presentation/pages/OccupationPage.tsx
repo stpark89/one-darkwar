@@ -120,6 +120,61 @@ export const OccupationPage = () => {
             )}
           </div>
 
+          {/* 순번 테이블 — 가로 스크롤 */}
+          {list.length > 0 && (
+            <div className="bg-[var(--color-bg-surface)] border border-[var(--color-border-subtle)] rounded-xl overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse text-xs">
+                  <thead>
+                    <tr className="bg-[var(--color-bg-elevated)]">
+                      {/* 시설 라벨 셀 */}
+                      <td className="px-3 py-2 font-bold text-[var(--color-text-muted)] border-r border-[var(--color-border-subtle)] whitespace-nowrap sticky left-0 bg-[var(--color-bg-elevated)] z-10">
+                        {facility === 'armory' ? t('occupation.armory') : t('occupation.castle')}
+                      </td>
+                      {list.map((tn, i) => (
+                        <th
+                          key={tn.id}
+                          className={cn(
+                            'px-3 py-2 font-bold text-center border-r border-[var(--color-border-subtle)] last:border-r-0 min-w-[52px]',
+                            tn.isCurrent
+                              ? 'text-[var(--color-brand)]'
+                              : 'text-[var(--color-text-muted)]',
+                          )}
+                        >
+                          {i + 1}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      {/* 빈 라벨 셀 */}
+                      <td className="px-3 py-2 border-r border-[var(--color-border-subtle)] sticky left-0 bg-[var(--color-bg-surface)] z-10" />
+                      {list.map((tn) => (
+                        <td
+                          key={tn.id}
+                          className={cn(
+                            'px-2 py-2.5 text-center font-bold border-r border-[var(--color-border-subtle)] last:border-r-0 whitespace-nowrap',
+                            tn.isCurrent
+                              ? 'bg-[var(--color-brand)]/15 text-[var(--color-brand)]'
+                              : 'text-[var(--color-text-primary)]',
+                          )}
+                        >
+                          {tn.allianceName}
+                          {tn.isCurrent && (
+                            <span className="block text-[9px] font-normal text-[var(--color-brand)] opacity-80 mt-0.5">
+                              {t('occupation.current_badge')}
+                            </span>
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
           {/* 순번 리스트 */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
