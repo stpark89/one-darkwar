@@ -172,16 +172,7 @@ export const OccupationPage = () => {
                                         : 'text-[var(--color-text-muted)]',
                                   )}
                                 >
-                                  {tn ? (
-                                    <>
-                                      {tn.allianceName}
-                                      {tn.isCurrent && (
-                                        <span className="block text-[9px] font-normal text-[var(--color-brand)] mt-0.5">
-                                          ▶ {t('occupation.current_badge')}
-                                        </span>
-                                      )}
-                                    </>
-                                  ) : '—'}
+                                  {tn ? tn.allianceName : '—'}
                                 </td>
                               )
                             })}
@@ -195,69 +186,94 @@ export const OccupationPage = () => {
             )
           })()}
 
-          {/* 순번 리스트 */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-bold text-[var(--color-text-primary)]">{t('occupation.rotation')}</h2>
-              {isAdmin && (
+          {/* 순번 관리 리스트 — 관리자 전용 */}
+          {isAdmin && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-bold text-[var(--color-text-primary)] flex items-center gap-1.5">
+                  <Swords className="w-3.5 h-3.5 text-[var(--color-brand)]" />
+                  {t('occupation.rotation')}
+                </h2>
                 <Button size="sm" onClick={openAdd}>
                   <Plus className="w-4 h-4" /> {t('occupation.add_btn')}
                 </Button>
+              </div>
+
+              {list.length === 0 ? (
+                <p className="text-sm text-[var(--color-text-muted)] text-center py-8">{t('occupation.empty')}</p>
+              ) : (
+                <div className="space-y-1">
+                  {list.map((tn, i) => {
+                    const SLOTS = 8
+                    const weekIdx = Math.floor(i / SLOTS)
+                    const slotIdx = i % SLOTS
+                    const isWeekStart = slotIdx === 0
+                    return (
+                      <div key={tn.id}>
+                        {/* 주차 구분선 */}
+                        {isWeekStart && (
+                          <div className="flex items-center gap-2 mt-2 mb-1 first:mt-0">
+                            <span className="text-[10px] font-bold text-[var(--color-brand)] bg-[var(--color-brand)]/10 px-2 py-0.5 rounded">
+                              {weekIdx + 1}{t('occupation.week_suffix')}
+                            </span>
+                            <div className="flex-1 h-px bg-[var(--color-border-subtle)]" />
+                          </div>
+                        )}
+                        <div
+                          className={cn(
+                            'flex items-center gap-3 px-3 py-2 rounded-lg border transition-colors',
+                            tn.isCurrent
+                              ? 'bg-[var(--color-brand)]/10 border-[var(--color-brand)]/40'
+                              : 'bg-[var(--color-bg-surface)] border-[var(--color-border-subtle)]',
+                          )}
+                        >
+                          {/* 슬롯 번호 */}
+                          <span className="text-[10px] font-mono font-bold text-[var(--color-text-muted)] w-4 flex-shrink-0 text-center">
+                            {slotIdx + 1}
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="text-sm font-semibold text-[var(--color-text-primary)]">{tn.allianceName}</span>
+                              {tn.isCurrent && (
+                                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[var(--color-brand)] text-white">
+                                  {t('occupation.current_badge')}
+                                </span>
+                              )}
+                            </div>
+                            {tn.note && <p className="text-[11px] text-[var(--color-text-muted)] mt-0.5">{tn.note}</p>}
+                          </div>
+                          <div className="flex items-center gap-0.5 flex-shrink-0">
+                            <button onClick={() => move(tn.id, 'up')} disabled={i === 0} className="p-1 rounded text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] disabled:opacity-30">
+                              <ChevronUp className="w-3.5 h-3.5" />
+                            </button>
+                            <button onClick={() => move(tn.id, 'down')} disabled={i === list.length - 1} className="p-1 rounded text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] disabled:opacity-30">
+                              <ChevronDown className="w-3.5 h-3.5" />
+                            </button>
+                            {!tn.isCurrent && (
+                              <button onClick={() => setCurrent(facility, tn.id)} title={t('occupation.set_current')} className="p-1 rounded text-[var(--color-text-muted)] hover:text-[var(--color-brand)]">
+                                <Flag className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                            <button onClick={() => openEdit(tn)} className="p-1 rounded text-[var(--color-text-muted)] hover:text-[var(--color-brand)]">
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                            <button onClick={() => setDeleteId(tn.id)} className="p-1 rounded text-[var(--color-text-muted)] hover:text-[var(--color-danger)]">
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
               )}
             </div>
+          )}
 
-            {list.length === 0 ? (
-              <p className="text-sm text-[var(--color-text-muted)] text-center py-8">{t('occupation.empty')}</p>
-            ) : (
-              <div className="space-y-1.5">
-                {list.map((tn, i) => (
-                  <div
-                    key={tn.id}
-                    className={cn(
-                      'flex items-center gap-3 px-3 py-2.5 rounded-lg border transition-colors',
-                      tn.isCurrent
-                        ? 'bg-[var(--color-brand)]/10 border-[var(--color-brand)]/40'
-                        : 'bg-[var(--color-bg-surface)] border-[var(--color-border-subtle)]',
-                    )}
-                  >
-                    <span className="text-xs font-mono text-[var(--color-text-muted)] w-5 flex-shrink-0">{i + 1}</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-sm font-semibold text-[var(--color-text-primary)]">{tn.allianceName}</span>
-                        {tn.isCurrent && (
-                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[var(--color-brand)] text-white">{t('occupation.current_badge')}</span>
-                        )}
-                      </div>
-                      {tn.note && <p className="text-[11px] text-[var(--color-text-muted)] mt-0.5">{tn.note}</p>}
-                    </div>
-                    {isAdmin && (
-                      <div className="flex items-center gap-0.5 flex-shrink-0">
-                        {/* 순서 이동 */}
-                        <button onClick={() => move(tn.id, 'up')} disabled={i === 0} className="p-1 rounded text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] disabled:opacity-30">
-                          <ChevronUp className="w-3.5 h-3.5" />
-                        </button>
-                        <button onClick={() => move(tn.id, 'down')} disabled={i === list.length - 1} className="p-1 rounded text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] disabled:opacity-30">
-                          <ChevronDown className="w-3.5 h-3.5" />
-                        </button>
-                        {/* 현재 지정 */}
-                        {!tn.isCurrent && (
-                          <button onClick={() => setCurrent(facility, tn.id)} title={t('occupation.set_current')} className="p-1 rounded text-[var(--color-text-muted)] hover:text-[var(--color-brand)]">
-                            <Flag className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                        <button onClick={() => openEdit(tn)} className="p-1 rounded text-[var(--color-text-muted)] hover:text-[var(--color-brand)]">
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                        <button onClick={() => setDeleteId(tn.id)} className="p-1 rounded text-[var(--color-text-muted)] hover:text-[var(--color-danger)]">
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          {/* 비어있을 때 빈 상태 (비관리자용) */}
+          {!isAdmin && list.length === 0 && (
+            <p className="text-sm text-[var(--color-text-muted)] text-center py-8">{t('occupation.empty')}</p>
+          )}
         </>
       )}
 
