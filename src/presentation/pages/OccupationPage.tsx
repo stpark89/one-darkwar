@@ -32,9 +32,6 @@ export const OccupationPage = () => {
     () => turns.filter((tn) => tn.facility === facility).sort((a, b) => a.sortOrder - b.sortOrder),
     [turns, facility],
   )
-  const current = list.find((tn) => tn.isCurrent) ?? null
-  const currentIdx = current ? list.findIndex((tn) => tn.id === current.id) : -1
-  const next = currentIdx >= 0 && currentIdx < list.length - 1 ? list[currentIdx + 1] : list[0] ?? null
 
   const openAdd = () => {
     const maxOrder = list.length > 0 ? Math.max(...list.map((tn) => tn.sortOrder)) : 0
@@ -102,24 +99,6 @@ export const OccupationPage = () => {
         </div>
       ) : (
         <>
-          {/* 현재 차례 배너 */}
-          <div className="bg-gradient-to-br from-[var(--color-brand)] to-blue-600 text-white rounded-xl p-4 sm:p-5">
-            <p className="text-[11px] uppercase tracking-wider opacity-80 mb-1 flex items-center gap-1">
-              <Flag className="w-3 h-3" /> {t('occupation.current_turn')}
-            </p>
-            {current ? (
-              <p className="text-2xl sm:text-3xl font-black">{current.allianceName}</p>
-            ) : (
-              <p className="text-lg font-bold opacity-70">{t('occupation.no_current')}</p>
-            )}
-            {current?.note && <p className="text-xs opacity-90 mt-1">{current.note}</p>}
-            {next && next.id !== current?.id && (
-              <p className="text-xs opacity-80 mt-2">
-                {t('occupation.next_turn')}: <span className="font-bold">{next.allianceName}</span>
-              </p>
-            )}
-          </div>
-
           {/* 순번 테이블 — 주차별 2D (8슬롯/주차) */}
           {list.length > 0 && (() => {
             const SLOTS = 8
