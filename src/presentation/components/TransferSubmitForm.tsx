@@ -523,6 +523,9 @@ const MemberFields = ({
 
         return (
           <div className="space-y-1">
+            <label className="text-xs font-medium text-[var(--color-text-secondary)] block">
+              {t('transfer.field_total_power')}
+            </label>
             <div className="flex gap-1">
               {/* 숫자 입력 */}
               <Input
