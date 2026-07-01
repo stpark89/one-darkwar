@@ -9,7 +9,6 @@ import type {
   ApplicationGroup,
   GroupSubmitDraft,
   DesiredAlliance,
-  AdminTransferGroup,
 } from '@/domain/entities/Transfer'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -26,18 +25,10 @@ const toApp = (r: any): TransferApplication => ({
   status: r.status,
   adminMessage: r.admin_message ?? '',
   groupId: r.group_id ?? null,
-  adminGroupId: r.admin_group_id ?? null,
   desiredAlliance: (r.desired_alliance ?? 'ONE') as DesiredAlliance,
   desiredAllianceOther: r.desired_alliance_other ?? '',
   reviewedAt: r.reviewed_at,
   reviewedBy: r.reviewed_by,
-  createdAt: r.created_at,
-})
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const toAdminGroup = (r: any): AdminTransferGroup => ({
-  id: r.id,
-  name: r.name,
   createdAt: r.created_at,
 })
 
@@ -56,13 +47,12 @@ const toGroup = (r: any): ApplicationGroup => ({
 interface TransferStore {
   apps: TransferApplication[]
   groups: ApplicationGroup[]
-  adminGroups: AdminTransferGroup[]
   loading: boolean
   initialized: boolean
   /** 단독(본인만) 신청 — 그룹 안 만들고 바로 INSERT */
   submit: (draft: TransferDraft) => Promise<boolean>
   /** 단체 신청 — application_groups + transfer_applications N개 한 트랜잭션으로 (RPC) */
-  submitGroup: (draft: GroupSubmitDraft) => Promise<string | null>  // 그룹 id 반환
+  submitGroup: (draft: GroupSubmitDraft) => Promise<string | null>
   loadAll: (force?: boolean) => Promise<void>
   /** 게스트 조회용 — 대기/승인 상태만 (RLS) */
   loadPublic: (force?: boolean) => Promise<void>
@@ -80,20 +70,13 @@ interface TransferStore {
   lookupByCredentials: (uid: string) => Promise<TransferApplication[]>
   /** 신청자를 기존 단체 그룹에 추가하거나 제거 (group_id 수정) */
   updateGroupId: (id: string, groupId: string | null) => Promise<void>
-  /** 관리자 그룹 목록 로드 */
-  loadAdminGroups: () => Promise<void>
-  /** 관리자 그룹 생성 */
-  createAdminGroup: (name: string) => Promise<AdminTransferGroup | null>
-  /** 관리자 그룹 삭제 (멤버의 admin_group_id는 null로 자동 처리) */
-  deleteAdminGroup: (id: string) => Promise<void>
-  /** 신청자를 관리자 그룹에 배정 (null이면 배정 해제) */
-  assignToAdminGroup: (appId: string, adminGroupId: string | null) => Promise<void>
+  /** 관리자가 직접 단체(application_groups)를 생성 */
+  createGroupByAdmin: (name: string, desiredAlliance: DesiredAlliance) => Promise<ApplicationGroup | null>
 }
 
 export const useTransferStore = create<TransferStore>((set, get) => ({
   apps: [],
   groups: [],
-  adminGroups: [],
   loading: false,
   initialized: false,
 
@@ -133,7 +116,6 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
       toast.error('최소 1명 이상의 멤버 정보가 필요합니다.')
       return null
     }
-    // 멤버 데이터를 jsonb 로 변환 (서버 RPC 가 jsonb 받음)
     const membersPayload = draft.members.map((m) => ({
       in_game_name: m.inGameName.trim(),
       uid: m.uid.trim(),
@@ -176,7 +158,7 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
     if (!force && get().initialized) return
     set({ loading: true })
     try {
-      const [appsRes, groupsRes, adminGroupsRes] = await Promise.all([
+      const [appsRes, groupsRes] = await Promise.all([
         supabase
           .from('transfer_applications')
           .select('*')
@@ -185,17 +167,12 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
           .from('application_groups')
           .select('*')
           .order('created_at', { ascending: false }),
-        supabase
-          .from('admin_transfer_groups')
-          .select('*')
-          .order('created_at', { ascending: true }),
       ])
       if (appsRes.error) throw appsRes.error
       if (groupsRes.error) throw groupsRes.error
       set({
         apps: (appsRes.data ?? []).map(toApp),
         groups: (groupsRes.data ?? []).map(toGroup),
-        adminGroups: (adminGroupsRes.data ?? []).map(toAdminGroup),
         initialized: true,
       })
     } catch (err) {
@@ -209,7 +186,6 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
     if (!force && get().initialized) return
     set({ loading: true })
     try {
-      // RLS 가 status IN (PENDING, APPROVED) 만 허용 — 거절은 자동 필터링됨
       const [appsRes, groupsRes] = await Promise.all([
         supabase
           .from('transfer_applications')
@@ -222,7 +198,6 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
       ])
       if (appsRes.error) throw appsRes.error
       if (groupsRes.error) throw groupsRes.error
-      // 공개 조회용이라 admin_message / reviewed_* 는 비워둠
       const apps: TransferApplication[] = (appsRes.data ?? []).map((r) => ({
         ...toApp(r),
         adminMessage: '',
@@ -242,7 +217,6 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
   },
 
   removeGroup: async (groupId) => {
-    // ON DELETE CASCADE 라 그룹 삭제 시 자식 신청도 함께 삭제됨
     const { error } = await supabase.from('application_groups').delete().eq('id', groupId)
     if (error) {
       console.error('group delete error', error)
@@ -322,13 +296,11 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
   },
 
   updateApplication: async (id, draft) => {
-    // anon 사용자는 RLS 로 인해 직접 .update() 불가 → SECURITY DEFINER RPC 사용
-    // RPC: update_my_transfer — uid 일치 확인 후 status=PENDING 으로 재설정
     const { data, error } = await supabase.rpc('update_my_transfer', {
       p_id: id,
-      p_uid: draft.uid.trim(),           // 본인 확인용 (현재 저장된 uid)
+      p_uid: draft.uid.trim(),
       p_in_game_name: draft.inGameName.trim(),
-      p_uid_new: draft.uid.trim(),        // 수정할 uid 값 (같을 수도 있음)
+      p_uid_new: draft.uid.trim(),
       p_current_server: draft.currentServer.trim(),
       p_country: draft.country.trim(),
       p_cp: draft.cp.trim(),
@@ -368,8 +340,6 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
     const trimmedUid = uid.trim()
     if (!trimmedUid) return []
     try {
-      // RPC 가 hang 되어도 8초 안에 반드시 풀리도록 race
-      // p_name 은 RPC 시그니처 호환을 위해 빈 문자열로 전달 (서버에서 무시됨)
       const res = await withTimeout(
         Promise.resolve(
           supabase.rpc('get_my_transfer', {
@@ -424,7 +394,7 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
       .eq('id', id)
     if (error) {
       console.error('updateGroupId error', error)
-      toast.error('그룹 변경 중 오류가 발생했습니다.')
+      toast.error('단체 변경 중 오류가 발생했습니다.')
       return
     }
     set((s) => ({
@@ -432,62 +402,28 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
     }))
   },
 
-  loadAdminGroups: async () => {
-    const { data, error } = await supabase
-      .from('admin_transfer_groups')
-      .select('*')
-      .order('created_at', { ascending: true })
-    if (error) {
-      console.error('loadAdminGroups error', error)
-      return
-    }
-    set({ adminGroups: (data ?? []).map(toAdminGroup) })
-  },
-
-  createAdminGroup: async (name) => {
+  createGroupByAdmin: async (name, desiredAlliance) => {
     const trimmed = name.trim()
     if (!trimmed) return null
     const { data, error } = await supabase
-      .from('admin_transfer_groups')
-      .insert({ name: trimmed })
+      .from('application_groups')
+      .insert({
+        leader_name: trimmed,
+        leader_uid: '',
+        leader_contact: '',
+        desired_alliance: desiredAlliance,
+        desired_alliance_other: '',
+        member_count: 0,
+      })
       .select()
       .single()
     if (error) {
-      console.error('createAdminGroup error', error)
-      toast.error('그룹 생성 중 오류가 발생했습니다.')
+      console.error('createGroupByAdmin error', error)
+      toast.error('단체 생성 중 오류가 발생했습니다.')
       return null
     }
-    const group = toAdminGroup(data)
-    set((s) => ({ adminGroups: [...s.adminGroups, group] }))
+    const group = toGroup(data)
+    set((s) => ({ groups: [group, ...s.groups] }))
     return group
-  },
-
-  deleteAdminGroup: async (id) => {
-    const { error } = await supabase.from('admin_transfer_groups').delete().eq('id', id)
-    if (error) {
-      console.error('deleteAdminGroup error', error)
-      toast.error('그룹 삭제 중 오류가 발생했습니다.')
-      return
-    }
-    set((s) => ({
-      adminGroups: s.adminGroups.filter((g) => g.id !== id),
-      // ON DELETE SET NULL — 로컬 상태도 반영
-      apps: s.apps.map((a) => (a.adminGroupId === id ? { ...a, adminGroupId: null } : a)),
-    }))
-  },
-
-  assignToAdminGroup: async (appId, adminGroupId) => {
-    const { error } = await supabase
-      .from('transfer_applications')
-      .update({ admin_group_id: adminGroupId })
-      .eq('id', appId)
-    if (error) {
-      console.error('assignToAdminGroup error', error)
-      toast.error('그룹 배정 중 오류가 발생했습니다.')
-      return
-    }
-    set((s) => ({
-      apps: s.apps.map((a) => (a.id === appId ? { ...a, adminGroupId } : a)),
-    }))
   },
 }))

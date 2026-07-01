@@ -20,19 +20,10 @@ export interface TransferApplication {
   adminMessage: string
   /** 그룹(단체) 신청이면 그룹 id. 단독 신청은 null */
   groupId: string | null
-  /** 관리자가 배정한 그룹 id (admin_transfer_groups) */
-  adminGroupId: string | null
   desiredAlliance: DesiredAlliance
   desiredAllianceOther: string
   reviewedAt: string | null
   reviewedBy: string | null
-  createdAt: string
-}
-
-/** 관리자가 직접 생성하는 그룹 (승인된 신청자 조직용) */
-export interface AdminTransferGroup {
-  id: string
-  name: string
   createdAt: string
 }
 
