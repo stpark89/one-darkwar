@@ -68,7 +68,7 @@ export const TransferPage = () => {
   const { user, isGuest } = useAuthStore()
   const isAdmin = user?.role === 'ROLE_ADMIN'
 
-  const { apps, groups, loading, loadAll, updateStatus, updateGroupStatus, updateAdminMessage, updateTier, remove, removeGroup } = useTransferStore()
+  const { apps, groups, adminGroups, loading, loadAll, updateStatus, updateGroupStatus, updateAdminMessage, updateTier, remove, removeGroup, createAdminGroup, deleteAdminGroup, assignToAdminGroup } = useTransferStore()
   const { tiers, loadAll: loadTiers, upsert: upsertTier, remove: removeTier } = useTransferTierStore()
 
   // 게스트 신청 폼은 <TransferSubmitForm /> 에서 자체 state 관리 (분리됨)
@@ -86,6 +86,13 @@ export const TransferPage = () => {
 
   // 관리자: 신청서 카드에서 등급 변경 드롭다운 열림 상태
   const [adminTierEditId, setAdminTierEditId] = useState<string | null>(null)
+
+  // 관리자: 어드민 그룹 UI 상태
+  const [adminGroupDraft, setAdminGroupDraft] = useState<string | null>(null) // null=닫힘, ''=새 그룹 입력 중
+  const [adminGroupSaving, setAdminGroupSaving] = useState(false)
+  const [adminGroupAssignId, setAdminGroupAssignId] = useState<string | null>(null) // 배정 드롭다운 열린 app id
+  const [expandedAdminGroupId, setExpandedAdminGroupId] = useState<string | null>(null)
+  const [deleteAdminGroupId, setDeleteAdminGroupId] = useState<string | null>(null)
 
   // 관리자: 신청서별 admin_message 입력 드래프트 (저장 전 로컬값)
   const [messageDrafts, setMessageDrafts] = useState<Record<string, string>>({})
@@ -249,6 +256,23 @@ export const TransferPage = () => {
     return { groupBlocks, soloApps }
   }, [filtered, groups])
 
+  // 승인 탭: 단독 신청자를 관리자 그룹별로 분류
+  const { adminGroupedApps, ungroupedApps } = useMemo(() => {
+    if (tab !== 'APPROVED') return { adminGroupedApps: new Map<string, typeof soloApps>(), ungroupedApps: soloApps }
+    const grouped = new Map<string, typeof soloApps>()
+    const ungrouped: typeof soloApps = []
+    for (const a of soloApps) {
+      if (a.adminGroupId) {
+        const arr = grouped.get(a.adminGroupId) ?? []
+        arr.push(a)
+        grouped.set(a.adminGroupId, arr)
+      } else {
+        ungrouped.push(a)
+      }
+    }
+    return { adminGroupedApps: grouped, ungroupedApps: ungrouped }
+  }, [soloApps, tab])
+
   // 동맹별 통계 (전체 apps 기준 — 현재 탭과 무관하게 표시)
   const allianceStats = useMemo(() => {
     const stats: Record<string, number> = { ONE: 0, NXO: 0, NH_D: 0, OTHER: 0 }
@@ -405,6 +429,53 @@ export const TransferPage = () => {
                           )}
                         </span>
                       </div>
+                      {/* 관리자 그룹 배정 */}
+                      {adminGroups.length > 0 && (
+                        <div className="flex gap-2 items-center">
+                          <span className="text-[var(--color-text-muted)] w-16 flex-shrink-0">{t('transfer.field_admin_group')}</span>
+                          <div className="relative">
+                            <button
+                              type="button"
+                              onClick={() => setAdminGroupAssignId((cur) => (cur === a.id ? null : a.id))}
+                              className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-border)] transition-colors"
+                            >
+                              {a.adminGroupId
+                                ? (adminGroups.find((g) => g.id === a.adminGroupId)?.name ?? '?')
+                                : t('transfer.admin_group_unassigned')}
+                              <ChevronDown className="w-3 h-3" />
+                            </button>
+                            {adminGroupAssignId === a.id && (
+                              <>
+                                <div className="fixed inset-0 z-10" onClick={() => setAdminGroupAssignId(null)} />
+                                <div className="absolute left-0 mt-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-surface)] shadow-xl overflow-hidden z-20 min-w-[160px]">
+                                  <button
+                                    type="button"
+                                    onClick={async () => { await assignToAdminGroup(a.id, null); setAdminGroupAssignId(null) }}
+                                    className={cn('w-full flex items-center px-3 py-2 text-xs transition-colors text-left',
+                                      !a.adminGroupId ? 'bg-[var(--color-brand)]/15 text-[var(--color-brand)] font-semibold' : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-elevated)]'
+                                    )}
+                                  >
+                                    {t('transfer.admin_group_unassigned')}
+                                  </button>
+                                  {adminGroups.map((g) => (
+                                    <button
+                                      key={g.id}
+                                      type="button"
+                                      onClick={async () => { await assignToAdminGroup(a.id, g.id); setAdminGroupAssignId(null) }}
+                                      className={cn('w-full flex items-center gap-2 px-3 py-2 text-xs transition-colors text-left',
+                                        a.adminGroupId === g.id ? 'bg-[var(--color-brand)]/15 text-[var(--color-brand)] font-semibold' : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-elevated)]'
+                                      )}
+                                    >
+                                      <span className="w-2 h-2 rounded-full bg-[var(--color-brand)] flex-shrink-0" />
+                                      {g.name}
+                                    </button>
+                                  ))}
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      )}
                       <div className="flex gap-2">
                         <span className="text-[var(--color-text-muted)] w-16 flex-shrink-0">{t('transfer.field_total_power')}</span>
                         <span className="text-[var(--color-text-primary)]">{a.totalPower || '—'}</span>
@@ -780,7 +851,8 @@ export const TransferPage = () => {
             </div>
           </div>
 
-          {/* 탭 */}
+          {/* 탭 + 승인 탭 그룹 만들기 버튼 */}
+          <div className="flex items-center gap-2 flex-wrap">
           <div className="flex gap-1 p-1 bg-[var(--color-bg-surface)] rounded-lg border border-[var(--color-border-subtle)] w-fit">
             {(['PENDING', 'APPROVED', 'REJECTED'] as const).map((s) => (
               <button
@@ -799,6 +871,16 @@ export const TransferPage = () => {
                 </span>
               </button>
             ))}
+          </div>
+          {tab === 'APPROVED' && (
+            <button
+              onClick={() => setAdminGroupDraft('')}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded text-xs font-semibold bg-[var(--color-brand)]/15 text-[var(--color-brand)] hover:bg-[var(--color-brand)]/25 transition-colors"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              {t('transfer.admin_group_create_btn')}
+            </button>
+          )}
           </div>
 
           {/* 목록 */}
@@ -866,10 +948,63 @@ export const TransferPage = () => {
                 )
               })}
 
-              {/* 단독 신청 */}
-              {soloApps.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {soloApps.map((a) => renderCard(a))}
+              {/* 승인 탭: 관리자 그룹별 블록 */}
+              {tab === 'APPROVED' && adminGroups.map((group) => {
+                const members = adminGroupedApps.get(group.id) ?? []
+                const isOpen = expandedAdminGroupId === group.id
+                return (
+                  <div key={group.id} className="bg-[var(--color-bg-surface)] border border-[var(--color-brand)]/30 rounded-xl overflow-hidden">
+                    <button
+                      onClick={() => setExpandedAdminGroupId(isOpen ? null : group.id)}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-left"
+                    >
+                      <div className="w-9 h-9 rounded-full bg-[var(--color-brand)]/15 flex items-center justify-center flex-shrink-0">
+                        <Users className="w-4 h-4 text-[var(--color-brand)]" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-[var(--color-text-primary)] truncate">
+                          {group.name}
+                        </p>
+                        <p className="text-[11px] text-[var(--color-text-muted)] mt-0.5">
+                          {t('transfer.admin_group_n_members', { n: members.length })}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setDeleteAdminGroupId(group.id) }}
+                        className="p-1.5 rounded text-[var(--color-text-muted)] hover:text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 transition-colors mr-1"
+                        title={t('common.delete')}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                      <ChevronDown className={cn('w-4 h-4 text-[var(--color-text-muted)] transition-transform flex-shrink-0', isOpen && 'rotate-180')} />
+                    </button>
+                    {isOpen && (
+                      <div className="border-t border-[var(--color-border-subtle)] p-3 bg-[var(--color-bg-base)]/40">
+                        {members.length === 0 ? (
+                          <p className="text-xs text-[var(--color-text-muted)] text-center py-3">{t('transfer.admin_group_unassigned')} — 0</p>
+                        ) : (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {members.map((a) => renderCard(a))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+
+              {/* 단독 신청 (승인 탭에서는 미배정만, 나머지 탭은 전체) */}
+              {(tab === 'APPROVED' ? ungroupedApps : soloApps).length > 0 && (
+                <div>
+                  {tab === 'APPROVED' && adminGroups.length > 0 && (
+                    <p className="text-[11px] text-[var(--color-text-muted)] mb-2 px-1">
+                      {t('transfer.admin_group_unassigned')} ({ungroupedApps.length})
+                    </p>
+                  )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {(tab === 'APPROVED' ? ungroupedApps : soloApps).map((a) => renderCard(a))}
+                  </div>
                 </div>
               )}
             </div>
@@ -930,6 +1065,75 @@ export const TransferPage = () => {
         </div>
       )}
 
+
+      {/* 관리자 그룹 생성 모달 */}
+      {adminGroupDraft !== null && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-[var(--color-bg-surface)] rounded-xl border border-[var(--color-border)] w-full max-w-sm p-6">
+            <h2 className="text-base font-bold text-[var(--color-text-primary)] mb-4">{t('transfer.admin_group_section')}</h2>
+            <input
+              autoFocus
+              type="text"
+              value={adminGroupDraft}
+              onChange={(e) => setAdminGroupDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  if (!adminGroupDraft.trim() || adminGroupSaving) return
+                  setAdminGroupSaving(true)
+                  createAdminGroup(adminGroupDraft).then(() => {
+                    setAdminGroupSaving(false)
+                    setAdminGroupDraft(null)
+                  })
+                } else if (e.key === 'Escape') {
+                  setAdminGroupDraft(null)
+                }
+              }}
+              placeholder={t('transfer.admin_group_name_placeholder')}
+              className="w-full px-3 py-2 text-sm rounded-lg bg-[var(--color-bg-elevated)] border border-[var(--color-border-subtle)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] outline-none focus:border-[var(--color-brand)] mb-4"
+            />
+            <div className="flex gap-2">
+              <Button variant="outline" size="full" onClick={() => setAdminGroupDraft(null)}>{t('common.cancel')}</Button>
+              <Button
+                size="full"
+                disabled={!adminGroupDraft.trim() || adminGroupSaving}
+                onClick={async () => {
+                  if (!adminGroupDraft.trim() || adminGroupSaving) return
+                  setAdminGroupSaving(true)
+                  await createAdminGroup(adminGroupDraft)
+                  setAdminGroupSaving(false)
+                  setAdminGroupDraft(null)
+                }}
+              >
+                {adminGroupSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                {t('common.save')}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 관리자 그룹 삭제 확인 모달 */}
+      {deleteAdminGroupId && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-[var(--color-bg-surface)] rounded-xl border border-[var(--color-border)] w-full max-w-sm p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-[var(--color-danger)]/15 flex items-center justify-center flex-shrink-0">
+                <Trash2 className="w-5 h-5 text-[var(--color-danger)]" />
+              </div>
+              <h2 className="text-base font-bold text-[var(--color-text-primary)]">{t('transfer.admin_group_delete_title')}</h2>
+            </div>
+            <p className="text-sm text-[var(--color-text-secondary)] mb-5 break-keep">{t('transfer.admin_group_delete_desc')}</p>
+            <div className="flex gap-2">
+              <Button variant="outline" size="full" onClick={() => setDeleteAdminGroupId(null)}>{t('common.cancel')}</Button>
+              <Button size="full" className="bg-[var(--color-danger)] hover:bg-red-700 text-white"
+                onClick={async () => { await deleteAdminGroup(deleteAdminGroupId); setDeleteAdminGroupId(null) }}>
+                {t('common.delete')}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* DELETE CONFIRM MODAL */}
       {deleteConfirmId && (

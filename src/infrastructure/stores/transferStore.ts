@@ -9,6 +9,7 @@ import type {
   ApplicationGroup,
   GroupSubmitDraft,
   DesiredAlliance,
+  AdminTransferGroup,
 } from '@/domain/entities/Transfer'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -25,10 +26,18 @@ const toApp = (r: any): TransferApplication => ({
   status: r.status,
   adminMessage: r.admin_message ?? '',
   groupId: r.group_id ?? null,
+  adminGroupId: r.admin_group_id ?? null,
   desiredAlliance: (r.desired_alliance ?? 'ONE') as DesiredAlliance,
   desiredAllianceOther: r.desired_alliance_other ?? '',
   reviewedAt: r.reviewed_at,
   reviewedBy: r.reviewed_by,
+  createdAt: r.created_at,
+})
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const toAdminGroup = (r: any): AdminTransferGroup => ({
+  id: r.id,
+  name: r.name,
   createdAt: r.created_at,
 })
 
@@ -47,6 +56,7 @@ const toGroup = (r: any): ApplicationGroup => ({
 interface TransferStore {
   apps: TransferApplication[]
   groups: ApplicationGroup[]
+  adminGroups: AdminTransferGroup[]
   loading: boolean
   initialized: boolean
   /** 단독(본인만) 신청 — 그룹 안 만들고 바로 INSERT */
@@ -68,11 +78,20 @@ interface TransferStore {
   updateApplication: (id: string, draft: TransferDraft) => Promise<boolean>
   /** 게스트가 UID 로 본인 신청 조회 (anon RPC 호출). inGameName 은 더 이상 사용 안 함 (호환용) */
   lookupByCredentials: (uid: string) => Promise<TransferApplication[]>
+  /** 관리자 그룹 목록 로드 */
+  loadAdminGroups: () => Promise<void>
+  /** 관리자 그룹 생성 */
+  createAdminGroup: (name: string) => Promise<AdminTransferGroup | null>
+  /** 관리자 그룹 삭제 (멤버의 admin_group_id는 null로 자동 처리) */
+  deleteAdminGroup: (id: string) => Promise<void>
+  /** 신청자를 관리자 그룹에 배정 (null이면 배정 해제) */
+  assignToAdminGroup: (appId: string, adminGroupId: string | null) => Promise<void>
 }
 
 export const useTransferStore = create<TransferStore>((set, get) => ({
   apps: [],
   groups: [],
+  adminGroups: [],
   loading: false,
   initialized: false,
 
@@ -155,7 +174,7 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
     if (!force && get().initialized) return
     set({ loading: true })
     try {
-      const [appsRes, groupsRes] = await Promise.all([
+      const [appsRes, groupsRes, adminGroupsRes] = await Promise.all([
         supabase
           .from('transfer_applications')
           .select('*')
@@ -164,12 +183,17 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
           .from('application_groups')
           .select('*')
           .order('created_at', { ascending: false }),
+        supabase
+          .from('admin_transfer_groups')
+          .select('*')
+          .order('created_at', { ascending: true }),
       ])
       if (appsRes.error) throw appsRes.error
       if (groupsRes.error) throw groupsRes.error
       set({
         apps: (appsRes.data ?? []).map(toApp),
         groups: (groupsRes.data ?? []).map(toGroup),
+        adminGroups: (adminGroupsRes.data ?? []).map(toAdminGroup),
         initialized: true,
       })
     } catch (err) {
@@ -389,5 +413,64 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
       return
     }
     set((s) => ({ apps: s.apps.filter((a) => a.id !== id) }))
+  },
+
+  loadAdminGroups: async () => {
+    const { data, error } = await supabase
+      .from('admin_transfer_groups')
+      .select('*')
+      .order('created_at', { ascending: true })
+    if (error) {
+      console.error('loadAdminGroups error', error)
+      return
+    }
+    set({ adminGroups: (data ?? []).map(toAdminGroup) })
+  },
+
+  createAdminGroup: async (name) => {
+    const trimmed = name.trim()
+    if (!trimmed) return null
+    const { data, error } = await supabase
+      .from('admin_transfer_groups')
+      .insert({ name: trimmed })
+      .select()
+      .single()
+    if (error) {
+      console.error('createAdminGroup error', error)
+      toast.error('그룹 생성 중 오류가 발생했습니다.')
+      return null
+    }
+    const group = toAdminGroup(data)
+    set((s) => ({ adminGroups: [...s.adminGroups, group] }))
+    return group
+  },
+
+  deleteAdminGroup: async (id) => {
+    const { error } = await supabase.from('admin_transfer_groups').delete().eq('id', id)
+    if (error) {
+      console.error('deleteAdminGroup error', error)
+      toast.error('그룹 삭제 중 오류가 발생했습니다.')
+      return
+    }
+    set((s) => ({
+      adminGroups: s.adminGroups.filter((g) => g.id !== id),
+      // ON DELETE SET NULL — 로컬 상태도 반영
+      apps: s.apps.map((a) => (a.adminGroupId === id ? { ...a, adminGroupId: null } : a)),
+    }))
+  },
+
+  assignToAdminGroup: async (appId, adminGroupId) => {
+    const { error } = await supabase
+      .from('transfer_applications')
+      .update({ admin_group_id: adminGroupId })
+      .eq('id', appId)
+    if (error) {
+      console.error('assignToAdminGroup error', error)
+      toast.error('그룹 배정 중 오류가 발생했습니다.')
+      return
+    }
+    set((s) => ({
+      apps: s.apps.map((a) => (a.id === appId ? { ...a, adminGroupId } : a)),
+    }))
   },
 }))
