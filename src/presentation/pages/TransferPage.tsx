@@ -364,11 +364,11 @@ export const TransferPage = () => {
                               <button
                                 type="button"
                                 onClick={() => setGroupDropdownId((cur) => (cur === a.id ? null : a.id))}
-                                className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-border)] flex items-center gap-0.5 transition-colors"
+                                className="text-[11px] font-bold px-2 py-1 rounded-md border border-purple-500/40 bg-purple-500/10 text-purple-400 hover:bg-purple-500/25 hover:border-purple-500/60 flex items-center gap-1 transition-colors"
                               >
-                                <Users className="w-2.5 h-2.5" />
+                                <Users className="w-3 h-3" />
                                 단체 추가
-                                <ChevronDown className="w-2.5 h-2.5" />
+                                <ChevronDown className="w-3 h-3" />
                               </button>
                               {groupDropdownId === a.id && (
                                 <>
