@@ -68,7 +68,7 @@ export const TransferPage = () => {
   const { user, isGuest } = useAuthStore()
   const isAdmin = user?.role === 'ROLE_ADMIN'
 
-  const { apps, groups, adminGroups, loading, loadAll, updateStatus, updateGroupStatus, updateAdminMessage, updateTier, remove, removeGroup, createAdminGroup, deleteAdminGroup, assignToAdminGroup } = useTransferStore()
+  const { apps, groups, adminGroups, loading, loadAll, updateStatus, updateGroupStatus, updateAdminMessage, updateTier, remove, removeGroup, updateGroupId, createAdminGroup, deleteAdminGroup, assignToAdminGroup } = useTransferStore()
   const { tiers, loadAll: loadTiers, upsert: upsertTier, remove: removeTier } = useTransferTierStore()
 
   // 게스트 신청 폼은 <TransferSubmitForm /> 에서 자체 state 관리 (분리됨)
@@ -338,12 +338,77 @@ export const TransferPage = () => {
                               ? (a.desiredAllianceOther || t('transfer.alliance_other'))
                               : a.desiredAlliance === 'NH_D' ? 'NH-D' : a.desiredAlliance}
                           </span>
-                          {/* 단체 신청 배지 */}
-                          {a.groupId && (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-400 flex-shrink-0">
-                              {t('transfer.group_badge')}
-                            </span>
-                          )}
+                          {/* 단체 신청 배지 or 단체 추가 드롭다운 */}
+                          {a.groupId ? (
+                            <div className="relative flex-shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => setAdminGroupAssignId((cur) => (cur === `grp-${a.id}` ? null : `grp-${a.id}`))}
+                                className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-400 flex items-center gap-0.5 hover:bg-purple-500/25 transition-colors"
+                              >
+                                {t('transfer.group_badge')}
+                                <ChevronDown className="w-2.5 h-2.5" />
+                              </button>
+                              {adminGroupAssignId === `grp-${a.id}` && (
+                                <>
+                                  <div className="fixed inset-0 z-10" onClick={() => setAdminGroupAssignId(null)} />
+                                  <div className="absolute left-0 mt-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-surface)] shadow-xl overflow-hidden z-20 min-w-[180px]">
+                                    <p className="text-[10px] text-[var(--color-text-muted)] px-3 pt-2 pb-1 font-semibold">단체 변경</p>
+                                    <button
+                                      type="button"
+                                      onClick={async () => { await updateGroupId(a.id, null); setAdminGroupAssignId(null) }}
+                                      className="w-full flex items-center gap-2 px-3 py-2 text-xs text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 transition-colors text-left"
+                                    >
+                                      단체에서 제거
+                                    </button>
+                                    {groups.filter((g) => g.id !== a.groupId).map((g) => (
+                                      <button
+                                        key={g.id}
+                                        type="button"
+                                        onClick={async () => { await updateGroupId(a.id, g.id); setAdminGroupAssignId(null) }}
+                                        className="w-full flex items-center gap-2 px-3 py-2 text-xs text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-elevated)] transition-colors text-left"
+                                      >
+                                        <Users className="w-3 h-3 flex-shrink-0" />
+                                        {g.leaderName} 단체
+                                      </button>
+                                    ))}
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          ) : groups.length > 0 ? (
+                            <div className="relative flex-shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => setAdminGroupAssignId((cur) => (cur === `grp-${a.id}` ? null : `grp-${a.id}`))}
+                                className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-border)] flex items-center gap-0.5 transition-colors"
+                              >
+                                <Users className="w-2.5 h-2.5" />
+                                단체 추가
+                                <ChevronDown className="w-2.5 h-2.5" />
+                              </button>
+                              {adminGroupAssignId === `grp-${a.id}` && (
+                                <>
+                                  <div className="fixed inset-0 z-10" onClick={() => setAdminGroupAssignId(null)} />
+                                  <div className="absolute left-0 mt-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-surface)] shadow-xl overflow-hidden z-20 min-w-[180px]">
+                                    <p className="text-[10px] text-[var(--color-text-muted)] px-3 pt-2 pb-1 font-semibold">단체 선택</p>
+                                    {groups.map((g) => (
+                                      <button
+                                        key={g.id}
+                                        type="button"
+                                        onClick={async () => { await updateGroupId(a.id, g.id); setAdminGroupAssignId(null) }}
+                                        className="w-full flex items-center gap-2 px-3 py-2 text-xs text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-elevated)] transition-colors text-left"
+                                      >
+                                        <Users className="w-3 h-3 flex-shrink-0" />
+                                        <span className="flex-1 truncate">{g.leaderName} 단체</span>
+                                        <span className="text-[var(--color-text-muted)]">{g.memberCount}명</span>
+                                      </button>
+                                    ))}
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          ) : null}
                         </div>
                         <p className="text-[11px] text-[var(--color-text-muted)] mt-0.5">
                           {new Date(a.createdAt).toLocaleString()}

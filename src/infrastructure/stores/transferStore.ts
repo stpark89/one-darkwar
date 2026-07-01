@@ -78,6 +78,8 @@ interface TransferStore {
   updateApplication: (id: string, draft: TransferDraft) => Promise<boolean>
   /** 게스트가 UID 로 본인 신청 조회 (anon RPC 호출). inGameName 은 더 이상 사용 안 함 (호환용) */
   lookupByCredentials: (uid: string) => Promise<TransferApplication[]>
+  /** 신청자를 기존 단체 그룹에 추가하거나 제거 (group_id 수정) */
+  updateGroupId: (id: string, groupId: string | null) => Promise<void>
   /** 관리자 그룹 목록 로드 */
   loadAdminGroups: () => Promise<void>
   /** 관리자 그룹 생성 */
@@ -413,6 +415,21 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
       return
     }
     set((s) => ({ apps: s.apps.filter((a) => a.id !== id) }))
+  },
+
+  updateGroupId: async (id, groupId) => {
+    const { error } = await supabase
+      .from('transfer_applications')
+      .update({ group_id: groupId })
+      .eq('id', id)
+    if (error) {
+      console.error('updateGroupId error', error)
+      toast.error('그룹 변경 중 오류가 발생했습니다.')
+      return
+    }
+    set((s) => ({
+      apps: s.apps.map((a) => (a.id === id ? { ...a, groupId } : a)),
+    }))
   },
 
   loadAdminGroups: async () => {
