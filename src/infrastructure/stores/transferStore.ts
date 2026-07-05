@@ -21,6 +21,7 @@ const toApp = (r: any): TransferApplication => ({
   cp: r.cp ?? '',
   totalPower: r.total_power ?? '',
   note: r.note ?? '',
+  invitedAt: r.invited_at ?? null,
   tierId: r.tier_id ?? null,
   status: r.status,
   adminMessage: r.admin_message ?? '',
@@ -61,6 +62,8 @@ interface TransferStore {
   updateGroupStatus: (groupId: string, status: TransferStatus, reviewerId: string) => Promise<void>
   updateAdminMessage: (id: string, adminMessage: string) => Promise<void>
   updateTier: (id: string, tierId: string | null) => Promise<void>
+  /** 초대 완료 표시 토글 (관리자 전용) */
+  setInvited: (id: string, invited: boolean) => Promise<void>
   remove: (id: string) => Promise<void>
   /** 그룹 전체 삭제 (멤버들도 cascade 로) */
   removeGroup: (groupId: string) => Promise<void>
@@ -374,6 +377,22 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
     }
     set((s) => ({
       apps: s.apps.map((a) => (a.id === id ? { ...a, tierId } : a)),
+    }))
+  },
+
+  setInvited: async (id, invited) => {
+    const invitedAt = invited ? new Date().toISOString() : null
+    const { error } = await supabase
+      .from('transfer_applications')
+      .update({ invited_at: invitedAt })
+      .eq('id', id)
+    if (error) {
+      console.error('transfer setInvited error', error)
+      toast.error('초대 상태 변경 중 오류가 발생했습니다.')
+      return
+    }
+    set((s) => ({
+      apps: s.apps.map((a) => (a.id === id ? { ...a, invitedAt } : a)),
     }))
   },
 

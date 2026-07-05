@@ -15,6 +15,8 @@ export interface TransferApplication {
   totalPower: string
   /** 신청자가 직접 남기는 메모 (admin_message 와 별개) */
   note: string
+  /** 관리자가 초대 메일을 보낸 시각 (null = 미초대) — 관리자 전용 추적 */
+  invitedAt: string | null
   tierId: string | null
   status: TransferStatus
   adminMessage: string

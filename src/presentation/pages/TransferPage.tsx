@@ -1,6 +1,6 @@
 ﻿import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, Navigate } from 'react-router-dom'
-import { Loader2, CheckCircle2, XCircle, Clock, Trash2, RotateCcw, Layers, Pencil, Plus, Save, X, Search, Bell, BellOff, Users, ChevronDown } from 'lucide-react'
+import { Loader2, CheckCircle2, XCircle, Clock, Trash2, RotateCcw, Layers, Pencil, Plus, Save, X, Search, Bell, BellOff, Users, ChevronDown, Mail, MailCheck } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { useTransferStore } from '@/infrastructure/stores/transferStore'
@@ -68,7 +68,7 @@ export const TransferPage = () => {
   const { user, isGuest } = useAuthStore()
   const isAdmin = user?.role === 'ROLE_ADMIN'
 
-  const { apps, groups, loading, loadAll, updateStatus, updateGroupStatus, updateAdminMessage, updateTier, remove, removeGroup, updateGroupId, createGroupByAdmin } = useTransferStore()
+  const { apps, groups, loading, loadAll, updateStatus, updateGroupStatus, updateAdminMessage, updateTier, setInvited, remove, removeGroup, updateGroupId, createGroupByAdmin } = useTransferStore()
   const { tiers, loadAll: loadTiers, upsert: upsertTier, remove: removeTier } = useTransferTierStore()
 
   // 게스트 신청 폼은 <TransferSubmitForm /> 에서 자체 state 관리 (분리됨)
@@ -83,6 +83,7 @@ export const TransferPage = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [tierFilter, setTierFilter] = useState<string>('all') // 'all' | tier.id | 'unmatched'
   const [allianceFilter, setAllianceFilter] = useState<'all' | 'ONE' | 'NXO' | 'NH_D' | 'OTHER'>('all')
+  const [invitedFilter, setInvitedFilter] = useState<'all' | 'yes' | 'no'>('all')
 
   // 관리자: 신청서 카드에서 등급 변경 드롭다운 열림 상태
   const [adminTierEditId, setAdminTierEditId] = useState<string | null>(null)
@@ -224,6 +225,8 @@ export const TransferPage = () => {
   const filtered = apps.filter((a) => {
     if (a.status !== tab) return false
     if (allianceFilter !== 'all' && a.desiredAlliance !== allianceFilter) return false
+    if (invitedFilter === 'yes' && !a.invitedAt) return false
+    if (invitedFilter === 'no' && a.invitedAt) return false
     const q = searchQuery.trim().toLowerCase()
     if (q) {
       const hit = a.inGameName.toLowerCase().includes(q) || (a.uid ?? '').toLowerCase().includes(q)
@@ -404,10 +407,17 @@ export const TransferPage = () => {
                           {new Date(a.createdAt).toLocaleString()}
                         </p>
                       </div>
-                      <span className={cn('flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded flex-shrink-0', meta.bg, meta.color)}>
-                        <Icon className="w-3 h-3" />
-                        {t(`transfer.status_${a.status.toLowerCase()}`)}
-                      </span>
+                      <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                        <span className={cn('flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded', meta.bg, meta.color)}>
+                          <Icon className="w-3 h-3" />
+                          {t(`transfer.status_${a.status.toLowerCase()}`)}
+                        </span>
+                        {a.invitedAt && (
+                          <span className="flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-[var(--color-brand)]/15 text-[var(--color-brand)]">
+                            <MailCheck className="w-3 h-3" /> {t('transfer.invited_badge')}
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     <div className="space-y-1.5 text-xs text-[var(--color-text-secondary)] mb-3">
@@ -564,6 +574,22 @@ export const TransferPage = () => {
                         <Trash2 className="w-3 h-3" />
                       </button>
                     </div>
+
+                    {/* 초대 완료 토글 — 관리자가 초대 메일 보낸 신청자 표시 */}
+                    <button
+                      onClick={() => setInvited(a.id, !a.invitedAt)}
+                      className={cn(
+                        'w-full flex items-center justify-center gap-1.5 mt-2 px-2 py-1.5 rounded text-xs font-semibold transition-colors',
+                        a.invitedAt
+                          ? 'bg-[var(--color-brand)]/15 text-[var(--color-brand)] hover:bg-[var(--color-brand)]/25'
+                          : 'bg-[var(--color-bg-elevated)] text-[var(--color-text-secondary)] hover:bg-[var(--color-border)]',
+                      )}
+                    >
+                      {a.invitedAt ? <MailCheck className="w-3.5 h-3.5" /> : <Mail className="w-3.5 h-3.5" />}
+                      {a.invitedAt
+                        ? t('transfer.invited_on', { date: new Date(a.invitedAt).toLocaleDateString() })
+                        : t('transfer.mark_invited')}
+                    </button>
                   </div>
     )
   }
@@ -854,6 +880,28 @@ export const TransferPage = () => {
                   {code !== 'all' && (
                     <span className="text-[9px] opacity-70">{allianceStats[code] ?? 0}</span>
                   )}
+                </button>
+              ))}
+            </div>
+            {/* 초대 상태 필터 */}
+            <div className="flex gap-1 flex-wrap">
+              {(['all', 'no', 'yes'] as const).map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setInvitedFilter(f)}
+                  className={cn(
+                    'px-2.5 py-1 rounded text-[11px] font-semibold transition-colors flex items-center gap-1',
+                    invitedFilter === f
+                      ? 'bg-[var(--color-brand)] text-white'
+                      : 'bg-[var(--color-bg-elevated)] text-[var(--color-text-secondary)] hover:bg-[var(--color-border)]',
+                  )}
+                >
+                  {f === 'yes' && <MailCheck className="w-3 h-3" />}
+                  {f === 'all'
+                    ? t('transfer.filter_all')
+                    : f === 'no'
+                      ? t('transfer.invite_filter_no')
+                      : t('transfer.invite_filter_yes')}
                 </button>
               ))}
             </div>
