@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { Ticket, ChevronRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
-import { useTransferTierStore } from '@/infrastructure/stores/transferTierStore'
+import { useTransferTierStore, findTierForCp } from '@/infrastructure/stores/transferTierStore'
 import { TIER_COLOR_CLASS } from '@/domain/entities/TransferTier'
+import { parseCp } from '@/lib/cp'
 import { cn } from '@/lib/utils'
 
 /**
@@ -16,7 +17,8 @@ export const RecruitmentWidget = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { tiers, loadAll } = useTransferTierStore()
-  const [counts, setCounts] = useState<Record<string, number>>({}) // tierId -> 승인 수
+  // 승인된 신청의 (tier_id, total_power) 원본 — 등급 매칭은 tiers 로드 후 계산
+  const [approvedRows, setApprovedRows] = useState<{ tierId: string | null; totalPower: string }[]>([])
 
   useEffect(() => {
     loadAll()
@@ -24,21 +26,32 @@ export const RecruitmentWidget = () => {
       try {
         const { data, error } = await supabase
           .from('transfer_applications')
-          .select('tier_id, status')
+          .select('tier_id, total_power, status')
         if (error) throw error
-        const map: Record<string, number> = {}
-        for (const r of data ?? []) {
-          if (r.status === 'APPROVED' && r.tier_id) {
-            map[r.tier_id] = (map[r.tier_id] ?? 0) + 1
-          }
-        }
-        setCounts(map)
+        setApprovedRows(
+          (data ?? [])
+            .filter((r) => r.status === 'APPROVED')
+            .map((r) => ({ tierId: r.tier_id ?? null, totalPower: r.total_power ?? '' })),
+        )
       } catch (e) {
         console.error('[RecruitmentWidget] count error', e)
       }
     }
     run()
   }, [loadAll])
+
+  // 등급별 승인 인원 — tier_id(관리자 지정) 우선, 없으면 Migration Score 매칭
+  // (관리자/이주 내역 집계와 동일 로직으로 통일)
+  const counts = useMemo(() => {
+    const map: Record<string, number> = {}
+    for (const r of approvedRows) {
+      const tier = r.tierId
+        ? tiers.find((tt) => tt.id === r.tierId) ?? null
+        : r.totalPower.trim() ? findTierForCp(tiers, parseCp(r.totalPower)) : null
+      if (tier) map[tier.id] = (map[tier.id] ?? 0) + 1
+    }
+    return map
+  }, [approvedRows, tiers])
 
   const sorted = [...tiers].sort((a, b) => a.sortOrder - b.sortOrder)
   if (sorted.length === 0) return null
