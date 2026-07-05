@@ -250,11 +250,18 @@ export const TransferPage = () => {
       arr.push(a)
       byGroup.set(a.groupId, arr)
     }
-    const groupBlocks = groups
+    // 현재 탭에 멤버가 있는 그룹
+    const withMembers = groups
       .filter((g) => byGroup.has(g.id))
       .map((g) => ({ group: g, members: byGroup.get(g.id)! }))
+    // 어떤 신청도 속하지 않은 빈 그룹 — 관리자가 정리(삭제)할 수 있게 항상 노출
+    const nonEmptyIds = new Set(apps.filter((a) => a.groupId).map((a) => a.groupId))
+    const emptyGroups = groups
+      .filter((g) => !nonEmptyIds.has(g.id))
+      .map((g) => ({ group: g, members: [] as typeof filtered }))
+    const groupBlocks = [...withMembers, ...emptyGroups]
     return { groupBlocks, soloApps }
-  }, [filtered, groups])
+  }, [filtered, groups, apps])
 
   // 동맹별 통계 (전체 apps 기준 — 현재 탭과 무관하게 표시)
   const allianceStats = useMemo(() => {
@@ -898,7 +905,7 @@ export const TransferPage = () => {
                   ? (group.desiredAllianceOther || t('transfer.alliance_other'))
                   : group.desiredAlliance === 'NH_D' ? 'NH-D' : group.desiredAlliance
                 return (
-                  <div key={group.id} className="bg-[var(--color-bg-surface)] border border-purple-500/30 rounded-xl overflow-hidden">
+                  <div key={group.id} className="bg-[var(--color-bg-surface)] border border-purple-500/30 rounded-xl">
                     <button
                       onClick={() => setExpandedGroupId(isOpen ? null : group.id)}
                       className="w-full flex items-center gap-3 px-4 py-3 text-left"
@@ -939,7 +946,7 @@ export const TransferPage = () => {
                       </button>
                     </div>
                     {isOpen && (
-                      <div className="border-t border-[var(--color-border-subtle)] p-3 grid grid-cols-1 md:grid-cols-2 gap-3 bg-[var(--color-bg-base)]/40">
+                      <div className="border-t border-[var(--color-border-subtle)] p-3 grid grid-cols-1 md:grid-cols-2 gap-3 bg-[var(--color-bg-base)]/40 rounded-b-xl">
                         {members.map((a) => renderCard(a))}
                       </div>
                     )}

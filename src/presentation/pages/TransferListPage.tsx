@@ -65,11 +65,11 @@ export const TransferListPage = () => {
     const filteredGroups = groups.filter(matchAlliance)
     const groupIds = new Set(filteredGroups.map((g) => g.id))
 
-    // 그룹에 속한 신청들 (그 그룹의 멤버)
-    const groupItems = filteredGroups.map((g) => {
-      const members = apps.filter((a) => a.groupId === g.id)
-      return { group: g, members }
-    })
+    // 그룹에 속한 신청들 (그 그룹의 멤버) — 멤버 없는 빈 그룹은 노출 안 함
+    // (관리자에겐 안 보이는데 게스트에게만 빈 그룹이 뜨던 불일치 해소)
+    const groupItems = filteredGroups
+      .map((g) => ({ group: g, members: apps.filter((a) => a.groupId === g.id) }))
+      .filter((gi) => gi.members.length > 0)
 
     // 단독 (group_id 가 없거나, 필터에 해당하는 단독)
     const soloItems = apps.filter((a) => {
