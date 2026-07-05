@@ -369,6 +369,9 @@ export default {
     delete_round_confirm: 'This VS round and all entered points will be deleted. BLACK GOLD rounds and attendance records are unaffected.',
   },
   common: {
+    copy: 'Copy',
+    copied: 'Copied',
+    copy_failed: 'Copy failed',
     search: 'Search',
     add: 'Add',
     edit: 'Edit',

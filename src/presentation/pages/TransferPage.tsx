@@ -1,6 +1,7 @@
 ﻿import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, Navigate } from 'react-router-dom'
 import { Loader2, CheckCircle2, XCircle, Clock, Trash2, RotateCcw, Layers, Pencil, Plus, Save, X, Search, Bell, BellOff, Users, ChevronDown, Mail, MailCheck } from 'lucide-react'
+import { CopyButton } from '@/presentation/components/ui/copy-button'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { useTransferStore } from '@/infrastructure/stores/transferStore'
@@ -421,9 +422,10 @@ export const TransferPage = () => {
                     </div>
 
                     <div className="space-y-1.5 text-xs text-[var(--color-text-secondary)] mb-3">
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 items-center">
                         <span className="text-[var(--color-text-muted)] w-16 flex-shrink-0">{t('transfer.field_uid')}</span>
                         <span className="text-[var(--color-text-primary)] font-mono">{a.uid || '—'}</span>
+                        {a.uid && <CopyButton value={a.uid} />}
                       </div>
                       <div className="flex gap-2">
                         <span className="text-[var(--color-text-muted)] w-16 flex-shrink-0">{t('transfer.field_server')}</span>

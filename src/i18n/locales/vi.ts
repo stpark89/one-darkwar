@@ -369,6 +369,9 @@ export default {
     delete_round_confirm: 'Đợt VS này và tất cả điểm đã nhập sẽ bị xóa. Đợt và bản ghi tham chiến BLACK GOLD không bị ảnh hưởng.',
   },
   common: {
+    copy: 'Sao chép',
+    copied: 'Đã sao chép',
+    copy_failed: 'Sao chép thất bại',
     search: 'Tìm kiếm',
     add: 'Thêm',
     edit: 'Sửa',

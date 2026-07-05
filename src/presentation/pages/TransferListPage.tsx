@@ -18,6 +18,7 @@ import type { DesiredAlliance, TransferApplication, TransferStatus } from '@/dom
 import type { TransferTier } from '@/domain/entities/TransferTier'
 import { parseCp } from '@/lib/cp'
 import { Button } from '@/presentation/components/ui/button'
+import { CopyButton } from '@/presentation/components/ui/copy-button'
 import { cn } from '@/lib/utils'
 
 const ALLIANCE_FILTERS: Array<{ code: 'ALL' | DesiredAlliance; label: string }> = [
@@ -275,7 +276,7 @@ export const TransferListPage = () => {
 
             {/* 상세 정보 */}
             <div className="space-y-1.5 text-xs text-[var(--color-text-secondary)]">
-              <DetailRow label={t('transfer.field_uid')} value={detail.uid || '—'} mono />
+              <DetailRow label={t('transfer.field_uid')} value={detail.uid || '—'} mono copyValue={detail.uid || undefined} />
               <DetailRow label={t('transfer.field_server')} value={detail.currentServer || '—'} />
               <DetailRow
                 label={t('transfer.field_country')}
@@ -312,10 +313,11 @@ export const TransferListPage = () => {
 }
 
 // 상세 모달 한 줄
-const DetailRow = ({ label, value, mono }: { label: string; value: string; mono?: boolean }) => (
-  <div className="flex gap-2">
+const DetailRow = ({ label, value, mono, copyValue }: { label: string; value: string; mono?: boolean; copyValue?: string }) => (
+  <div className="flex gap-2 items-center">
     <span className="text-[var(--color-text-muted)] w-16 flex-shrink-0">{label}</span>
     <span className={cn('text-[var(--color-text-primary)] break-all', mono && 'font-mono')}>{value}</span>
+    {copyValue && <CopyButton value={copyValue} />}
   </div>
 )
 

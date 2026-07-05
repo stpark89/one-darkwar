@@ -369,6 +369,9 @@ export default {
     delete_round_confirm: '此 VS 輪次與已輸入的積分將全部刪除。BLACK GOLD 輪次與出陣記錄不受影響。',
   },
   common: {
+    copy: '複製',
+    copied: '已複製',
+    copy_failed: '複製失敗',
     search: '搜尋',
     add: '新增',
     edit: '編輯',
