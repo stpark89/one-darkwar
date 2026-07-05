@@ -953,10 +953,15 @@ export const TransferPage = () => {
                   ? (group.desiredAllianceOther || t('transfer.alliance_other'))
                   : group.desiredAlliance === 'NH_D' ? 'NH-D' : group.desiredAlliance
                 return (
-                  <div key={group.id} className="bg-[var(--color-bg-surface)] border border-purple-500/30 rounded-xl">
+                  <div key={group.id} className={cn(
+                    'border rounded-xl transition-all',
+                    isOpen
+                      ? 'bg-purple-500/5 border-purple-500/50 ring-1 ring-purple-500/20'
+                      : 'bg-[var(--color-bg-surface)] border-purple-500/25 hover:border-purple-500/40',
+                  )}>
                     <button
                       onClick={() => setExpandedGroupId(isOpen ? null : group.id)}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-left"
+                      className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-t-xl hover:bg-[var(--color-bg-elevated)]/30 transition-colors"
                     >
                       <div className="w-9 h-9 rounded-full bg-purple-500/15 flex items-center justify-center flex-shrink-0">
                         <Users className="w-4 h-4 text-purple-400" />
@@ -994,7 +999,7 @@ export const TransferPage = () => {
                       </button>
                     </div>
                     {isOpen && (
-                      <div className="border-t border-[var(--color-border-subtle)] p-3 grid grid-cols-1 md:grid-cols-2 gap-3 bg-[var(--color-bg-base)]/40 rounded-b-xl">
+                      <div className="border-t-2 border-purple-500/30 p-3 grid grid-cols-1 md:grid-cols-2 gap-3 rounded-b-xl">
                         {members.map((a) => renderCard(a))}
                       </div>
                     )}
