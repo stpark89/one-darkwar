@@ -85,10 +85,13 @@ export const TransferListPage = () => {
     return { groupItems, soloItems }
   }, [apps, groups, filter])
 
-  // 등급 배지: Migration Score(totalPower) 기준으로만 표시
-  const tierName = (a: { totalPower: string }): string | null => {
-    if (!a.totalPower.trim()) return null
-    return findTierForCp(tiers, parseCp(a.totalPower))?.name ?? null
+  // 등급 배지: 관리자 지정(tier_id) 우선, 없으면 Migration Score(totalPower) 매칭
+  // (관리자 화면 getEffectiveTier 와 동일 로직)
+  const tierName = (a: { tierId: string | null; totalPower: string }): string | null => {
+    const tier = a.tierId
+      ? tiers.find((tt) => tt.id === a.tierId) ?? null
+      : a.totalPower.trim() ? findTierForCp(tiers, parseCp(a.totalPower)) : null
+    return tier?.name ?? null
   }
 
   const allianceLabel = (a: DesiredAlliance, other: string) => {
@@ -360,12 +363,15 @@ const TierSlotsPanel = ({ apps, tiers }: TierSlotsPanelProps) => {
   const { t } = useTranslation()
   const [open, setOpen] = useState(true)
 
-  // 등급별 승인 인원 집계 — Migration Score(totalPower) 기준 (배지와 동일 로직)
+  // 등급별 승인 인원 집계 — 관리자 지정(tier_id) 우선, 없으면 Migration Score 매칭
+  // (관리자 화면 approvedByTier 와 동일 로직 — 게스트/관리자 집계 일치)
   const approvedByTier = useMemo(() => {
     const map = new Map<string, number>()
     for (const a of apps) {
-      if (a.status !== 'APPROVED' || !a.totalPower.trim()) continue
-      const matched = findTierForCp(tiers, parseCp(a.totalPower))
+      if (a.status !== 'APPROVED') continue
+      const matched = a.tierId
+        ? tiers.find((tt) => tt.id === a.tierId) ?? null
+        : a.totalPower.trim() ? findTierForCp(tiers, parseCp(a.totalPower)) : null
       if (matched) map.set(matched.id, (map.get(matched.id) ?? 0) + 1)
     }
     return map
