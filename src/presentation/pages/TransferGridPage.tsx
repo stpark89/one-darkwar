@@ -197,8 +197,10 @@ export const TransferGridPage = () => {
                 const gName = groupName(a.groupId)
                 return (
                   <tr key={a.id} className={cn(
-                    'transition-colors hover:bg-[var(--color-bg-elevated)]',
-                    a.invitedAt && 'opacity-50',
+                    'transition-colors',
+                    a.invitedAt
+                      ? 'bg-[var(--color-success)]/5 hover:bg-[var(--color-success)]/10'
+                      : 'hover:bg-[var(--color-bg-elevated)]',
                   )}>
                     {/* 서버 */}
                     <td className="px-3 py-2.5 text-xs font-mono text-[var(--color-text-secondary)] whitespace-nowrap">
@@ -207,7 +209,7 @@ export const TransferGridPage = () => {
                     {/* 인게임명 */}
                     <td className="px-3 py-2.5 whitespace-nowrap">
                       <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-semibold text-[var(--color-text-primary)]">{a.inGameName}</span>
+                        <span className={cn('text-xs font-semibold', a.invitedAt ? 'text-[var(--color-text-muted)]' : 'text-[var(--color-text-primary)]')}>{a.inGameName}</span>
                         {a.status === 'APPROVED' && (
                           <span className="text-[9px] font-bold px-1 py-0.5 rounded bg-[var(--color-success)]/15 text-[var(--color-success)]">승인</span>
                         )}
