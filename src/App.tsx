@@ -17,6 +17,7 @@ import { BoardPage } from "@/presentation/pages/BoardPage";
 import { TransferPage } from "@/presentation/pages/TransferPage";
 import { TransferStatusPage } from "@/presentation/pages/TransferStatusPage";
 import { TransferListPage } from "@/presentation/pages/TransferListPage";
+import { TransferGridPage } from "@/presentation/pages/TransferGridPage";
 import { OccupationPage } from "@/presentation/pages/OccupationPage";
 import { SignInPage } from "@/presentation/pages/SignInPage";
 import { SignUpPage } from "@/presentation/pages/SignUpPage";
@@ -60,6 +61,7 @@ function App() {
           <Route path="/transfer" element={<TransferPage />} />
           <Route path="/transfer/status" element={<TransferStatusPage />} />
           <Route path="/transfer/list" element={<TransferListPage />} />
+          <Route path="/transfer/grid" element={<TransferGridPage />} />
           <Route path="/server" element={<ServerHomePage />} />
           <Route path="/occupation" element={<OccupationPage />} />
           <Route path="/questions" element={<GuestQuestionsPage />} />

@@ -15,6 +15,7 @@ export default {
     vs_point: 'VS 포인트',
     transfer: '이주 신청',
     transfer_list: '이주 신청 내역',
+    transfer_grid: '이주 진행 현황',
     occupation: '점령 순번',
     transfer_tiers: '티켓 등급 설정',
     questions: '궁금한 점',

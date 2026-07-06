@@ -15,6 +15,7 @@ export default {
     vs_point: 'VS Points',
     transfer: 'Transfer Request',
     transfer_list: 'Transfer List',
+    transfer_grid: 'Migration Progress',
     occupation: 'Occupation Turns',
     transfer_tiers: 'Ticket Tiers',
     questions: 'Questions',

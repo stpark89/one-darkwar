@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { Home, Users, Swords, CalendarDays, FileSpreadsheet, BarChart3, Megaphone, ChevronUp, ChevronLeft, ChevronRight, X, LogOut, ShieldCheck, User, KeyRound, UserX, UserCheck, MessageSquare, Target, UserPlus, MessageCircleQuestion, ListChecks, Castle } from 'lucide-react'
+import { Home, Users, Swords, CalendarDays, FileSpreadsheet, BarChart3, Megaphone, ChevronUp, ChevronLeft, ChevronRight, X, LogOut, ShieldCheck, User, KeyRound, UserX, UserCheck, MessageSquare, Target, UserPlus, MessageCircleQuestion, ListChecks, Castle, TableProperties } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { LANGUAGES, type LangCode } from '@/i18n'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
@@ -88,6 +88,7 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
       { to: '/excel', icon: FileSpreadsheet, label: t('nav.excel') },
       { to: '/approval', icon: UserCheck, label: t('nav.join_management'), badge: pendingCount },
       { to: '/transfer', icon: UserPlus, label: t('nav.transfer'), end: true },
+      { to: '/transfer/grid', icon: TableProperties, label: t('nav.transfer_grid') },
     ],
   }
 

@@ -15,6 +15,7 @@ export default {
     vs_point: 'Điểm VS',
     transfer: 'Đơn chuyển server',
     transfer_list: 'Danh sách đơn',
+    transfer_grid: 'Tiến độ di chuyển',
     occupation: 'Lượt chiếm đóng',
     transfer_tiers: 'Hạng vé chuyển server',
     questions: 'Hỏi đáp',

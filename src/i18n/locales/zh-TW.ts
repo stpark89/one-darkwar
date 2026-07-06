@@ -15,6 +15,7 @@ export default {
     vs_point: 'VS 積分',
     transfer: '轉服申請',
     transfer_list: '轉服申請列表',
+    transfer_grid: '轉服進行狀況',
     occupation: '佔領順序',
     transfer_tiers: '票券等級設定',
     questions: '提問',
