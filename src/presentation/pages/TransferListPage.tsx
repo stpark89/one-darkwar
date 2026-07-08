@@ -196,6 +196,7 @@ export const TransferListPage = () => {
                           idx={i}
                           app={m}
                           tierName={tierName(m)}
+                          showUid={isAdmin}
                           onClick={isAdmin ? () => setDetail(m) : undefined}
                         />
                       ))
@@ -234,9 +235,9 @@ export const TransferListPage = () => {
                     )}
                   </div>
                   <p className="text-[11px] text-[var(--color-text-muted)] mt-1">
-                    UID: <span className="font-mono">{a.uid || '—'}</span>
+                    {isAdmin && <>UID: <span className="font-mono">{a.uid || '—'}</span></>}
                     {a.country && (
-                      <span className="ml-2">{COUNTRY_FLAGS[a.country] ?? ''}</span>
+                      <span className={isAdmin ? 'ml-2' : ''}>{COUNTRY_FLAGS[a.country] ?? ''}</span>
                     )}
                   </p>
                 </div>
@@ -329,10 +330,11 @@ interface ApplicantRowProps {
   idx: number
   app: TransferApplication
   tierName: string | null
+  showUid?: boolean
   onClick?: () => void
 }
 
-const ApplicantRow = ({ idx, app, tierName, onClick }: ApplicantRowProps) => {
+const ApplicantRow = ({ idx, app, tierName, showUid, onClick }: ApplicantRowProps) => {
   return (
     <div
       onClick={onClick}
@@ -342,8 +344,8 @@ const ApplicantRow = ({ idx, app, tierName, onClick }: ApplicantRowProps) => {
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-[var(--color-text-primary)] truncate">{app.inGameName}</p>
         <p className="text-[10px] text-[var(--color-text-muted)] mt-0.5 truncate">
-          UID: <span className="font-mono">{app.uid || '—'}</span>
-          {tierName && <span className="ml-2">· {tierName}</span>}
+          {showUid && <>UID: <span className="font-mono">{app.uid || '—'}</span></>}
+          {tierName && <span className={showUid ? 'ml-2' : ''}>· {tierName}</span>}
           {app.country && <span className="ml-2">{COUNTRY_FLAGS[app.country] ?? ''}</span>}
         </p>
       </div>
