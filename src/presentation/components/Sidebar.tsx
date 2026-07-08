@@ -54,14 +54,14 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
     ],
   }
 
-  // 291 서버 공용 (멤버용 — 이주 내역만)
+  // 291 서버 공용 (멤버용)
   const SECTION_SERVER_MEMBER: NavSection = {
     key: 'server',
     title: t('nav.section_server'),
     items: [
       { to: '/server', icon: Home, label: t('nav.home'), end: true },
       { to: '/occupation', icon: Castle, label: t('nav.occupation') },
-      { to: '/transfer/list', icon: ListChecks, label: t('nav.transfer_list') },
+      // { to: '/transfer/list', icon: ListChecks, label: t('nav.transfer_list') },  // 이주 종료 후 숨김
       { to: '/questions', icon: MessageCircleQuestion, label: t('nav.questions') },
     ],
   }
@@ -73,8 +73,8 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
     items: [
       { to: '/server', icon: Home, label: t('nav.home'), end: true },
       { to: '/occupation', icon: Castle, label: t('nav.occupation') },
-      { to: '/transfer', icon: UserPlus, label: t('nav.transfer'), end: true },
-      { to: '/transfer/list', icon: ListChecks, label: t('nav.transfer_list') },
+      // { to: '/transfer', icon: UserPlus, label: t('nav.transfer'), end: true },  // 이주 종료 후 숨김
+      // { to: '/transfer/list', icon: ListChecks, label: t('nav.transfer_list') },  // 이주 종료 후 숨김
       { to: '/questions', icon: MessageCircleQuestion, label: t('nav.questions') },
     ],
   }
@@ -87,8 +87,8 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
       { to: '/contribution', icon: BarChart3, label: t('nav.contribution') },
       { to: '/excel', icon: FileSpreadsheet, label: t('nav.excel') },
       { to: '/approval', icon: UserCheck, label: t('nav.join_management'), badge: pendingCount },
-      { to: '/transfer', icon: UserPlus, label: t('nav.transfer'), end: true },
-      { to: '/transfer/grid', icon: TableProperties, label: t('nav.transfer_grid') },
+      // { to: '/transfer', icon: UserPlus, label: t('nav.transfer'), end: true },  // 이주 종료 후 숨김
+      // { to: '/transfer/grid', icon: TableProperties, label: t('nav.transfer_grid') },  // 이주 종료 후 숨김
     ],
   }
 
