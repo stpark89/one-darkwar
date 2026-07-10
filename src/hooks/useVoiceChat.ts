@@ -145,23 +145,36 @@ export function useVoiceChat(userId: string, userName: string) {
       const channel = supabase.channel(VOICE_CHANNEL)
       channelRef.current = channel
 
-      // Presence sync — tracked 데이터의 userId 기준으로 목록 동기화
-      channel.on('presence', { event: 'sync' }, () => {
+      // presenceState 스냅샷으로 voiceUsers 전체 교체
+      const syncUsersFromState = () => {
         const state = channel.presenceState<{ userId: string; name: string }>()
+        const all = Object.values(state).flat()
         const seen = new Set<string>()
-        const users: VoiceUser[] = Object.values(state)
-          .flat()
-          .filter((p) => {
-            if (!p.userId || seen.has(p.userId)) return false
-            seen.add(p.userId)
-            return true
-          })
-          .map((p) => ({ id: p.userId, name: p.name }))
+        const users: VoiceUser[] = []
+        for (const p of all) {
+          if (!p.userId || seen.has(p.userId)) continue
+          seen.add(p.userId)
+          users.push({ id: p.userId, name: p.name ?? '' })
+        }
+        console.log('[Voice] sync →', users.map((u) => u.id))
         setVoiceUsers(users)
-      })
+      }
 
-      // 새 참여자 입장 — tracked 데이터에서 userId 추출
+      // sync: 전체 presence 상태 반영 (초기 + 변경 시)
+      channel.on('presence', { event: 'sync' }, syncUsersFromState)
+
+      // join: sync 타이밍 이슈 보완 — 새 참여자를 명시적으로 목록에 추가 + WebRTC offer
       channel.on('presence', { event: 'join' }, ({ newPresences }) => {
+        console.log('[Voice] join →', newPresences)
+        // 목록에 없는 경우 직접 추가 (sync 전 도착하는 경우 대비)
+        setVoiceUsers((prev) => {
+          const existingIds = new Set(prev.map((u) => u.id))
+          const toAdd = (newPresences as Array<{ userId?: string; name?: string }>)
+            .filter((p) => p.userId && !existingIds.has(p.userId))
+            .map((p) => ({ id: p.userId!, name: p.name ?? '' }))
+          return toAdd.length ? [...prev, ...toAdd] : prev
+        })
+
         if (!isInVoiceRef.current) return
         const myId = userIdRef.current
         for (const p of newPresences as Array<{ userId?: string; name?: string }>) {
@@ -179,14 +192,19 @@ export function useVoiceChat(userId: string, userName: string) {
         }
       })
 
-      // 퇴장 — tracked 데이터에서 userId 추출해 정리
+      // leave: 목록에서 제거 + WebRTC 정리
       channel.on('presence', { event: 'leave' }, ({ leftPresences }) => {
-        for (const p of leftPresences as Array<{ userId?: string }>) {
-          const remoteId = p.userId
-          if (!remoteId) continue
-          peersRef.current.get(remoteId)?.close()
-          peersRef.current.delete(remoteId)
-          removeAudio(remoteId)
+        console.log('[Voice] leave →', leftPresences)
+        const leftIds = new Set(
+          (leftPresences as Array<{ userId?: string }>)
+            .filter((p) => p.userId)
+            .map((p) => p.userId!),
+        )
+        setVoiceUsers((prev) => prev.filter((u) => !leftIds.has(u.id)))
+        for (const id of leftIds) {
+          peersRef.current.get(id)?.close()
+          peersRef.current.delete(id)
+          removeAudio(id)
         }
       })
 
@@ -197,7 +215,6 @@ export function useVoiceChat(userId: string, userName: string) {
 
       channel.subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
-          // userId를 tracked 데이터에 포함 — presenceState 키에 의존하지 않음
           await channel.track({ userId: userIdRef.current, name: userNameRef.current })
         }
       })
