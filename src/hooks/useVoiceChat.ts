@@ -6,13 +6,10 @@ const ICE_SERVERS: RTCIceServer[] = [
   { urls: 'stun:stun1.l.google.com:19302' },
 ]
 
-const SIGNAL_CHANNEL = 'guild-voice-signal'
+const VOICE_CHANNEL = 'guild-voice'
 
 type SignalMsg =
-  | { type: 'join'; from: string; name: string }
-  | { type: 'here'; from: string; name: string }
-  | { type: 'leave'; from: string }
-  | { type: 'offer'; from: string; to: string; name: string; sdp: RTCSessionDescriptionInit }
+  | { type: 'offer'; from: string; to: string; sdp: RTCSessionDescriptionInit }
   | { type: 'answer'; from: string; to: string; sdp: RTCSessionDescriptionInit }
   | { type: 'ice'; from: string; to: string; candidate: RTCIceCandidateInit }
 
@@ -28,7 +25,6 @@ export function useVoiceChat(userId: string, userName: string) {
   const [voiceUsers, setVoiceUsers] = useState<VoiceUser[]>([])
   const [micError, setMicError] = useState<string | null>(null)
 
-  // 최신 userId/userName 을 항상 ref로 참조 — stale closure 방지
   const userIdRef = useRef(userId)
   const userNameRef = useRef(userName)
   useEffect(() => { userIdRef.current = userId }, [userId])
@@ -42,13 +38,13 @@ export function useVoiceChat(userId: string, userName: string) {
   const audioCtxRef = useRef<AudioContext | null>(null)
   const speakTimerRef = useRef<number | null>(null)
 
-  const sendSignal = useCallback((msg: SignalMsg) => {
-    channelRef.current?.send({ type: 'broadcast', event: 'signal', payload: msg })
-  }, [])
-
-  const removeAudio = useCallback((remoteId: string) => {
+  const removeAudio = (remoteId: string) => {
     const audio = audioElemsRef.current.get(remoteId)
     if (audio) { audio.srcObject = null; audio.remove(); audioElemsRef.current.delete(remoteId) }
+  }
+
+  const sendSignal = useCallback((msg: SignalMsg) => {
+    channelRef.current?.send({ type: 'broadcast', event: 'signal', payload: msg })
   }, [])
 
   const createPeer = useCallback((remoteId: string): RTCPeerConnection => {
@@ -84,48 +80,21 @@ export function useVoiceChat(userId: string, userName: string) {
         pc.close()
         peersRef.current.delete(remoteId)
         removeAudio(remoteId)
-        setVoiceUsers((prev) => prev.filter((u) => u.id !== remoteId))
       }
     }
 
     peersRef.current.set(remoteId, pc)
     return pc
-  }, [sendSignal, removeAudio])
+  }, [sendSignal])
 
-  // 항상 최신 핸들러를 ref로 유지 — 채널 리스너의 stale closure 방지
+  // 항상 최신 핸들러 유지
   const handleSignalRef = useRef<((msg: SignalMsg) => Promise<void>) | null>(null)
   handleSignalRef.current = async (msg: SignalMsg) => {
     if (!isInVoiceRef.current) return
     const myId = userIdRef.current
-    const myName = userNameRef.current
     if (msg.from === myId) return
 
-    if (msg.type === 'join') {
-      setVoiceUsers((prev) => prev.some((u) => u.id === msg.from) ? prev : [...prev, { id: msg.from, name: msg.name }])
-      sendSignal({ type: 'here', from: myId, name: myName })
-      const pc = createPeer(msg.from)
-      const offer = await pc.createOffer()
-      await pc.setLocalDescription(offer)
-      sendSignal({ type: 'offer', from: myId, to: msg.from, name: myName, sdp: offer })
-    }
-
-    else if (msg.type === 'here') {
-      setVoiceUsers((prev) => prev.some((u) => u.id === msg.from) ? prev : [...prev, { id: msg.from, name: msg.name }])
-    }
-
-    else if (msg.type === 'leave') {
-      peersRef.current.get(msg.from)?.close()
-      peersRef.current.delete(msg.from)
-      removeAudio(msg.from)
-      setVoiceUsers((prev) => prev.filter((u) => u.id !== msg.from))
-    }
-
-    else if (msg.type === 'offer' && msg.to === myId) {
-      setVoiceUsers((prev) => {
-        const exists = prev.find((u) => u.id === msg.from)
-        if (exists) return exists.name === '...' ? prev.map((u) => u.id === msg.from ? { ...u, name: msg.name } : u) : prev
-        return [...prev, { id: msg.from, name: msg.name }]
-      })
+    if (msg.type === 'offer' && msg.to === myId) {
       const pc = createPeer(msg.from)
       await pc.setRemoteDescription(new RTCSessionDescription(msg.sdp))
       const answer = await pc.createAnswer()
@@ -156,7 +125,6 @@ export function useVoiceChat(userId: string, userName: string) {
       isInVoiceRef.current = true
       setIsInVoice(true)
       setIsMuted(false)
-      setVoiceUsers([{ id: userIdRef.current, name: userNameRef.current }])
 
       // 음성 감지
       const audioCtx = new AudioContext()
@@ -165,37 +133,73 @@ export function useVoiceChat(userId: string, userName: string) {
       audioCtx.createMediaStreamSource(stream).connect(analyser)
       audioCtxRef.current = audioCtx
       const buf = new Uint8Array(analyser.frequencyBinCount)
-      const THRESHOLD = 18
       const poll = () => {
         if (!isInVoiceRef.current) return
         analyser.getByteFrequencyData(buf)
         const avg = buf.reduce((a, b) => a + b, 0) / buf.length
-        setIsSpeaking(avg > THRESHOLD)
+        setIsSpeaking(avg > 18)
         speakTimerRef.current = window.setTimeout(poll, 80)
       }
       poll()
 
-      const channel = supabase.channel(SIGNAL_CHANNEL)
+      const channel = supabase.channel(VOICE_CHANNEL, {
+        config: { presence: { key: userIdRef.current } },
+      })
       channelRef.current = channel
 
-      channel
-        .on('broadcast', { event: 'signal' }, ({ payload }) => {
-          // ref를 통해 항상 최신 핸들러 호출
-          handleSignalRef.current?.(payload as SignalMsg)
-        })
-        .subscribe(() => {
-          sendSignal({ type: 'join', from: userIdRef.current, name: userNameRef.current })
-        })
+      // Presence sync — 참여자 목록 자동 동기화
+      channel.on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState<{ name: string }>()
+        const users: VoiceUser[] = Object.entries(state).map(([id, presences]) => ({
+          id,
+          name: presences[0]?.name ?? id,
+        }))
+        setVoiceUsers(users)
+      })
+
+      // 새 참여자 입장 — userId 비교로 한쪽만 offer 발신 (중복 방지)
+      channel.on('presence', { event: 'join' }, ({ key: remoteId }) => {
+        if (!isInVoiceRef.current) return
+        const myId = userIdRef.current
+        if (remoteId === myId) return
+        // userId 문자열 비교 — 작은 쪽이 offer 발신 (양쪽 중복 방지)
+        if (myId < remoteId) {
+          const pc = createPeer(remoteId)
+          pc.createOffer().then((offer) => {
+            pc.setLocalDescription(offer).then(() => {
+              sendSignal({ type: 'offer', from: myId, to: remoteId, sdp: offer })
+            })
+          })
+        }
+      })
+
+      // 퇴장 — 피어 연결 정리
+      channel.on('presence', { event: 'leave' }, ({ key: remoteId }) => {
+        peersRef.current.get(remoteId)?.close()
+        peersRef.current.delete(remoteId)
+        removeAudio(remoteId)
+      })
+
+      // WebRTC 시그널 수신
+      channel.on('broadcast', { event: 'signal' }, ({ payload }) => {
+        handleSignalRef.current?.(payload as SignalMsg)
+      })
+
+      channel.subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await channel.track({ name: userNameRef.current })
+        }
+      })
     } catch (err) {
       console.error('Voice join error', err)
       setMicError('마이크 접근 권한이 필요합니다.')
       isInVoiceRef.current = false
+      setIsInVoice(false)
     }
-  }, [sendSignal])
+  }, [sendSignal, createPeer])
 
   const leaveVoice = useCallback(() => {
     if (!isInVoiceRef.current) return
-    sendSignal({ type: 'leave', from: userIdRef.current })
 
     peersRef.current.forEach((pc) => pc.close())
     peersRef.current.clear()
@@ -220,7 +224,7 @@ export function useVoiceChat(userId: string, userName: string) {
     setIsInVoice(false)
     setVoiceUsers([])
     setIsMuted(false)
-  }, [sendSignal])
+  }, [])
 
   const toggleMute = useCallback(() => {
     const track = localStreamRef.current?.getAudioTracks()[0]
