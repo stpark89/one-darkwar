@@ -365,7 +365,7 @@ export const ChatWidget = () => {
   const openRef = useRef(open)
   useEffect(() => { openRef.current = open }, [open])
 
-  const { isInVoice, isMuted, voiceUsers, micError, joinVoice, leaveVoice, toggleMute } =
+  const { isInVoice, isMuted, isSpeaking, voiceUsers, micError, joinVoice, leaveVoice, toggleMute } =
     useVoiceChat(user?.id ?? '', user?.inGameName ?? '')
 
   useEffect(() => { if (user) { loadMembers(); loadEvents() } }, [user, loadMembers, loadEvents])
@@ -774,6 +774,7 @@ export const ChatWidget = () => {
             <VoicePanel
               isInVoice={isInVoice}
               isMuted={isMuted}
+              isSpeaking={isSpeaking}
               voiceUsers={voiceUsers}
               micError={micError}
               myId={user.id}

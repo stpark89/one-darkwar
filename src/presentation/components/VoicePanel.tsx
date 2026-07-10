@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils'
 interface VoicePanelProps {
   isInVoice: boolean
   isMuted: boolean
+  isSpeaking: boolean
   voiceUsers: VoiceUser[]
   micError: string | null
   myId: string
@@ -14,7 +15,7 @@ interface VoicePanelProps {
 }
 
 export const VoicePanel = ({
-  isInVoice, isMuted, voiceUsers, micError, myId, onJoin, onLeave, onToggleMute,
+  isInVoice, isMuted, isSpeaking, voiceUsers, micError, myId, onJoin, onLeave, onToggleMute,
 }: VoicePanelProps) => {
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
@@ -31,32 +32,55 @@ export const VoicePanel = ({
             <p className="text-[10px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider px-1 mb-2">
               참여중 {voiceUsers.length}명
             </p>
-            {voiceUsers.map((u) => (
-              <div
-                key={u.id}
-                className={cn(
-                  'flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors',
-                  u.id === myId
-                    ? 'bg-[var(--color-brand)]/10 border border-[var(--color-brand)]/20'
-                    : 'bg-[var(--color-bg-elevated)]',
-                )}
-              >
-                <span className="relative flex-shrink-0">
-                  <span className="w-2 h-2 rounded-full bg-green-400 block" />
-                  <span className="absolute inset-0 w-2 h-2 rounded-full bg-green-400 animate-ping opacity-60" />
-                </span>
-                <span className={cn(
-                  'text-sm font-medium truncate',
-                  u.id === myId ? 'text-[var(--color-brand)]' : 'text-[var(--color-text-primary)]',
-                )}>
-                  {u.name}
-                  {u.id === myId && <span className="text-[10px] ml-1.5 opacity-60">(나)</span>}
-                </span>
-                {u.id === myId && isMuted && (
-                  <MicOff className="w-3.5 h-3.5 text-red-400 ml-auto flex-shrink-0" />
-                )}
-              </div>
-            ))}
+            {voiceUsers.map((u) => {
+              const isMe = u.id === myId
+              const speaking = isMe && isSpeaking && !isMuted
+              return (
+                <div
+                  key={u.id}
+                  className={cn(
+                    'flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all',
+                    isMe
+                      ? speaking
+                        ? 'bg-green-500/15 border border-green-500/40'
+                        : 'bg-[var(--color-brand)]/10 border border-[var(--color-brand)]/20'
+                      : 'bg-[var(--color-bg-elevated)]',
+                  )}
+                >
+                  {/* 음성 활동 표시 */}
+                  <span className="relative flex-shrink-0 w-4 h-4 flex items-center justify-center">
+                    {isMe && isMuted ? (
+                      <MicOff className="w-3.5 h-3.5 text-red-400" />
+                    ) : (
+                      <>
+                        <span className={cn(
+                          'w-2 h-2 rounded-full block',
+                          speaking ? 'bg-green-400' : 'bg-green-400/50',
+                        )} />
+                        {speaking && (
+                          <span className="absolute inset-0 w-2 h-2 m-auto rounded-full bg-green-400 animate-ping" />
+                        )}
+                      </>
+                    )}
+                  </span>
+                  <span className={cn(
+                    'text-sm font-medium truncate flex-1',
+                    isMe
+                      ? speaking ? 'text-green-400' : 'text-[var(--color-brand)]'
+                      : 'text-[var(--color-text-primary)]',
+                  )}>
+                    {u.name}
+                    {isMe && <span className="text-[10px] ml-1.5 opacity-60">(나)</span>}
+                  </span>
+                  {isMe && speaking && (
+                    <span className="text-[10px] text-green-400 font-semibold flex-shrink-0">말하는 중</span>
+                  )}
+                  {isMe && isMuted && (
+                    <span className="text-[10px] text-red-400 font-semibold flex-shrink-0">음소거</span>
+                  )}
+                </div>
+              )
+            })}
           </>
         )}
 

@@ -23,6 +23,7 @@ export interface VoiceUser {
 export function useVoiceChat(userId: string, userName: string) {
   const [isInVoice, setIsInVoice] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
+  const [isSpeaking, setIsSpeaking] = useState(false)
   const [voiceUsers, setVoiceUsers] = useState<VoiceUser[]>([])
   const [micError, setMicError] = useState<string | null>(null)
 
@@ -31,6 +32,9 @@ export function useVoiceChat(userId: string, userName: string) {
   const peersRef = useRef<Map<string, RTCPeerConnection>>(new Map())
   const audioElemsRef = useRef<Map<string, HTMLAudioElement>>(new Map())
   const isInVoiceRef = useRef(false)
+  const audioCtxRef = useRef<AudioContext | null>(null)
+  const analyserRef = useRef<AnalyserNode | null>(null)
+  const speakTimerRef = useRef<number | null>(null)
 
   const sendSignal = useCallback((msg: SignalMsg) => {
     channelRef.current?.send({ type: 'broadcast', event: 'signal', payload: msg })
@@ -137,6 +141,24 @@ export function useVoiceChat(userId: string, userName: string) {
       setIsMuted(false)
       setVoiceUsers([{ id: userId, name: userName }])
 
+      // 음성 감지 — AudioContext + AnalyserNode로 마이크 레벨 측정
+      const audioCtx = new AudioContext()
+      const analyser = audioCtx.createAnalyser()
+      analyser.fftSize = 256
+      audioCtx.createMediaStreamSource(stream).connect(analyser)
+      audioCtxRef.current = audioCtx
+      analyserRef.current = analyser
+      const buf = new Uint8Array(analyser.frequencyBinCount)
+      const THRESHOLD = 18
+      const poll = () => {
+        if (!isInVoiceRef.current) return
+        analyser.getByteFrequencyData(buf)
+        const avg = buf.reduce((a, b) => a + b, 0) / buf.length
+        setIsSpeaking(avg > THRESHOLD)
+        speakTimerRef.current = window.setTimeout(poll, 80)
+      }
+      poll()
+
       const channel = supabase.channel(SIGNAL_CHANNEL)
       channelRef.current = channel
 
@@ -167,6 +189,12 @@ export function useVoiceChat(userId: string, userName: string) {
     localStreamRef.current?.getTracks().forEach((t) => t.stop())
     localStreamRef.current = null
 
+    if (speakTimerRef.current) { clearTimeout(speakTimerRef.current); speakTimerRef.current = null }
+    analyserRef.current = null
+    audioCtxRef.current?.close()
+    audioCtxRef.current = null
+    setIsSpeaking(false)
+
     if (channelRef.current) {
       supabase.removeChannel(channelRef.current)
       channelRef.current = null
@@ -187,5 +215,5 @@ export function useVoiceChat(userId: string, userName: string) {
 
   useEffect(() => () => { leaveVoice() }, [leaveVoice])
 
-  return { isInVoice, isMuted, voiceUsers, micError, joinVoice, leaveVoice, toggleMute }
+  return { isInVoice, isMuted, isSpeaking, voiceUsers, micError, joinVoice, leaveVoice, toggleMute }
 }
