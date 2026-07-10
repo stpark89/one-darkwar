@@ -10,8 +10,9 @@ const SIGNAL_CHANNEL = 'guild-voice-signal'
 
 type SignalMsg =
   | { type: 'join'; from: string; name: string }
+  | { type: 'here'; from: string; name: string }   // 기존 참여자 → 신규 입장자에게 존재 알림
   | { type: 'leave'; from: string }
-  | { type: 'offer'; from: string; to: string; sdp: RTCSessionDescriptionInit }
+  | { type: 'offer'; from: string; to: string; name: string; sdp: RTCSessionDescriptionInit }
   | { type: 'answer'; from: string; to: string; sdp: RTCSessionDescriptionInit }
   | { type: 'ice'; from: string; to: string; candidate: RTCIceCandidateInit }
 
@@ -92,12 +93,18 @@ export function useVoiceChat(userId: string, userName: string) {
     if (msg.from === userId) return
 
     if (msg.type === 'join') {
-      // 새 참여자 → 내가 offer 발신
+      // 새 참여자 입장 → 내 존재를 알리고 offer 발신
       setVoiceUsers((prev) => prev.some((u) => u.id === msg.from) ? prev : [...prev, { id: msg.from, name: msg.name }])
+      sendSignal({ type: 'here', from: userId, name: userName })
       const pc = createPeer(msg.from)
       const offer = await pc.createOffer()
       await pc.setLocalDescription(offer)
-      sendSignal({ type: 'offer', from: userId, to: msg.from, sdp: offer })
+      sendSignal({ type: 'offer', from: userId, to: msg.from, name: userName, sdp: offer })
+    }
+
+    else if (msg.type === 'here') {
+      // 기존 참여자 응답 → 목록에 추가
+      setVoiceUsers((prev) => prev.some((u) => u.id === msg.from) ? prev : [...prev, { id: msg.from, name: msg.name }])
     }
 
     else if (msg.type === 'leave') {
@@ -108,7 +115,12 @@ export function useVoiceChat(userId: string, userName: string) {
     }
 
     else if (msg.type === 'offer' && msg.to === userId) {
-      setVoiceUsers((prev) => prev.some((u) => u.id === msg.from) ? prev : [...prev, { id: msg.from, name: '...' }])
+      // offer에 포함된 name으로 참여자 추가 (이름 '...' 문제 해결)
+      setVoiceUsers((prev) => {
+        const exists = prev.find((u) => u.id === msg.from)
+        if (exists) return exists.name === '...' ? prev.map((u) => u.id === msg.from ? { ...u, name: msg.name } : u) : prev
+        return [...prev, { id: msg.from, name: msg.name }]
+      })
       const pc = createPeer(msg.from)
       await pc.setRemoteDescription(new RTCSessionDescription(msg.sdp))
       const answer = await pc.createAnswer()
