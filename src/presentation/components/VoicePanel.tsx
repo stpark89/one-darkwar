@@ -72,7 +72,7 @@ const UserAvatar = ({
         >
           {/* 아바타 원 */}
           <div
-            className="w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-lg select-none"
+            className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm select-none"
             style={{ background: `linear-gradient(135deg, ${from}, ${to})` }}
           >
             {getInitials(user.name)}
@@ -81,15 +81,15 @@ const UserAvatar = ({
 
         {/* 음소거 오버레이 */}
         {isMe && isMuted && (
-          <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-red-500 flex items-center justify-center shadow-md">
-            <MicOff className="w-3 h-3 text-white" />
+          <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-red-500 flex items-center justify-center shadow-md">
+            <MicOff className="w-2.5 h-2.5 text-white" />
           </div>
         )}
 
         {/* 말하는 중 표시 */}
         {speaking && (
-          <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-green-500 flex items-center justify-center shadow-md">
-            <Mic className="w-3 h-3 text-white" />
+          <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-green-500 flex items-center justify-center shadow-md">
+            <Mic className="w-2.5 h-2.5 text-white" />
           </div>
         )}
       </div>
