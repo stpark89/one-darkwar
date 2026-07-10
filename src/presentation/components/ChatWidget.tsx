@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { MessageCircle, X, Send, Users, Languages, Loader2, Bot } from 'lucide-react'
+import { MessageCircle, X, Send, Users, Languages, Loader2, Bot, Mic } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { useMemberStore } from '@/infrastructure/stores/memberStore'
@@ -11,6 +11,8 @@ import type { WarRound, WarEntry } from '@/domain/entities/War'
 import { cn } from '@/lib/utils'
 import { translateText } from '@/lib/translate'
 import i18n from '@/i18n'
+import { useVoiceChat } from '@/hooks/useVoiceChat'
+import { VoicePanel } from '@/presentation/components/VoicePanel'
 
 interface Message {
   id: number
@@ -344,7 +346,7 @@ export const ChatWidget = () => {
       setOpen((v) => !v)
     }
   }
-  const [tab, setTab] = useState<'chat' | 'online'>('chat')
+  const [tab, setTab] = useState<'chat' | 'online' | 'voice'>('chat')
   const [messages, setMessages] = useState<Message[]>([])
   const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([])
   const [input, setInput] = useState('')
@@ -362,6 +364,9 @@ export const ChatWidget = () => {
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
   const openRef = useRef(open)
   useEffect(() => { openRef.current = open }, [open])
+
+  const { isInVoice, isMuted, voiceUsers, micError, joinVoice, leaveVoice, toggleMute } =
+    useVoiceChat(user?.id ?? '', user?.inGameName ?? '')
 
   useEffect(() => { if (user) { loadMembers(); loadEvents() } }, [user, loadMembers, loadEvents])
 
@@ -560,6 +565,16 @@ export const ChatWidget = () => {
                 <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
                 {t('chat.online_count', { n: onlineUsers.length })}
               </button>
+              <button
+                onClick={() => setTab('voice')}
+                className={cn('flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-semibold transition-colors relative', tab === 'voice' ? 'bg-[var(--color-brand)] text-white' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]')}
+              >
+                <Mic className="w-3 h-3" />
+                음성
+                {isInVoice && (
+                  <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-green-400 border border-[var(--color-bg-elevated)]" />
+                )}
+              </button>
             </div>
             <div className="flex items-center gap-2">
               {!connected && (
@@ -752,6 +767,20 @@ export const ChatWidget = () => {
                 </div>
               </div>
             </>
+          )}
+
+          {/* 음성 탭 */}
+          {tab === 'voice' && (
+            <VoicePanel
+              isInVoice={isInVoice}
+              isMuted={isMuted}
+              voiceUsers={voiceUsers}
+              micError={micError}
+              myId={user.id}
+              onJoin={joinVoice}
+              onLeave={leaveVoice}
+              onToggleMute={toggleMute}
+            />
           )}
 
           {/* 접속자 탭 */}
