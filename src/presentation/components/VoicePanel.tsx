@@ -14,106 +14,178 @@ interface VoicePanelProps {
   onToggleMute: () => void
 }
 
+// userId 기반 일관된 색상 — 같은 사람은 항상 같은 색
+const AVATAR_COLORS = [
+  ['#3b82f6', '#1d4ed8'], // blue
+  ['#8b5cf6', '#6d28d9'], // violet
+  ['#ec4899', '#be185d'], // pink
+  ['#f59e0b', '#b45309'], // amber
+  ['#10b981', '#047857'], // emerald
+  ['#06b6d4', '#0e7490'], // cyan
+  ['#f97316', '#c2410c'], // orange
+  ['#6366f1', '#4338ca'], // indigo
+]
+
+const getAvatarColor = (id: string) => {
+  const hash = id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)
+  return AVATAR_COLORS[hash % AVATAR_COLORS.length]
+}
+
+const getInitials = (name: string) =>
+  name.trim().slice(0, 2).toUpperCase() || '?'
+
+const UserAvatar = ({
+  user,
+  isMe,
+  isMuted,
+  isSpeaking,
+}: {
+  user: VoiceUser
+  isMe: boolean
+  isMuted: boolean
+  isSpeaking: boolean
+}) => {
+  const [from, to] = getAvatarColor(user.id)
+  const speaking = isMe ? isSpeaking && !isMuted : false
+
+  return (
+    <div className="flex flex-col items-center gap-2">
+      {/* 아바타 링 + 이미지 */}
+      <div className="relative">
+        {/* 말하는 중 — 바깥 링 pulse */}
+        {speaking && (
+          <span
+            className="absolute inset-0 rounded-full animate-ping"
+            style={{ background: 'rgba(74,222,128,0.35)', margin: '-5px' }}
+          />
+        )}
+        {/* 테두리 링 */}
+        <div
+          className={cn(
+            'rounded-full p-[3px] transition-all duration-200',
+            speaking
+              ? 'shadow-[0_0_0_2px_#4ade80]'
+              : isMe
+                ? 'shadow-[0_0_0_2px_var(--color-brand)]'
+                : 'shadow-[0_0_0_1.5px_rgba(255,255,255,0.12)]',
+          )}
+        >
+          {/* 아바타 원 */}
+          <div
+            className="w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-lg select-none"
+            style={{ background: `linear-gradient(135deg, ${from}, ${to})` }}
+          >
+            {getInitials(user.name)}
+          </div>
+        </div>
+
+        {/* 음소거 오버레이 */}
+        {isMe && isMuted && (
+          <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-red-500 flex items-center justify-center shadow-md">
+            <MicOff className="w-3 h-3 text-white" />
+          </div>
+        )}
+
+        {/* 말하는 중 표시 */}
+        {speaking && (
+          <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-green-500 flex items-center justify-center shadow-md">
+            <Mic className="w-3 h-3 text-white" />
+          </div>
+        )}
+      </div>
+
+      {/* 이름 */}
+      <div className="text-center max-w-[72px]">
+        <p
+          className={cn(
+            'text-xs font-semibold truncate',
+            speaking
+              ? 'text-green-400'
+              : isMe
+                ? 'text-[var(--color-brand)]'
+                : 'text-[var(--color-text-primary)]',
+          )}
+        >
+          {user.name}
+        </p>
+        {isMe && (
+          <p className="text-[9px] text-[var(--color-text-muted)] mt-0.5">나</p>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export const VoicePanel = ({
-  isInVoice, isMuted, isSpeaking, voiceUsers, micError, myId, onJoin, onLeave, onToggleMute,
+  isInVoice,
+  isMuted,
+  isSpeaking,
+  voiceUsers,
+  micError,
+  myId,
+  onJoin,
+  onLeave,
+  onToggleMute,
 }: VoicePanelProps) => {
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      {/* 참여자 목록 */}
-      <div className="flex-1 overflow-y-auto px-3 py-3 space-y-1">
+      {/* 참여자 그리드 */}
+      <div className="flex-1 overflow-y-auto px-4 py-4">
         {voiceUsers.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-32 gap-2 text-[var(--color-text-muted)]">
-            <Mic className="w-7 h-7 opacity-25" />
-            <p className="text-xs">현재 음성채팅 참여자가 없습니다</p>
-            <p className="text-[10px] opacity-60">아래 버튼을 눌러 참여하세요</p>
+          <div className="flex flex-col items-center justify-center h-40 gap-3 text-[var(--color-text-muted)]">
+            <div className="w-16 h-16 rounded-full bg-[var(--color-bg-elevated)] flex items-center justify-center">
+              <Mic className="w-7 h-7 opacity-20" />
+            </div>
+            <div className="text-center">
+              <p className="text-xs font-medium">음성채팅 참여자 없음</p>
+              <p className="text-[10px] opacity-50 mt-0.5">아래 버튼을 눌러 참여하세요</p>
+            </div>
           </div>
         ) : (
-          <>
-            <p className="text-[10px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider px-1 mb-2">
+          <div>
+            <p className="text-[10px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-4">
               참여중 {voiceUsers.length}명
             </p>
-            {voiceUsers.map((u) => {
-              const isMe = u.id === myId
-              const speaking = isMe && isSpeaking && !isMuted
-              return (
-                <div
+            <div className="flex flex-wrap gap-5 justify-start">
+              {voiceUsers.map((u) => (
+                <UserAvatar
                   key={u.id}
-                  className={cn(
-                    'flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all',
-                    isMe
-                      ? speaking
-                        ? 'bg-green-500/15 border border-green-500/40'
-                        : 'bg-[var(--color-brand)]/10 border border-[var(--color-brand)]/20'
-                      : 'bg-[var(--color-bg-elevated)]',
-                  )}
-                >
-                  {/* 음성 활동 표시 */}
-                  <span className="relative flex-shrink-0 w-4 h-4 flex items-center justify-center">
-                    {isMe && isMuted ? (
-                      <MicOff className="w-3.5 h-3.5 text-red-400" />
-                    ) : (
-                      <>
-                        <span className={cn(
-                          'w-2 h-2 rounded-full block',
-                          speaking ? 'bg-green-400' : 'bg-green-400/50',
-                        )} />
-                        {speaking && (
-                          <span className="absolute inset-0 w-2 h-2 m-auto rounded-full bg-green-400 animate-ping" />
-                        )}
-                      </>
-                    )}
-                  </span>
-                  <span className={cn(
-                    'text-sm font-medium truncate flex-1',
-                    isMe
-                      ? speaking ? 'text-green-400' : 'text-[var(--color-brand)]'
-                      : 'text-[var(--color-text-primary)]',
-                  )}>
-                    {u.name}
-                    {isMe && <span className="text-[10px] ml-1.5 opacity-60">(나)</span>}
-                  </span>
-                  {isMe && speaking && (
-                    <span className="text-[10px] text-green-400 font-semibold flex-shrink-0">말하는 중</span>
-                  )}
-                  {isMe && isMuted && (
-                    <span className="text-[10px] text-red-400 font-semibold flex-shrink-0">음소거</span>
-                  )}
-                </div>
-              )
-            })}
-          </>
+                  user={u}
+                  isMe={u.id === myId}
+                  isMuted={isMuted}
+                  isSpeaking={isSpeaking}
+                />
+              ))}
+            </div>
+          </div>
         )}
 
-        {/* 마이크 오류 */}
         {micError && (
-          <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 mt-2">
+          <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 mt-4">
             <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
             <p className="text-xs text-red-400">{micError}</p>
           </div>
         )}
       </div>
 
-      {/* 컨트롤 버튼 */}
+      {/* 컨트롤 */}
       <div className="px-3 py-3 border-t border-[var(--color-border-subtle)] flex gap-2">
         {isInVoice ? (
           <>
             <button
               onClick={onToggleMute}
               className={cn(
-                'flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition-colors',
+                'flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold transition-colors',
                 isMuted
                   ? 'bg-red-500/15 text-red-400 hover:bg-red-500/25'
                   : 'bg-[var(--color-bg-elevated)] text-[var(--color-text-primary)] hover:bg-[var(--color-border)]',
               )}
             >
-              {isMuted
-                ? <><MicOff className="w-3.5 h-3.5" /> 음소거</>
-                : <><Mic className="w-3.5 h-3.5" /> 마이크</>
-              }
+              {isMuted ? <><MicOff className="w-3.5 h-3.5" /> 음소거 해제</> : <><Mic className="w-3.5 h-3.5" /> 마이크</>}
             </button>
             <button
               onClick={onLeave}
-              className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-red-500/15 text-red-400 hover:bg-red-500/25 transition-colors"
+              className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-semibold bg-red-500/15 text-red-400 hover:bg-red-500/25 transition-colors"
             >
               <PhoneOff className="w-3.5 h-3.5" /> 나가기
             </button>
