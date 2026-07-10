@@ -142,42 +142,52 @@ export function useVoiceChat(userId: string, userName: string) {
       }
       poll()
 
-      const channel = supabase.channel(VOICE_CHANNEL, {
-        config: { presence: { key: userIdRef.current } },
-      })
+      const channel = supabase.channel(VOICE_CHANNEL)
       channelRef.current = channel
 
-      // Presence sync — 참여자 목록 자동 동기화
+      // Presence sync — tracked 데이터의 userId 기준으로 목록 동기화
       channel.on('presence', { event: 'sync' }, () => {
-        const state = channel.presenceState<{ name: string }>()
-        const users: VoiceUser[] = Object.entries(state).map(([id, presences]) => ({
-          id,
-          name: presences[0]?.name ?? id,
-        }))
+        const state = channel.presenceState<{ userId: string; name: string }>()
+        const seen = new Set<string>()
+        const users: VoiceUser[] = Object.values(state)
+          .flat()
+          .filter((p) => {
+            if (!p.userId || seen.has(p.userId)) return false
+            seen.add(p.userId)
+            return true
+          })
+          .map((p) => ({ id: p.userId, name: p.name }))
         setVoiceUsers(users)
       })
 
-      // 새 참여자 입장 — userId 비교로 한쪽만 offer 발신 (중복 방지)
-      channel.on('presence', { event: 'join' }, ({ key: remoteId }) => {
+      // 새 참여자 입장 — tracked 데이터에서 userId 추출
+      channel.on('presence', { event: 'join' }, ({ newPresences }) => {
         if (!isInVoiceRef.current) return
         const myId = userIdRef.current
-        if (remoteId === myId) return
-        // userId 문자열 비교 — 작은 쪽이 offer 발신 (양쪽 중복 방지)
-        if (myId < remoteId) {
-          const pc = createPeer(remoteId)
-          pc.createOffer().then((offer) => {
-            pc.setLocalDescription(offer).then(() => {
-              sendSignal({ type: 'offer', from: myId, to: remoteId, sdp: offer })
+        for (const p of newPresences as Array<{ userId?: string; name?: string }>) {
+          const remoteId = p.userId
+          if (!remoteId || remoteId === myId) continue
+          // userId 문자열 비교 — 작은 쪽이 offer 발신 (양쪽 중복 방지)
+          if (myId < remoteId) {
+            const pc = createPeer(remoteId)
+            pc.createOffer().then((offer) => {
+              pc.setLocalDescription(offer).then(() => {
+                sendSignal({ type: 'offer', from: myId, to: remoteId, sdp: offer })
+              })
             })
-          })
+          }
         }
       })
 
-      // 퇴장 — 피어 연결 정리
-      channel.on('presence', { event: 'leave' }, ({ key: remoteId }) => {
-        peersRef.current.get(remoteId)?.close()
-        peersRef.current.delete(remoteId)
-        removeAudio(remoteId)
+      // 퇴장 — tracked 데이터에서 userId 추출해 정리
+      channel.on('presence', { event: 'leave' }, ({ leftPresences }) => {
+        for (const p of leftPresences as Array<{ userId?: string }>) {
+          const remoteId = p.userId
+          if (!remoteId) continue
+          peersRef.current.get(remoteId)?.close()
+          peersRef.current.delete(remoteId)
+          removeAudio(remoteId)
+        }
       })
 
       // WebRTC 시그널 수신
@@ -187,7 +197,8 @@ export function useVoiceChat(userId: string, userName: string) {
 
       channel.subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
-          await channel.track({ name: userNameRef.current })
+          // userId를 tracked 데이터에 포함 — presenceState 키에 의존하지 않음
+          await channel.track({ userId: userIdRef.current, name: userNameRef.current })
         }
       })
     } catch (err) {
