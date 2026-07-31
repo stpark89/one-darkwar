@@ -25,8 +25,9 @@ type SortKey = 'inGameName' | 'cp' | 'houseLevel'
 export const MembersPage = () => {
   const { t } = useTranslation()
   const { getFiltered, searchQuery, setSearchQuery, addMember, updateMember, deleteMember, loadMembers, loading } = useMemberStore()
-  const { user } = useAuthStore()
+  const { user, isGuest } = useAuthStore()
   const canEdit = user?.role === 'ROLE_ADMIN'
+  const showUid = !isGuest
   const canEditRow = (m: Member) => canEdit || m.inGameName === user?.inGameName
   const base = getFiltered()
 
@@ -157,9 +158,11 @@ export const MembersPage = () => {
                 {t('members.col_no')}
               </th>
               {th('inGameName', t('members.in_game_name'))}
-              <th className="hidden md:table-cell px-4 py-3 text-left text-xs font-semibold text-[var(--color-text-muted)] whitespace-nowrap">
-                {t('members.zalo_name')}
-              </th>
+              {showUid && (
+                <th className="hidden md:table-cell px-4 py-3 text-left text-xs font-semibold text-[var(--color-text-muted)] whitespace-nowrap">
+                  {t('members.zalo_name')}
+                </th>
+              )}
               {th('cp', t('members.cp'))}
               {th('houseLevel', t('members.house_level'))}
               <th className="hidden md:table-cell px-4 py-3 text-left text-xs font-semibold text-[var(--color-text-muted)] whitespace-nowrap">
@@ -200,7 +203,7 @@ export const MembersPage = () => {
                     </p>
                   )}
                 </td>
-                <td className="hidden md:table-cell px-4 py-3 text-[var(--color-text-secondary)]">{m.zaloName || '-'}</td>
+                {showUid && <td className="hidden md:table-cell px-4 py-3 text-[var(--color-text-secondary)]">{m.zaloName || '-'}</td>}
                 <td className="px-3 sm:px-4 py-2.5 sm:py-3">
                   {m.cp ? <Badge variant="success">{m.cp}</Badge> : <span className="text-[var(--color-text-muted)]">-</span>}
                 </td>
