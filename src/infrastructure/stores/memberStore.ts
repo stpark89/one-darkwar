@@ -20,6 +20,8 @@ interface MemberStore {
   setMembers: (members: Member[]) => void
   addMember: (input: CreateMemberInput) => Promise<string>
   updateMember: (id: string, input: Partial<Member>) => Promise<boolean>
+  /** 주말 이벤트 참여 여부 인라인 변경 (조용히 저장 — 토스트 없음) */
+  setOnlineStatus: (id: string, status: Member['onlineStatus']) => Promise<void>
   deleteMember: (id: string) => Promise<void>
   setSearchQuery: (q: string) => void
   getFiltered: () => Member[]
@@ -42,6 +44,7 @@ const toMember = (row: Record<string, string>): Member => ({
   cp: row.cp,
   houseLevel: row.house_level,
   troopType: (row.troop_type ?? '') as Member['troopType'],
+  onlineStatus: (row.online_status ?? 'none') as Member['onlineStatus'],
   note: row.note,
 })
 
@@ -75,6 +78,7 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
         cp: input.cp ?? '',
         house_level: input.houseLevel ?? '',
         troop_type: input.troopType ?? '',
+        online_status: input.onlineStatus ?? 'none',
         note: input.note ?? '',
       })
       .select()
@@ -151,6 +155,7 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
     if (input.cp !== undefined) updates.cp = input.cp ?? ''
     if (input.houseLevel !== undefined) updates.house_level = input.houseLevel ?? ''
     if (input.troopType !== undefined) updates.troop_type = input.troopType ?? ''
+    if (input.onlineStatus !== undefined) updates.online_status = input.onlineStatus ?? 'none'
     if (input.note !== undefined) updates.note = input.note ?? ''
 
     if (Object.keys(updates).length > 0) {
@@ -172,6 +177,18 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
       useVsPointStore.getState().syncMemberName(id, input.inGameName)
     }
     return true
+  },
+
+  setOnlineStatus: async (id, status) => {
+    // 낙관적 업데이트 (인라인 셀렉트 — 빠른 반응, 토스트 생략)
+    const prev = get().members
+    set({ members: prev.map((m) => (m.id === id ? { ...m, onlineStatus: status } : m)) })
+    const { error } = await supabase.from('members').update({ online_status: status }).eq('id', id)
+    if (error) {
+      console.error('[memberStore] setOnlineStatus error:', error)
+      toast.error('저장 중 오류가 발생했습니다.')
+      set({ members: prev }) // 롤백
+    }
   },
 
   deleteMember: async (id) => {

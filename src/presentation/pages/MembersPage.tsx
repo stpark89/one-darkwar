@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Search, Plus, Pencil, Trash2, X, Loader2, AlertTriangle } from 'lucide-react'
+import { Search, Plus, Pencil, Trash2, X, Loader2, AlertTriangle, Eye, EyeOff } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useMemberStore } from '@/infrastructure/stores/memberStore'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
@@ -8,10 +8,10 @@ import { Input } from '@/presentation/components/ui/input'
 import { Badge } from '@/presentation/components/ui/badge'
 import { SortIcon, nextSortDir } from '@/presentation/components/ui/sort-icon'
 import type { SortDir } from '@/presentation/components/ui/sort-icon'
-import type { Member } from '@/domain/entities/Member'
-import { TROOP_TYPES } from '@/domain/entities/Member'
+import type { Member, OnlineStatus } from '@/domain/entities/Member'
+import { TROOP_TYPES, ONLINE_STATUSES } from '@/domain/entities/Member'
 
-const EMPTY: Partial<Member> = { inGameName: '', zaloName: '', cp: '', houseLevel: '', troopType: '', note: '' }
+const EMPTY: Partial<Member> = { inGameName: '', zaloName: '', cp: '', houseLevel: '', troopType: '', onlineStatus: 'none', note: '' }
 
 const parseCp = (cp: string) => {
   const v = parseFloat(cp)
@@ -25,7 +25,7 @@ type SortKey = 'inGameName' | 'cp' | 'houseLevel'
 
 export const MembersPage = () => {
   const { t } = useTranslation()
-  const { getFiltered, searchQuery, setSearchQuery, addMember, updateMember, deleteMember, loadMembers, loading } = useMemberStore()
+  const { getFiltered, searchQuery, setSearchQuery, addMember, updateMember, setOnlineStatus, deleteMember, loadMembers, loading } = useMemberStore()
   const { user, isGuest } = useAuthStore()
   const canEdit = user?.role === 'ROLE_ADMIN'
   const showUid = !isGuest
@@ -39,6 +39,17 @@ export const MembersPage = () => {
   const [saving, setSaving] = useState(false)
   const [sortKey, setSortKey] = useState<SortKey>('cp')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
+  // Online(주말 이벤트) 컬럼 표시 여부 — 전역이 아니라 접속한 사용자별 로컬 설정
+  const [showOnline, setShowOnline] = useState<boolean>(() => {
+    try { return localStorage.getItem('odw_show_online') === '1' } catch { return false }
+  })
+  const toggleOnline = () => {
+    setShowOnline((v) => {
+      const next = !v
+      try { localStorage.setItem('odw_show_online', next ? '1' : '0') } catch { /* ignore */ }
+      return next
+    })
+  }
 
   const confirmDelete = async () => {
     if (!deleteConfirm || deleting) return
@@ -131,14 +142,29 @@ export const MembersPage = () => {
         )}
       </div>
 
-      <div className="relative mb-3 sm:mb-4">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" />
-        <Input
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder={t('members.search_placeholder')}
-          className="pl-9"
-        />
+      <div className="flex items-center gap-2 mb-3 sm:mb-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" />
+          <Input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={t('members.search_placeholder')}
+            className="pl-9"
+          />
+        </div>
+        {/* Online 컬럼 표시/숨김 — 내 화면에만 적용 (로컬) */}
+        <button
+          onClick={toggleOnline}
+          title={t('members.online_toggle_hint')}
+          className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold border transition-colors whitespace-nowrap flex-shrink-0 ${
+            showOnline
+              ? 'bg-[var(--color-brand)]/15 text-[var(--color-brand)] border-[var(--color-brand)]/30'
+              : 'bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] border-[var(--color-border-subtle)] hover:text-[var(--color-text-primary)]'
+          }`}
+        >
+          {showOnline ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+          {t('members.online')}
+        </button>
       </div>
 
       {/* 비관리자 사용자에게 본인 정보 수정 안내 — 발견율 개선 */}
@@ -169,6 +195,11 @@ export const MembersPage = () => {
               <th className="px-3 sm:px-4 py-3 text-left text-xs font-semibold text-[var(--color-text-muted)] whitespace-nowrap">
                 {t('members.troop_type')}
               </th>
+              {showOnline && (
+                <th className="px-3 sm:px-4 py-3 text-left text-xs font-semibold text-[var(--color-text-muted)] whitespace-nowrap">
+                  {t('members.online')}
+                </th>
+              )}
               <th className="hidden md:table-cell px-4 py-3 text-left text-xs font-semibold text-[var(--color-text-muted)] whitespace-nowrap">
                 {t('members.note')}
               </th>
@@ -217,6 +248,35 @@ export const MembersPage = () => {
                 <td className="px-3 sm:px-4 py-2.5 sm:py-3 whitespace-nowrap">
                   {m.troopType ? <Badge variant="default">{t(`members.troop_${m.troopType}`)}</Badge> : <span className="text-[var(--color-text-muted)]">-</span>}
                 </td>
+                {showOnline && (
+                <td className="px-3 sm:px-4 py-2.5 sm:py-3 whitespace-nowrap">
+                  {canEditRow(m) ? (
+                    <select
+                      value={m.onlineStatus}
+                      onChange={(e) => setOnlineStatus(m.id, e.target.value as OnlineStatus)}
+                      className={`text-xs rounded-md border px-1.5 py-1 outline-none focus:border-[var(--color-brand)] cursor-pointer ${
+                        m.onlineStatus === 'yes'
+                          ? 'bg-[var(--color-success)]/15 text-[var(--color-success)] border-[var(--color-success)]/30'
+                          : m.onlineStatus === 'no'
+                            ? 'bg-[var(--color-danger)]/15 text-[var(--color-danger)] border-[var(--color-danger)]/30'
+                            : 'bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] border-[var(--color-border-subtle)]'
+                      }`}
+                    >
+                      {ONLINE_STATUSES.map((s) => (
+                        <option key={s} value={s} className="bg-[var(--color-bg-surface)] text-[var(--color-text-primary)]">
+                          {t(`members.online_${s}`)}
+                        </option>
+                      ))}
+                    </select>
+                  ) : m.onlineStatus === 'yes' ? (
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[var(--color-success)]/15 text-[var(--color-success)]">{t('members.online_yes')}</span>
+                  ) : m.onlineStatus === 'no' ? (
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[var(--color-danger)]/15 text-[var(--color-danger)]">{t('members.online_no')}</span>
+                  ) : (
+                    <span className="text-[var(--color-text-muted)]">-</span>
+                  )}
+                </td>
+                )}
                 <td className="hidden md:table-cell px-4 py-3 text-[var(--color-text-muted)] text-xs max-w-[150px] truncate">
                   {m.note || '-'}
                 </td>
@@ -316,6 +376,32 @@ export const MembersPage = () => {
                   })}
                 </div>
               </div>
+
+              {/* Online (주말 이벤트 참여) 선택 — 컬럼 표시 중일 때만 */}
+              {showOnline && (
+              <div>
+                <label className="text-xs text-[var(--color-text-muted)] mb-1 block">{t('members.online')}</label>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {ONLINE_STATUSES.map((s) => {
+                    const active = (form.onlineStatus ?? 'none') === s
+                    return (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => setForm((f) => ({ ...f, onlineStatus: s }))}
+                        className={`py-2 rounded-lg text-xs font-semibold border transition-colors ${
+                          active
+                            ? 'bg-[var(--color-brand)] text-white border-[var(--color-brand)]'
+                            : 'border-[var(--color-border-subtle)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'
+                        }`}
+                      >
+                        {t(`members.online_${s}`)}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+              )}
             </div>
             <div className="flex gap-2 mt-5">
               <Button variant="outline" size="full" onClick={closeForm}>{t('common.cancel')}</Button>
