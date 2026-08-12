@@ -395,7 +395,7 @@ export default {
     zalo_name: 'UID',
     cp: 'Combat Power (CP)',
     house_level: 'House Level',
-    troop_type: 'Troop',
+    troop_type: 'Main Troop',
     troop_none: 'None',
     troop_fighter: 'Fighter',
     troop_shooter: 'Shooter',

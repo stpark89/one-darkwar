@@ -395,7 +395,7 @@ export default {
     zalo_name: 'UID',
     cp: '전투력 (CP)',
     house_level: '집 레벨',
-    troop_type: '병종',
+    troop_type: '메인 병종',
     troop_none: '미지정',
     troop_fighter: '파이터',
     troop_shooter: '슈터',

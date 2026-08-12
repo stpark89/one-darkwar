@@ -395,7 +395,7 @@ export default {
     zalo_name: 'UID',
     cp: 'Lực chiến (CP)',
     house_level: 'Level nhà',
-    troop_type: 'Binh chủng',
+    troop_type: 'Binh chủng chính',
     troop_none: 'Chưa chọn',
     troop_fighter: 'Fighter',
     troop_shooter: 'Shooter',

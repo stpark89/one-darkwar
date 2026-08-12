@@ -395,7 +395,7 @@ export default {
     zalo_name: 'UID',
     cp: '戰鬥力 (CP)',
     house_level: '房屋等級',
-    troop_type: '兵種',
+    troop_type: '主兵種',
     troop_none: '未指定',
     troop_fighter: '戰士',
     troop_shooter: '射手',
