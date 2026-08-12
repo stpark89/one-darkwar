@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Search, Plus, Pencil, Trash2, X, Loader2, AlertTriangle, Eye, EyeOff } from 'lucide-react'
+import { Search, Plus, Pencil, Trash2, X, Loader2, AlertTriangle, Eye, EyeOff, RotateCcw } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useMemberStore } from '@/infrastructure/stores/memberStore'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
@@ -25,7 +25,7 @@ type SortKey = 'inGameName' | 'cp' | 'houseLevel'
 
 export const MembersPage = () => {
   const { t } = useTranslation()
-  const { getFiltered, searchQuery, setSearchQuery, addMember, updateMember, setOnlineStatus, deleteMember, loadMembers, loading } = useMemberStore()
+  const { getFiltered, searchQuery, setSearchQuery, addMember, updateMember, setOnlineStatus, resetAllOnline, deleteMember, loadMembers, loading } = useMemberStore()
   const { user, isGuest } = useAuthStore()
   const canEdit = user?.role === 'ROLE_ADMIN'
   const showUid = !isGuest
@@ -50,6 +50,8 @@ export const MembersPage = () => {
       return next
     })
   }
+  const [resetConfirm, setResetConfirm] = useState(false)
+  const [resetting, setResetting] = useState(false)
 
   const confirmDelete = async () => {
     if (!deleteConfirm || deleting) return
@@ -197,7 +199,18 @@ export const MembersPage = () => {
               </th>
               {showOnline && (
                 <th className="px-3 sm:px-4 py-3 text-left text-xs font-semibold text-[var(--color-text-muted)] whitespace-nowrap">
-                  {t('members.online')}
+                  <div className="flex items-center gap-1.5">
+                    <span>{t('members.online')}</span>
+                    {canEdit && (
+                      <button
+                        onClick={() => setResetConfirm(true)}
+                        title={t('members.online_reset')}
+                        className="p-1 rounded text-[var(--color-text-muted)] hover:text-[var(--color-danger)] hover:bg-[var(--color-bg-elevated)] transition-colors"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
                 </th>
               )}
               <th className="hidden md:table-cell px-4 py-3 text-left text-xs font-semibold text-[var(--color-text-muted)] whitespace-nowrap">
@@ -408,6 +421,33 @@ export const MembersPage = () => {
               <Button size="full" onClick={handleSave} disabled={!form.inGameName?.trim() || saving}>
                 {saving && <Loader2 className="w-4 h-4 animate-spin" />}
                 {editId ? t('common.save') : t('common.add')}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Online 전체 초기화 확인 */}
+      {resetConfirm && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-[var(--color-bg-surface)] rounded-xl border border-[var(--color-border)] w-full max-w-sm p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-[var(--color-danger)]/15 flex items-center justify-center flex-shrink-0">
+                <RotateCcw className="w-5 h-5 text-[var(--color-danger)]" />
+              </div>
+              <h2 className="text-base font-bold text-[var(--color-text-primary)]">{t('members.online_reset_title')}</h2>
+            </div>
+            <p className="text-sm text-[var(--color-text-secondary)] mb-5 leading-relaxed break-keep">{t('members.online_reset_desc')}</p>
+            <div className="flex gap-2">
+              <Button variant="outline" size="full" onClick={() => setResetConfirm(false)} disabled={resetting}>{t('common.cancel')}</Button>
+              <Button
+                size="full"
+                className="bg-[var(--color-danger)] hover:bg-red-700 text-white"
+                onClick={async () => { setResetting(true); try { await resetAllOnline() } finally { setResetting(false); setResetConfirm(false) } }}
+                disabled={resetting}
+              >
+                {resetting ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
+                {t('members.online_reset')}
               </Button>
             </div>
           </div>

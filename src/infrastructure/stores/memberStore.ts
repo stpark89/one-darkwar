@@ -22,6 +22,8 @@ interface MemberStore {
   updateMember: (id: string, input: Partial<Member>) => Promise<boolean>
   /** 주말 이벤트 참여 여부 인라인 변경 (조용히 저장 — 토스트 없음) */
   setOnlineStatus: (id: string, status: Member['onlineStatus']) => Promise<void>
+  /** 전체 멤버의 주말 이벤트 참여 여부를 none 으로 일괄 초기화 */
+  resetAllOnline: () => Promise<void>
   deleteMember: (id: string) => Promise<void>
   setSearchQuery: (q: string) => void
   getFiltered: () => Member[]
@@ -189,6 +191,20 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
       toast.error('저장 중 오류가 발생했습니다.')
       set({ members: prev }) // 롤백
     }
+  },
+
+  resetAllOnline: async () => {
+    const prev = get().members
+    set({ members: prev.map((m) => ({ ...m, onlineStatus: 'none' as const })) })
+    // 이미 none 인 행은 건드리지 않음 (변경 대상만 업데이트)
+    const { error } = await supabase.from('members').update({ online_status: 'none' }).neq('online_status', 'none')
+    if (error) {
+      console.error('[memberStore] resetAllOnline error:', error)
+      toast.error('초기화 중 오류가 발생했습니다.')
+      set({ members: prev }) // 롤백
+      return
+    }
+    toast.success('참여 여부가 초기화되었습니다.')
   },
 
   deleteMember: async (id) => {
