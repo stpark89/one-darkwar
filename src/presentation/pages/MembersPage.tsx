@@ -9,8 +9,9 @@ import { Badge } from '@/presentation/components/ui/badge'
 import { SortIcon, nextSortDir } from '@/presentation/components/ui/sort-icon'
 import type { SortDir } from '@/presentation/components/ui/sort-icon'
 import type { Member } from '@/domain/entities/Member'
+import { TROOP_TYPES } from '@/domain/entities/Member'
 
-const EMPTY: Partial<Member> = { inGameName: '', zaloName: '', cp: '', houseLevel: '', note: '' }
+const EMPTY: Partial<Member> = { inGameName: '', zaloName: '', cp: '', houseLevel: '', troopType: '', note: '' }
 
 const parseCp = (cp: string) => {
   const v = parseFloat(cp)
@@ -165,6 +166,9 @@ export const MembersPage = () => {
               )}
               {th('cp', t('members.cp'))}
               {th('houseLevel', t('members.house_level'))}
+              <th className="px-3 sm:px-4 py-3 text-left text-xs font-semibold text-[var(--color-text-muted)] whitespace-nowrap">
+                {t('members.troop_type')}
+              </th>
               <th className="hidden md:table-cell px-4 py-3 text-left text-xs font-semibold text-[var(--color-text-muted)] whitespace-nowrap">
                 {t('members.note')}
               </th>
@@ -209,6 +213,9 @@ export const MembersPage = () => {
                 </td>
                 <td className="px-3 sm:px-4 py-2.5 sm:py-3">
                   {m.houseLevel ? <Badge variant="default">{m.houseLevel}</Badge> : <span className="text-[var(--color-text-muted)]">-</span>}
+                </td>
+                <td className="px-3 sm:px-4 py-2.5 sm:py-3 whitespace-nowrap">
+                  {m.troopType ? <Badge variant="default">{t(`members.troop_${m.troopType}`)}</Badge> : <span className="text-[var(--color-text-muted)]">-</span>}
                 </td>
                 <td className="hidden md:table-cell px-4 py-3 text-[var(--color-text-muted)] text-xs max-w-[150px] truncate">
                   {m.note || '-'}
@@ -285,6 +292,30 @@ export const MembersPage = () => {
                   </div>
                 )
               })}
+
+              {/* 병종 선택 (파이터/슈터/라이더) */}
+              <div>
+                <label className="text-xs text-[var(--color-text-muted)] mb-1 block">{t('members.troop_type')}</label>
+                <div className="grid grid-cols-4 gap-1.5">
+                  {(['', ...TROOP_TYPES] as const).map((tp) => {
+                    const active = (form.troopType ?? '') === tp
+                    return (
+                      <button
+                        key={tp || 'none'}
+                        type="button"
+                        onClick={() => setForm((f) => ({ ...f, troopType: tp }))}
+                        className={`py-2 rounded-lg text-xs font-semibold border transition-colors ${
+                          active
+                            ? 'bg-[var(--color-brand)] text-white border-[var(--color-brand)]'
+                            : 'border-[var(--color-border-subtle)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'
+                        }`}
+                      >
+                        {tp ? t(`members.troop_${tp}`) : t('members.troop_none')}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
             </div>
             <div className="flex gap-2 mt-5">
               <Button variant="outline" size="full" onClick={closeForm}>{t('common.cancel')}</Button>

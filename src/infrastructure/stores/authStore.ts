@@ -37,6 +37,10 @@ export const REJECTED_ERROR = 'REJECTED'
 // 게스트 상태를 새로고침 후에도 유지하기 위한 localStorage 키
 const GUEST_FLAG_KEY = 'odw_guest'
 
+// 게스트(둘러보기) 모드 사용 여부. false 로 두면 게스트 진입이 잠긴다.
+// (이주 모집 종료 등으로 외부인 열람이 불필요할 때 잠금. 다시 열려면 true)
+export const GUEST_MODE_ENABLED = false
+
 // supabase 가 localStorage 에 저장하는 auth 토큰 키를 강제로 정리하는 헬퍼.
 // 일부 환경에서 supabase.auth.signOut() 이 토큰을 완전히 지우지 못해 새로고침
 // 후 세션이 부활하는 경우를 막기 위함.
@@ -93,7 +97,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
         }
         // profile null (timeout) 이면 user 상태 변경 없음 — 강제 로그아웃 부작용 방지
       } else {
-        const guest = localStorage.getItem(GUEST_FLAG_KEY) === '1'
+        const guest = GUEST_MODE_ENABLED && localStorage.getItem(GUEST_FLAG_KEY) === '1'
         set({ user: null, isGuest: guest })
       }
     } catch (err) {
@@ -117,7 +121,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
             set({ loading: false })
           }
         } else {
-          const guest = localStorage.getItem(GUEST_FLAG_KEY) === '1'
+          const guest = GUEST_MODE_ENABLED && localStorage.getItem(GUEST_FLAG_KEY) === '1'
           set({ user: null, isGuest: guest, loading: false })
         }
       } catch (err) {
@@ -232,6 +236,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
   },
 
   guestLogin: () => {
+    if (!GUEST_MODE_ENABLED) return // 게스트 모드 잠금 시 진입 차단
     // 직전에 회원 세션이 남아있으면 새로고침 시 그게 부활하여 게스트 모드를
     // 덮어쓰는 문제를 막기 위해 sb-*-auth-token 토큰도 함께 청소.
     purgeSupabaseAuthStorage()

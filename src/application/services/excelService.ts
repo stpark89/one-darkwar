@@ -343,6 +343,7 @@ export async function importFromExcel(file: File): Promise<{ members?: Member[] 
       zaloName: r['TÊN ZALO'] ?? r['UID'] ?? '',
       cp: r['LỰC CHIẾN'] ?? '',
       houseLevel: r['LEVEL NHÀ'] ?? '',
+      troopType: '',
       note: r['GHI CHÚ'] ?? '',
     }))
   }

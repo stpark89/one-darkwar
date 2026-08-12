@@ -41,6 +41,7 @@ const toMember = (row: Record<string, string>): Member => ({
   zaloName: row.zalo_name,
   cp: row.cp,
   houseLevel: row.house_level,
+  troopType: (row.troop_type ?? '') as Member['troopType'],
   note: row.note,
 })
 
@@ -73,6 +74,7 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
         zalo_name: input.zaloName ?? '',
         cp: input.cp ?? '',
         house_level: input.houseLevel ?? '',
+        troop_type: input.troopType ?? '',
         note: input.note ?? '',
       })
       .select()
@@ -148,6 +150,7 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
     if (input.zaloName !== undefined) updates.zalo_name = input.zaloName ?? ''
     if (input.cp !== undefined) updates.cp = input.cp ?? ''
     if (input.houseLevel !== undefined) updates.house_level = input.houseLevel ?? ''
+    if (input.troopType !== undefined) updates.troop_type = input.troopType ?? ''
     if (input.note !== undefined) updates.note = input.note ?? ''
 
     if (Object.keys(updates).length > 0) {
