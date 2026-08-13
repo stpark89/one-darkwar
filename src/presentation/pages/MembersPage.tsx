@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Search, Plus, Pencil, Trash2, X, Loader2, AlertTriangle, Eye, EyeOff, RotateCcw } from 'lucide-react'
+import { Search, Plus, Pencil, Trash2, X, Loader2, AlertTriangle, Eye, EyeOff, RotateCcw, ListFilter } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useMemberStore } from '@/infrastructure/stores/memberStore'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
@@ -50,6 +50,7 @@ export const MembersPage = () => {
       return next
     })
   }
+  const [filterOnlineOnly, setFilterOnlineOnly] = useState(false)
   const [resetConfirm, setResetConfirm] = useState(false)
   const [resetting, setResetting] = useState(false)
 
@@ -83,7 +84,10 @@ export const MembersPage = () => {
     if (next === null) { setSortKey('cp'); setSortDir('desc') }
   }
 
-  const members = [...base].sort((a, b) => {
+  const yesCount = base.filter((m) => m.onlineStatus === 'yes').length
+  const displayList = filterOnlineOnly ? base.filter((m) => m.onlineStatus === 'yes') : base
+
+  const members = [...displayList].sort((a, b) => {
     if (!sortDir) return 0
     let cmp = 0
     if (sortKey === 'cp') cmp = parseCp(a.cp) - parseCp(b.cp)
@@ -154,6 +158,26 @@ export const MembersPage = () => {
             className="pl-9"
           />
         </div>
+        {/* Online Yes만 필터 */}
+        <button
+          onClick={() => setFilterOnlineOnly((v) => !v)}
+          title={t('members.online_filter_yes')}
+          className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold border transition-colors whitespace-nowrap flex-shrink-0 ${
+            filterOnlineOnly
+              ? 'bg-[var(--color-success)]/15 text-[var(--color-success)] border-[var(--color-success)]/30'
+              : 'bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] border-[var(--color-border-subtle)] hover:text-[var(--color-text-primary)]'
+          }`}
+        >
+          <ListFilter className="w-3.5 h-3.5" />
+          {t('members.online_filter_yes')}
+          {yesCount > 0 && (
+            <span className={`text-[10px] font-bold px-1 py-0.5 rounded-full leading-none ${
+              filterOnlineOnly ? 'bg-[var(--color-success)] text-white' : 'bg-[var(--color-bg-surface)] text-[var(--color-text-muted)]'
+            }`}>
+              {yesCount}
+            </span>
+          )}
+        </button>
         {/* Online 컬럼 표시/숨김 — 내 화면에만 적용 (로컬) */}
         <button
           onClick={toggleOnline}

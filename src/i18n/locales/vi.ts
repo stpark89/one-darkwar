@@ -408,6 +408,7 @@ export default {
     online_reset: 'Đặt lại tất cả',
     online_reset_title: 'Đặt lại tham gia',
     online_reset_desc: 'Đặt lại trạng thái Online của tất cả thành viên về none. Không thể hoàn tác.',
+    online_filter_yes: 'Chỉ Yes',
     note: 'Ghi chú',
     in_game_placeholder: 'Nhập tên in-game',
     zalo_placeholder: 'Nhập UID',

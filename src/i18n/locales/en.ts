@@ -408,6 +408,7 @@ export default {
     online_reset: 'Reset all',
     online_reset_title: 'Reset participation',
     online_reset_desc: 'Reset the Online status of all members to none. This cannot be undone.',
+    online_filter_yes: 'Yes only',
     note: 'Note',
     in_game_placeholder: 'In-game nickname',
     zalo_placeholder: 'Enter UID',

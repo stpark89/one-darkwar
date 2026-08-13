@@ -408,6 +408,7 @@ export default {
     online_reset: '전체 초기화',
     online_reset_title: '참여 여부 초기화',
     online_reset_desc: '모든 멤버의 Online 참여 여부를 none 으로 되돌립니다. 되돌릴 수 없습니다.',
+    online_filter_yes: 'Yes만 보기',
     note: '메모',
     in_game_placeholder: '인게임 닉네임',
     zalo_placeholder: 'UID 입력',

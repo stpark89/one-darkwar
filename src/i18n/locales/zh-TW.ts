@@ -408,6 +408,7 @@ export default {
     online_reset: '全部重設',
     online_reset_title: '重設參與狀態',
     online_reset_desc: '將所有成員的 Online 狀態重設為 none，無法復原。',
+    online_filter_yes: '僅 Yes',
     note: '備註',
     in_game_placeholder: '遊戲暱稱',
     zalo_placeholder: '輸入 UID',
