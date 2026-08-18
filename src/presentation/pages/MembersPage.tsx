@@ -51,6 +51,7 @@ export const MembersPage = () => {
     })
   }
   const [filterOnlineOnly, setFilterOnlineOnly] = useState(false)
+  const [filterTroopType, setFilterTroopType] = useState<string | null>(null)
   const [resetConfirm, setResetConfirm] = useState(false)
   const [resetting, setResetting] = useState(false)
 
@@ -85,7 +86,10 @@ export const MembersPage = () => {
   }
 
   const yesCount = base.filter((m) => m.onlineStatus === 'yes').length
-  const displayList = filterOnlineOnly ? base.filter((m) => m.onlineStatus === 'yes') : base
+  const troopCounts = Object.fromEntries(TROOP_TYPES.map((tp) => [tp, base.filter((m) => m.troopType === tp).length]))
+  const displayList = base
+    .filter((m) => !filterOnlineOnly || m.onlineStatus === 'yes')
+    .filter((m) => !filterTroopType || m.troopType === filterTroopType)
 
   const members = [...displayList].sort((a, b) => {
     if (!sortDir) return 0
@@ -191,6 +195,28 @@ export const MembersPage = () => {
           {showOnline ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
           {t('members.online')}
         </button>
+      </div>
+
+      {/* 병종 필터 버튼 */}
+      <div className="flex items-center gap-1.5 mb-3 sm:mb-4 flex-wrap">
+        {TROOP_TYPES.map((tp) => (
+          <button
+            key={tp}
+            onClick={() => setFilterTroopType((v) => (v === tp ? null : tp))}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors whitespace-nowrap ${
+              filterTroopType === tp
+                ? 'bg-[var(--color-brand)]/15 text-[var(--color-brand)] border-[var(--color-brand)]/30'
+                : 'bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] border-[var(--color-border-subtle)] hover:text-[var(--color-text-primary)]'
+            }`}
+          >
+            {t(`members.troop_${tp}`)}
+            <span className={`text-[10px] font-bold px-1 py-0.5 rounded-full leading-none ${
+              filterTroopType === tp ? 'bg-[var(--color-brand)] text-white' : 'bg-[var(--color-bg-surface)] text-[var(--color-text-muted)]'
+            }`}>
+              {troopCounts[tp] ?? 0}
+            </span>
+          </button>
+        ))}
       </div>
 
       {/* 비관리자 사용자에게 본인 정보 수정 안내 — 발견율 개선 */}
