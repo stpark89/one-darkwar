@@ -25,6 +25,7 @@ interface MemberStore {
   /** 전체 멤버의 주말 이벤트 참여 여부를 none 으로 일괄 초기화 */
   resetAllOnline: () => Promise<void>
   deleteMember: (id: string) => Promise<void>
+  adminResetPassword: (memberId: string, newPassword: string) => Promise<boolean>
   setSearchQuery: (q: string) => void
   getFiltered: () => Member[]
 }
@@ -214,6 +215,25 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
     useWarStore.getState().syncDeleteMember(id)
     useVsPointStore.getState().syncDeleteMember(id)
     useEventStore.getState().syncDeleteMember(id)
+  },
+
+  adminResetPassword: async (memberId, newPassword) => {
+    const { data: { session } } = await supabase.auth.getSession()
+    const jwt = session?.access_token
+    if (!jwt) { toast.error('로그인이 필요합니다.'); return false }
+
+    const res = await fetch('/api/admin/reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${jwt}` },
+      body: JSON.stringify({ memberId, newPassword }),
+    })
+    if (res.ok) {
+      toast.success('비밀번호가 변경되었습니다.')
+      return true
+    }
+    const body = await res.json().catch(() => ({}))
+    toast.error(body.error ?? '비밀번호 변경 중 오류가 발생했습니다.')
+    return false
   },
 
   setSearchQuery: (searchQuery) => set({ searchQuery }),

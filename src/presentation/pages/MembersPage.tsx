@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Search, Plus, Pencil, Trash2, X, Loader2, AlertTriangle, Eye, EyeOff, RotateCcw, ListFilter } from 'lucide-react'
+import { Search, Plus, Pencil, Trash2, X, Loader2, AlertTriangle, Eye, EyeOff, RotateCcw, ListFilter, KeyRound } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useMemberStore } from '@/infrastructure/stores/memberStore'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
@@ -25,7 +25,7 @@ type SortKey = 'inGameName' | 'cp' | 'houseLevel'
 
 export const MembersPage = () => {
   const { t } = useTranslation()
-  const { getFiltered, searchQuery, setSearchQuery, addMember, updateMember, setOnlineStatus, resetAllOnline, deleteMember, loadMembers, loading } = useMemberStore()
+  const { getFiltered, searchQuery, setSearchQuery, addMember, updateMember, setOnlineStatus, resetAllOnline, deleteMember, adminResetPassword, loadMembers, loading } = useMemberStore()
   const { user, isGuest } = useAuthStore()
   const canEdit = user?.role === 'ROLE_ADMIN'
   const showUid = !isGuest
@@ -52,6 +52,9 @@ export const MembersPage = () => {
   }
   const [filterOnlineOnly, setFilterOnlineOnly] = useState(false)
   const [filterTroopType, setFilterTroopType] = useState<string | null>(null)
+  const [pwTarget, setPwTarget] = useState<Member | null>(null)
+  const [newPassword, setNewPassword] = useState('')
+  const [pwSaving, setPwSaving] = useState(false)
   const [resetConfirm, setResetConfirm] = useState(false)
   const [resetting, setResetting] = useState(false)
 
@@ -361,6 +364,15 @@ export const MembersPage = () => {
                         <Pencil className="w-3.5 h-3.5" />
                       </button>
                       {canEdit && (
+                        <button
+                          onClick={() => { setPwTarget(m); setNewPassword('') }}
+                          title={t('members.reset_password')}
+                          className="p-1.5 rounded hover:bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] hover:text-[var(--color-brand)] transition-colors"
+                        >
+                          <KeyRound className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      {canEdit && (
                         <button onClick={() => setDeleteConfirm(m)} className="p-1.5 rounded hover:bg-[var(--color-bg-elevated)] text-(--color-danger) hover:brightness-125">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -498,6 +510,53 @@ export const MembersPage = () => {
               >
                 {resetting ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
                 {t('members.online_reset')}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 비밀번호 변경 모달 */}
+      {pwTarget && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-[var(--color-bg-surface)] rounded-xl border border-[var(--color-border)] w-full max-w-sm p-6">
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h2 className="text-base font-bold">{t('members.reset_password')}</h2>
+                <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{pwTarget.inGameName}</p>
+              </div>
+              <button onClick={() => setPwTarget(null)} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div>
+              <label className="text-xs text-[var(--color-text-muted)] mb-1 block">{t('members.new_password')}</label>
+              <Input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder={t('members.new_password_placeholder')}
+                autoFocus
+              />
+              <p className="text-[10px] text-[var(--color-text-muted)] mt-1">{t('members.password_min_hint')}</p>
+            </div>
+            <div className="flex gap-2 mt-5">
+              <Button variant="outline" size="full" onClick={() => setPwTarget(null)} disabled={pwSaving}>{t('common.cancel')}</Button>
+              <Button
+                size="full"
+                disabled={newPassword.length < 6 || pwSaving}
+                onClick={async () => {
+                  setPwSaving(true)
+                  try {
+                    const ok = await adminResetPassword(pwTarget.id, newPassword)
+                    if (ok) setPwTarget(null)
+                  } finally {
+                    setPwSaving(false)
+                  }
+                }}
+              >
+                {pwSaving && <Loader2 className="w-4 h-4 animate-spin" />}
+                {t('common.save')}
               </Button>
             </div>
           </div>
