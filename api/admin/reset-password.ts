@@ -45,16 +45,44 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   // 4) 요청 바디 검증
-  const { memberId, newPassword } = req.body as { memberId?: string; newPassword?: string }
-  if (!memberId || !newPassword) {
-    return res.status(400).json({ error: 'memberId and newPassword are required' })
+  const { inGameName, newPassword } = req.body as { inGameName?: string; newPassword?: string }
+  if (!inGameName || !newPassword) {
+    return res.status(400).json({ error: 'inGameName and newPassword are required' })
   }
   if (newPassword.length < 6) {
     return res.status(400).json({ error: 'Password must be at least 6 characters' })
   }
 
-  // 5) 비밀번호 변경
-  const { error: updateErr } = await adminClient.auth.admin.updateUserById(memberId, {
+  // 5) 인게임명으로 대상 계정 조회
+  //    members.id 는 auth 계정 id 가 아니다 — 두 테이블은 인게임명으로만 연결된다.
+  //    클라이언트가 보낸 id 를 그대로 믿으면 엉뚱한 계정을 바꿀 수 있으므로 서버에서 찾는다.
+  //    대소문자·앞뒤 공백 차이가 있는 계정이 실제로 존재하므로 정확일치만으로는 못 찾는다.
+  //    ilike 로 후보를 좁힌 뒤 정규화 비교로 확정한다(와일드카드 문자는 이스케이프).
+  const nameKey = (s: string) => (s ?? '').trim().toLowerCase()
+  const escaped = inGameName.trim().replace(/[\\%_]/g, (ch) => `\\${ch}`)
+
+  const { data: candidates, error: lookupErr } = await adminClient
+    .from('profiles')
+    .select('id, in_game_name')
+    .ilike('in_game_name', escaped)
+
+  if (lookupErr) {
+    console.error('[admin/reset-password] lookup error:', lookupErr)
+    return res.status(500).json({ error: 'Lookup failed' })
+  }
+
+  const targets = (candidates ?? []).filter(
+    (c) => nameKey(c.in_game_name as string) === nameKey(inGameName),
+  )
+  if (targets.length === 0) {
+    return res.status(404).json({ error: 'No login account found for this member' })
+  }
+  if (targets.length > 1) {
+    return res.status(409).json({ error: 'Multiple accounts share this name' })
+  }
+
+  // 6) 비밀번호 변경
+  const { error: updateErr } = await adminClient.auth.admin.updateUserById(targets[0].id, {
     password: newPassword,
   })
 

@@ -25,7 +25,8 @@ interface MemberStore {
   /** 전체 멤버의 주말 이벤트 참여 여부를 none 으로 일괄 초기화 */
   resetAllOnline: () => Promise<void>
   deleteMember: (id: string) => Promise<void>
-  adminResetPassword: (memberId: string, newPassword: string) => Promise<boolean>
+  /** 관리자가 멤버 로그인 비밀번호 변경 — 인게임명으로 계정을 찾는다(members.id ≠ auth id) */
+  adminResetPassword: (inGameName: string, newPassword: string) => Promise<boolean>
   setSearchQuery: (q: string) => void
   getFiltered: () => Member[]
 }
@@ -39,6 +40,9 @@ const parseCp = (cp: string): number => {
 }
 
 const sortBycp = (a: Member, b: Member) => parseCp(b.cp) - parseCp(a.cp)
+
+/** 인게임명 매칭 키 — 대소문자·앞뒤 공백 차이를 흡수 */
+const nameKey = (name: string) => (name ?? '').trim().toLowerCase()
 
 const toMember = (row: Record<string, unknown>): Member => ({
   id: row.id as string,
@@ -64,11 +68,14 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
     try {
       const [{ data: memberRows }, { data: profileRows }] = await Promise.all([
         supabase.from('members').select('*'),
-        supabase.from('profiles').select('id, role'),
+        supabase.from('profiles').select('in_game_name, role'),
       ])
-      const roleMap = new Map((profileRows ?? []).map((p) => [p.id as string, p.role as string]))
+      // members 와 profiles 는 FK 가 없고 id 도 서로 다르다 — 인게임명으로만 연결된다
+      const roleMap = new Map(
+        (profileRows ?? []).map((p) => [nameKey(p.in_game_name as string), p.role as string]),
+      )
       const members = (memberRows ?? []).map((row) =>
-        toMember({ ...row, _role: roleMap.get(row.id) ?? '' }),
+        toMember({ ...row, _role: roleMap.get(nameKey(row.in_game_name)) ?? '' }),
       )
       set({ members: members.sort(sortBycp), initialized: true })
     } catch (err) {
@@ -225,15 +232,16 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
     useEventStore.getState().syncDeleteMember(id)
   },
 
-  adminResetPassword: async (memberId, newPassword) => {
+  adminResetPassword: async (inGameName, newPassword) => {
     const { data: { session } } = await supabase.auth.getSession()
     const jwt = session?.access_token
     if (!jwt) { toast.error('로그인이 필요합니다.'); return false }
 
+    // members.id 는 auth 계정 id 가 아니다 — 서버가 인게임명으로 계정을 찾는다
     const res = await fetch('/api/admin/reset-password', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${jwt}` },
-      body: JSON.stringify({ memberId, newPassword }),
+      body: JSON.stringify({ inGameName, newPassword }),
     })
     if (res.ok) {
       toast.success('비밀번호가 변경되었습니다.')

@@ -368,7 +368,8 @@ export const MembersPage = () => {
                       >
                         <Pencil className="w-3.5 h-3.5" />
                       </button>
-                      {canEdit && (
+                      {/* 로그인 계정이 있는 멤버만 — role 이 빈 값이면 계정 없음 */}
+                      {canEdit && m.role !== '' && (
                         <button
                           onClick={() => { setPwTarget(m); setNewPassword('') }}
                           title={t('members.reset_password')}
@@ -553,7 +554,7 @@ export const MembersPage = () => {
                 onClick={async () => {
                   setPwSaving(true)
                   try {
-                    const ok = await adminResetPassword(pwTarget.id, newPassword)
+                    const ok = await adminResetPassword(pwTarget.inGameName, newPassword)
                     if (ok) setPwTarget(null)
                   } finally {
                     setPwSaving(false)
