@@ -49,7 +49,7 @@ const toMember = (row: Record<string, unknown>): Member => ({
   troopType: ((row.troop_type as string) ?? '') as Member['troopType'],
   onlineStatus: ((row.online_status as string) ?? 'none') as Member['onlineStatus'],
   note: row.note as string,
-  role: ((row.profiles as { role?: string } | null)?.role ?? '') as Member['role'],
+  role: ((row._role as string) ?? '') as Member['role'],
 })
 
 export const useMemberStore = create<MemberStore>((set, get) => ({
@@ -62,8 +62,15 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
     if (!force && get().initialized) return
     set({ loading: true })
     try {
-      const { data } = await supabase.from('members').select('*, profiles(role)')
-      set({ members: (data ?? []).map(toMember).sort(sortBycp), initialized: true })
+      const [{ data: memberRows }, { data: profileRows }] = await Promise.all([
+        supabase.from('members').select('*'),
+        supabase.from('profiles').select('id, role'),
+      ])
+      const roleMap = new Map((profileRows ?? []).map((p) => [p.id as string, p.role as string]))
+      const members = (memberRows ?? []).map((row) =>
+        toMember({ ...row, _role: roleMap.get(row.id) ?? '' }),
+      )
+      set({ members: members.sort(sortBycp), initialized: true })
     } catch (err) {
       console.error('[memberStore] loadMembers exception:', err)
     } finally {
