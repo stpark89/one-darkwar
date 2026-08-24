@@ -409,6 +409,7 @@ export default {
     online_reset_title: 'Reset participation',
     online_reset_desc: 'Reset the Online status of all members to none. This cannot be undone.',
     online_filter_yes: 'Yes only',
+    role_admin: 'Admin',
     reset_password: 'Reset Password',
     new_password: 'New Password',
     new_password_placeholder: 'Enter new password',

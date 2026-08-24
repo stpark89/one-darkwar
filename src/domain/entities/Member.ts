@@ -15,6 +15,7 @@ export interface Member {
   troopType: TroopType
   onlineStatus: OnlineStatus
   note: string
+  role: 'ROLE_ADMIN' | 'ROLE_USER' | ''
 }
 
 export interface CreateMemberInput {

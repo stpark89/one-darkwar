@@ -409,6 +409,7 @@ export default {
     online_reset_title: '참여 여부 초기화',
     online_reset_desc: '모든 멤버의 Online 참여 여부를 none 으로 되돌립니다. 되돌릴 수 없습니다.',
     online_filter_yes: 'Yes만 보기',
+    role_admin: '관리자',
     reset_password: '비밀번호 변경',
     new_password: '새 비밀번호',
     new_password_placeholder: '새 비밀번호 입력',

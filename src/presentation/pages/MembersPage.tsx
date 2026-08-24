@@ -290,6 +290,11 @@ export const MembersPage = () => {
                 <td className="px-3 sm:px-4 py-2.5 sm:py-3 font-medium text-[var(--color-text-primary)]">
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <span className="whitespace-nowrap">{m.inGameName}</span>
+                    {m.role === 'ROLE_ADMIN' && (
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 leading-none border border-amber-500/30 whitespace-nowrap">
+                        {t('members.role_admin')}
+                      </span>
+                    )}
                     {isMine && (
                       <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[var(--color-brand)] text-white leading-none">
                         {t('members.my_row_badge')}

@@ -40,15 +40,16 @@ const parseCp = (cp: string): number => {
 
 const sortBycp = (a: Member, b: Member) => parseCp(b.cp) - parseCp(a.cp)
 
-const toMember = (row: Record<string, string>): Member => ({
-  id: row.id,
-  inGameName: row.in_game_name,
-  zaloName: row.zalo_name,
-  cp: row.cp,
-  houseLevel: row.house_level,
-  troopType: (row.troop_type ?? '') as Member['troopType'],
-  onlineStatus: (row.online_status ?? 'none') as Member['onlineStatus'],
-  note: row.note,
+const toMember = (row: Record<string, unknown>): Member => ({
+  id: row.id as string,
+  inGameName: row.in_game_name as string,
+  zaloName: row.zalo_name as string,
+  cp: row.cp as string,
+  houseLevel: row.house_level as string,
+  troopType: ((row.troop_type as string) ?? '') as Member['troopType'],
+  onlineStatus: ((row.online_status as string) ?? 'none') as Member['onlineStatus'],
+  note: row.note as string,
+  role: ((row.profiles as { role?: string } | null)?.role ?? '') as Member['role'],
 })
 
 export const useMemberStore = create<MemberStore>((set, get) => ({
@@ -61,7 +62,7 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
     if (!force && get().initialized) return
     set({ loading: true })
     try {
-      const { data } = await supabase.from('members').select('*')
+      const { data } = await supabase.from('members').select('*, profiles(role)')
       set({ members: (data ?? []).map(toMember).sort(sortBycp), initialized: true })
     } catch (err) {
       console.error('[memberStore] loadMembers exception:', err)

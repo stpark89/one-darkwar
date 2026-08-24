@@ -409,6 +409,7 @@ export default {
     online_reset_title: 'Đặt lại tham gia',
     online_reset_desc: 'Đặt lại trạng thái Online của tất cả thành viên về none. Không thể hoàn tác.',
     online_filter_yes: 'Chỉ Yes',
+    role_admin: 'Quản trị',
     reset_password: 'Đổi mật khẩu',
     new_password: 'Mật khẩu mới',
     new_password_placeholder: 'Nhập mật khẩu mới',
