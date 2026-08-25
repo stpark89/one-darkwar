@@ -3,6 +3,7 @@ import { Loader2, RefreshCw } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import type { TFunction } from 'i18next'
 import { supabase } from '@/lib/supabase'
+import { useMemberStore } from '@/infrastructure/stores/memberStore'
 import { cn } from '@/lib/utils'
 
 interface ProfileRow {
@@ -48,7 +49,8 @@ const STATUS_LABEL: Record<OnlineStatus, string> = {
 
 export const OnlineUsersPage = () => {
   const { t } = useTranslation()
-  const [profiles, setProfiles] = useState<ProfileRow[]>([])
+  const { members, loadMembers } = useMemberStore()
+  const [allProfiles, setAllProfiles] = useState<ProfileRow[]>([])
   const [loading, setLoading] = useState(true)
 
   const load = useCallback(async () => {
@@ -57,11 +59,37 @@ export const OnlineUsersPage = () => {
       .from('profiles')
       .select('id, in_game_name, role, last_seen_at')
       .order('last_seen_at', { ascending: false, nullsFirst: false })
-    setProfiles(data ?? [])
+    setAllProfiles(data ?? [])
     setLoading(false)
   }, [])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => { load(); loadMembers() }, [load, loadMembers])
+
+  // 인원수 기준은 멤버 테이블이다.
+  //  - profiles 에는 이미 나간 사람의 계정이 남아 있어 그대로 세면 과다 집계된다
+  //  - 반대로 멤버 중엔 로그인 계정이 아예 없는 사람도 있어, 계정만 세면 과소 집계된다
+  // 그래서 멤버 전원을 나열하고 계정 정보를 인게임명으로 붙인다(두 테이블에 FK 가 없다).
+  const nameKey = (s: string) => (s ?? '').trim().toLowerCase()
+  const profileByName = new Map(allProfiles.map(p => [nameKey(p.in_game_name), p]))
+  const profiles: ProfileRow[] = members.length === 0
+    ? allProfiles
+    : members
+        .map((m) => {
+          const p = profileByName.get(nameKey(m.inGameName))
+          return {
+            id: p?.id ?? m.id,
+            in_game_name: m.inGameName,
+            role: p?.role ?? '',
+            last_seen_at: p?.last_seen_at ?? null,
+          }
+        })
+        // 최근 접속 순 — 접속 기록이 없는 사람(계정 미보유 포함)은 뒤로
+        .sort((a, b) => {
+          if (a.last_seen_at === b.last_seen_at) return a.in_game_name.localeCompare(b.in_game_name)
+          if (!a.last_seen_at) return 1
+          if (!b.last_seen_at) return -1
+          return new Date(b.last_seen_at).getTime() - new Date(a.last_seen_at).getTime()
+        })
 
   const onlineCount = profiles.filter(p => getStatus(p.last_seen_at) === 'online').length
 
