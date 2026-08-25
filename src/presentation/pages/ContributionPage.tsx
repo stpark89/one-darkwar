@@ -212,7 +212,12 @@ export const ContributionPage = () => {
     <div className="p-3 sm:p-6">
       <div className="mb-3 sm:mb-5">
         <h1 className="text-lg sm:text-xl font-bold text-[var(--color-text-primary)]">{t('contribution.title')}</h1>
-        <p className="text-xs sm:text-sm text-[var(--color-text-muted)] mt-0.5">{t('contribution.subtitle', { count: filtered.length })}</p>
+        <p className="text-xs sm:text-sm text-[var(--color-text-muted)] mt-0.5">
+          {/* 전체 인원수는 항상 멤버 테이블 기준 — 검색에 영향받지 않는다 */}
+          {filtered.length === rows.length
+            ? t('contribution.subtitle', { count: rows.length })
+            : t('common.count_filtered', { shown: filtered.length, total: rows.length })}
+        </p>
       </div>
 
       <div className="relative mb-4">

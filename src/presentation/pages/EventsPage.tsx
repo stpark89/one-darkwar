@@ -388,7 +388,11 @@ export const EventsPage = () => {
         <div>
           <h1 className="text-lg sm:text-xl font-bold text-[var(--color-text-primary)]">{t('events.title')}</h1>
           <p className="text-xs sm:text-sm text-[var(--color-text-muted)] mt-0.5">
-            {t('events.subtitle', { events: visibleEvents.length, members: attendance.length })}
+            {/* 전체 인원수는 항상 멤버 테이블 기준 — 검색에 영향받지 않는다 */}
+            {t('events.subtitle', { events: visibleEvents.length, members: allAttendance.length })}
+            {attendance.length !== allAttendance.length && (
+              <span className="ml-1">({t('common.count_filtered', { shown: attendance.length, total: allAttendance.length })})</span>
+            )}
           </p>
         </div>
         <div className="flex items-center gap-2">

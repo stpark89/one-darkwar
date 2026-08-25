@@ -25,7 +25,9 @@ type SortKey = 'inGameName' | 'cp' | 'houseLevel'
 
 export const MembersPage = () => {
   const { t } = useTranslation()
-  const { getFiltered, searchQuery, setSearchQuery, addMember, updateMember, setOnlineStatus, resetAllOnline, deleteMember, adminResetPassword, loadMembers, loading } = useMemberStore()
+  const { members: allMembers, getFiltered, searchQuery, setSearchQuery, addMember, updateMember, setOnlineStatus, resetAllOnline, deleteMember, adminResetPassword, loadMembers, loading } = useMemberStore()
+  // 전체 인원수는 항상 멤버 테이블 기준 — 검색·필터에 영향받지 않는다
+  const totalMembers = allMembers.length
   const { user, isGuest } = useAuthStore()
   const canEdit = user?.role === 'ROLE_ADMIN'
   const showUid = !isGuest
@@ -145,7 +147,9 @@ export const MembersPage = () => {
         <div>
           <h1 className="text-lg sm:text-xl font-bold text-[var(--color-text-primary)]">{t('members.title')}</h1>
           <p className="text-xs sm:text-sm text-[var(--color-text-muted)] mt-0.5">
-            {t('members.subtitle_count', { count: members.length })}
+            {members.length === totalMembers
+              ? t('members.subtitle_count', { count: totalMembers })
+              : t('common.count_filtered', { shown: members.length, total: totalMembers })}
           </p>
         </div>
         {canEdit && (

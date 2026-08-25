@@ -382,6 +382,7 @@ export default {
     close: 'Close',
     total: 'Total',
     count_people: 'members',
+    count_filtered: '{{shown}} / {{total}} members',
     loading: 'Loading...',
     no_data: 'No data',
   },

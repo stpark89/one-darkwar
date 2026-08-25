@@ -382,6 +382,7 @@ export default {
     close: '關閉',
     total: '共',
     count_people: '人',
+    count_filtered: '{{shown}} / 共 {{total}} 人',
     loading: '載入中...',
     no_data: '無資料',
   },

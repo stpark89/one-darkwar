@@ -382,6 +382,7 @@ export default {
     close: 'Đóng',
     total: 'Tổng',
     count_people: 'người',
+    count_filtered: '{{shown}} / {{total}} người',
     loading: 'Đang tải...',
     no_data: 'Không có dữ liệu',
   },

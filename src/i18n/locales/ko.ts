@@ -382,6 +382,8 @@ export default {
     close: '닫기',
     total: '총',
     count_people: '명',
+    // 필터가 걸렸을 때 "보이는 수 / 전체 수" — 전체 수는 항상 멤버 테이블 기준
+    count_filtered: '{{shown}} / 총 {{total}}명',
     loading: '로딩 중...',
     no_data: '데이터가 없습니다',
   },

@@ -77,7 +77,10 @@ export const WarPage = () => {
     getMemberRows, getSummary,
     addRound, deleteRound, updateRoundDate, loadData,
     batchSave,
+    members: allMembers,
   } = useWarStore()
+  // 전체 인원수는 항상 멤버 테이블 기준 — 검색·팀 필터에 영향받지 않는다
+  const totalMembers = allMembers.length
 
   // ── Tab & UI state ──
   const [activeTab, setActiveTab] = useState<'grid' | 'ranking'>('grid')
@@ -266,7 +269,11 @@ export const WarPage = () => {
                 {team === '' ? t('war.team_all') : `Team ${team}`}
               </button>
             ))}
-            <span className="text-xs text-[var(--color-text-muted)] ml-auto sm:ml-0">{memberRows.length}{t('common.count_people')}</span>
+            <span className="text-xs text-[var(--color-text-muted)] ml-auto sm:ml-0">
+              {memberRows.length === totalMembers
+                ? `${totalMembers}${t('common.count_people')}`
+                : t('common.count_filtered', { shown: memberRows.length, total: totalMembers })}
+            </span>
           </div>
         </div>
       )}
