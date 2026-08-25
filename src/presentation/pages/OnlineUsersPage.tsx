@@ -69,13 +69,18 @@ export const OnlineUsersPage = () => {
   //  - profiles 에는 이미 나간 사람의 계정이 남아 있어 그대로 세면 과다 집계된다
   //  - 반대로 멤버 중엔 로그인 계정이 아예 없는 사람도 있어, 계정만 세면 과소 집계된다
   // 그래서 멤버 전원을 나열하고 계정 정보를 인게임명으로 붙인다(두 테이블에 FK 가 없다).
+  // 연결 기준은 members.profile_id (FK) — 이름이 바뀌어도 끊기지 않는다.
+  // profile_id 가 없는 행만 예전 방식인 인게임명 매칭으로 폴백한다.
   const nameKey = (s: string) => (s ?? '').trim().toLowerCase()
+  const profileById = new Map(allProfiles.map(p => [p.id, p]))
   const profileByName = new Map(allProfiles.map(p => [nameKey(p.in_game_name), p]))
   const profiles: ProfileRow[] = members.length === 0
     ? allProfiles
     : members
         .map((m) => {
-          const p = profileByName.get(nameKey(m.inGameName))
+          const p = m.profileId
+            ? profileById.get(m.profileId)
+            : profileByName.get(nameKey(m.inGameName))
           return {
             id: p?.id ?? m.id,
             in_game_name: m.inGameName,

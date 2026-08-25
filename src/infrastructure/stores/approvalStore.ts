@@ -15,6 +15,51 @@ export interface ApprovedUser {
   createdAt: string
 }
 
+/**
+ * 승인된 계정을 멤버 명단에 연결한다.
+ *  - 이미 명단에 있으면 profile_id 만 채워 연결(중복 행을 만들지 않는다)
+ *  - 없으면 새 행을 만들면서 profile_id 를 함께 넣는다
+ * members.id 는 auth 계정 id 가 아니므로 연결은 반드시 profile_id 로 한다.
+ */
+const linkOrCreateMember = async (userId: string, inGameName: string) => {
+  // 1) profile_id 또는 예전 방식(id = 계정 id)으로 이미 연결된 행이 있는지
+  const { data: linked } = await supabase
+    .from('members')
+    .select('id, profile_id')
+    .or(`profile_id.eq.${userId},id.eq.${userId}`)
+    .limit(1)
+  if (linked && linked.length > 0) {
+    if (!linked[0].profile_id) {
+      await supabase.from('members').update({ profile_id: userId }).eq('id', linked[0].id)
+    }
+    return
+  }
+
+  // 2) 같은 인게임명으로 이미 명단에 있으면 새로 만들지 말고 연결만 한다
+  const { data: byName } = await supabase
+    .from('members')
+    .select('id, profile_id')
+    .eq('in_game_name', inGameName)
+    .limit(1)
+  if (byName && byName.length > 0) {
+    if (!byName[0].profile_id) {
+      await supabase.from('members').update({ profile_id: userId }).eq('id', byName[0].id)
+    }
+    return
+  }
+
+  // 3) 명단에 없으면 새로 추가
+  await supabase.from('members').insert({
+    id: userId,
+    profile_id: userId,
+    in_game_name: inGameName,
+    zalo_name: '',
+    cp: '',
+    house_level: '',
+    note: '',
+  })
+}
+
 interface ApprovalStore {
   pendingUsers: PendingUser[]
   pendingCount: number
@@ -108,17 +153,7 @@ export const useApprovalStore = create<ApprovalStore>((set, get) => ({
     const target = get().pendingUsers.find((u) => u.id === userId)
     await supabase.from('profiles').update({ status: 'APPROVED' }).eq('id', userId)
     if (target) {
-      const { data: existing } = await supabase.from('members').select('id').eq('id', userId).single()
-      if (!existing) {
-        await supabase.from('members').insert({
-          id: userId,
-          in_game_name: target.inGameName,
-          zalo_name: '',
-          cp: '',
-          house_level: '',
-          note: '',
-        })
-      }
+      await linkOrCreateMember(userId, target.inGameName)
     }
     const users = get().pendingUsers.filter((u) => u.id !== userId)
     set({ pendingUsers: users, pendingCount: users.length })
@@ -138,17 +173,7 @@ export const useApprovalStore = create<ApprovalStore>((set, get) => ({
     const target = get().rejectedUsers.find((u) => u.id === userId)
     await supabase.from('profiles').update({ status: 'APPROVED' }).eq('id', userId)
     if (target) {
-      const { data: existing } = await supabase.from('members').select('id').eq('id', userId).single()
-      if (!existing) {
-        await supabase.from('members').insert({
-          id: userId,
-          in_game_name: target.inGameName,
-          zalo_name: '',
-          cp: '',
-          house_level: '',
-          note: '',
-        })
-      }
+      await linkOrCreateMember(userId, target.inGameName)
     }
     const users = get().rejectedUsers.filter((u) => u.id !== userId)
     set({ rejectedUsers: users })

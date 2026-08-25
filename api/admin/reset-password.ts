@@ -45,44 +45,66 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   // 4) 요청 바디 검증
-  const { inGameName, newPassword } = req.body as { inGameName?: string; newPassword?: string }
-  if (!inGameName || !newPassword) {
-    return res.status(400).json({ error: 'inGameName and newPassword are required' })
+  const { memberId, newPassword } = req.body as { memberId?: string; newPassword?: string }
+  if (!memberId || !newPassword) {
+    return res.status(400).json({ error: 'memberId and newPassword are required' })
   }
   if (newPassword.length < 6) {
     return res.status(400).json({ error: 'Password must be at least 6 characters' })
   }
 
-  // 5) 인게임명으로 대상 계정 조회
-  //    members.id 는 auth 계정 id 가 아니다 — 두 테이블은 인게임명으로만 연결된다.
-  //    클라이언트가 보낸 id 를 그대로 믿으면 엉뚱한 계정을 바꿀 수 있으므로 서버에서 찾는다.
-  //    대소문자·앞뒤 공백 차이가 있는 계정이 실제로 존재하므로 정확일치만으로는 못 찾는다.
-  //    ilike 로 후보를 좁힌 뒤 정규화 비교로 확정한다(와일드카드 문자는 이스케이프).
-  const nameKey = (s: string) => (s ?? '').trim().toLowerCase()
-  const escaped = inGameName.trim().replace(/[\\%_]/g, (ch) => `\\${ch}`)
+  // 5) 대상 계정 확정 — members.profile_id (FK) 로 찾는다.
+  //    members.id 는 auth 계정 id 가 아니므로 그대로 쓰면 엉뚱한 계정을 바꾼다.
+  //    클라이언트가 보낸 계정 id 를 믿지 않고 서버가 멤버 행에서 읽어온다.
+  const { data: member, error: memberErr } = await adminClient
+    .from('members')
+    .select('id, in_game_name, profile_id')
+    .eq('id', memberId)
+    .maybeSingle()
 
-  const { data: candidates, error: lookupErr } = await adminClient
-    .from('profiles')
-    .select('id, in_game_name')
-    .ilike('in_game_name', escaped)
-
-  if (lookupErr) {
-    console.error('[admin/reset-password] lookup error:', lookupErr)
+  if (memberErr) {
+    console.error('[admin/reset-password] member lookup error:', memberErr)
     return res.status(500).json({ error: 'Lookup failed' })
   }
-
-  const targets = (candidates ?? []).filter(
-    (c) => nameKey(c.in_game_name as string) === nameKey(inGameName),
-  )
-  if (targets.length === 0) {
-    return res.status(404).json({ error: 'No login account found for this member' })
+  if (!member) {
+    return res.status(404).json({ error: 'Member not found' })
   }
-  if (targets.length > 1) {
-    return res.status(409).json({ error: 'Multiple accounts share this name' })
+
+  let targetId = member.profile_id as string | null
+
+  // 폴백 — profile_id 마이그레이션 전이거나 아직 연결되지 않은 행.
+  // 대소문자·앞뒤 공백만 다른 계정이 실제로 존재하므로 ilike 로 후보를 좁힌 뒤
+  // 정규화 비교로 확정한다(와일드카드 % _ \ 는 이스케이프).
+  if (!targetId) {
+    const rawName = (member.in_game_name as string) ?? ''
+    const nameKey = (s: string) => (s ?? '').trim().toLowerCase()
+    const escaped = rawName.trim().replace(/[\\%_]/g, (ch) => `\\${ch}`)
+
+    const { data: candidates, error: lookupErr } = await adminClient
+      .from('profiles')
+      .select('id, in_game_name')
+      .ilike('in_game_name', escaped)
+
+    if (lookupErr) {
+      console.error('[admin/reset-password] profile lookup error:', lookupErr)
+      return res.status(500).json({ error: 'Lookup failed' })
+    }
+
+    const matches = (candidates ?? []).filter(
+      (c) => nameKey(c.in_game_name as string) === nameKey(rawName),
+    )
+    if (matches.length > 1) {
+      return res.status(409).json({ error: 'Multiple accounts share this name' })
+    }
+    targetId = matches[0]?.id ?? null
+  }
+
+  if (!targetId) {
+    return res.status(404).json({ error: 'No login account found for this member' })
   }
 
   // 6) 비밀번호 변경
-  const { error: updateErr } = await adminClient.auth.admin.updateUserById(targets[0].id, {
+  const { error: updateErr } = await adminClient.auth.admin.updateUserById(targetId, {
     password: newPassword,
   })
 

@@ -15,6 +15,8 @@ export interface Member {
   troopType: TroopType
   onlineStatus: OnlineStatus
   note: string
+  /** 연결된 로그인 계정(profiles.id). 계정이 없는 멤버는 null */
+  profileId: string | null
   role: 'ROLE_ADMIN' | 'ROLE_USER' | ''
 }
 

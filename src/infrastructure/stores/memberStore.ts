@@ -25,8 +25,8 @@ interface MemberStore {
   /** 전체 멤버의 주말 이벤트 참여 여부를 none 으로 일괄 초기화 */
   resetAllOnline: () => Promise<void>
   deleteMember: (id: string) => Promise<void>
-  /** 관리자가 멤버 로그인 비밀번호 변경 — 인게임명으로 계정을 찾는다(members.id ≠ auth id) */
-  adminResetPassword: (inGameName: string, newPassword: string) => Promise<boolean>
+  /** 관리자가 멤버 로그인 비밀번호 변경 — 서버가 members.profile_id 로 계정을 찾는다 */
+  adminResetPassword: (memberId: string, newPassword: string) => Promise<boolean>
   setSearchQuery: (q: string) => void
   getFiltered: () => Member[]
 }
@@ -53,6 +53,7 @@ const toMember = (row: Record<string, unknown>): Member => ({
   troopType: ((row.troop_type as string) ?? '') as Member['troopType'],
   onlineStatus: ((row.online_status as string) ?? 'none') as Member['onlineStatus'],
   note: row.note as string,
+  profileId: (row.profile_id as string | null) ?? null,
   role: ((row._role as string) ?? '') as Member['role'],
 })
 
@@ -68,15 +69,20 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
     try {
       const [{ data: memberRows }, { data: profileRows }] = await Promise.all([
         supabase.from('members').select('*'),
-        supabase.from('profiles').select('in_game_name, role'),
+        supabase.from('profiles').select('id, in_game_name, role'),
       ])
-      // members 와 profiles 는 FK 가 없고 id 도 서로 다르다 — 인게임명으로만 연결된다
-      const roleMap = new Map(
+      // 연결 기준은 members.profile_id (FK). 이름이 바뀌어도 끊기지 않는다.
+      // profile_id 가 아직 없는 행은 예전 방식인 인게임명 매칭으로 폴백한다
+      // — 마이그레이션 전 배포나, 계정이 나중에 생긴 멤버를 위해 남겨둔다.
+      const roleById = new Map((profileRows ?? []).map((p) => [p.id as string, p.role as string]))
+      const roleByName = new Map(
         (profileRows ?? []).map((p) => [nameKey(p.in_game_name as string), p.role as string]),
       )
-      const members = (memberRows ?? []).map((row) =>
-        toMember({ ...row, _role: roleMap.get(nameKey(row.in_game_name)) ?? '' }),
-      )
+      const members = (memberRows ?? []).map((row) => {
+        const pid = (row.profile_id as string | null) ?? null
+        const role = pid ? roleById.get(pid) ?? '' : roleByName.get(nameKey(row.in_game_name)) ?? ''
+        return toMember({ ...row, _role: role })
+      })
       set({ members: members.sort(sortBycp), initialized: true })
     } catch (err) {
       console.error('[memberStore] loadMembers exception:', err)
@@ -232,16 +238,16 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
     useEventStore.getState().syncDeleteMember(id)
   },
 
-  adminResetPassword: async (inGameName, newPassword) => {
+  adminResetPassword: async (memberId, newPassword) => {
     const { data: { session } } = await supabase.auth.getSession()
     const jwt = session?.access_token
     if (!jwt) { toast.error('로그인이 필요합니다.'); return false }
 
-    // members.id 는 auth 계정 id 가 아니다 — 서버가 인게임명으로 계정을 찾는다
+    // members.id 는 auth 계정 id 가 아니다 — 서버가 members.profile_id 로 계정을 확정한다
     const res = await fetch('/api/admin/reset-password', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${jwt}` },
-      body: JSON.stringify({ inGameName, newPassword }),
+      body: JSON.stringify({ memberId, newPassword }),
     })
     if (res.ok) {
       toast.success('비밀번호가 변경되었습니다.')

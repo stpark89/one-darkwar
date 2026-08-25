@@ -558,7 +558,7 @@ export const MembersPage = () => {
                 onClick={async () => {
                   setPwSaving(true)
                   try {
-                    const ok = await adminResetPassword(pwTarget.inGameName, newPassword)
+                    const ok = await adminResetPassword(pwTarget.id, newPassword)
                     if (ok) setPwTarget(null)
                   } finally {
                     setPwSaving(false)
