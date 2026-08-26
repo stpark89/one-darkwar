@@ -29,6 +29,9 @@ interface OnlineUser {
 
 const LOAD_LIMIT = 50
 const BOT_ID = '__bot__'
+// Presence 는 채널(topic) 단위로 공유된다 — 이름이 접속마다 다르면 각자 혼자만 보인다.
+// 반드시 고정 이름이어야 한다.
+const CHAT_CHANNEL = 'guild-chat'
 
 const parseCp = (cp: string): number => {
   const v = parseFloat(cp)
@@ -406,19 +409,25 @@ export const ChatWidget = () => {
 
     setConnected(false)
 
-    const channel = supabase.channel(`guild-chat-${Date.now()}`, {
-      config: { presence: { key: user.id } },
-    })
+    const channel = supabase.channel(CHAT_CHANNEL)
 
     let retryTimer: ReturnType<typeof setTimeout> | null = null
 
     channel
       .on('presence', { event: 'sync' }, () => {
-        const state = channel.presenceState<{ in_game_name: string }>()
-        const users = Object.entries(state).map(([user_id, presences]) => ({
-          user_id,
-          in_game_name: presences[0].in_game_name,
-        }))
+        // presence 키가 아니라 track() 으로 보낸 값에서 user_id 를 읽는다.
+        // config.presence.key 는 적용되지 않는 경우가 있어(음성채팅에서 실측) 키가
+        // 임의 UUID 가 되고, 그러면 "나" 표시와 온라인 판정이 전부 어긋난다.
+        const state = channel.presenceState<{ user_id: string; in_game_name: string }>()
+        const seen = new Set<string>()
+        const users = Object.values(state)
+          .flat()
+          .filter((p) => {
+            if (!p.user_id || seen.has(p.user_id)) return false
+            seen.add(p.user_id)
+            return true
+          })
+          .map((p) => ({ user_id: p.user_id, in_game_name: p.in_game_name ?? '' }))
         setOnlineUsers(users)
       })
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
@@ -429,7 +438,7 @@ export const ChatWidget = () => {
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
           setConnected(true)
-          await channel.track({ in_game_name: user.inGameName })
+          await channel.track({ user_id: user.id, in_game_name: user.inGameName })
         } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
           setConnected(false)
           retryTimer = setTimeout(() => setReconnectKey((k) => k + 1), 3000)
