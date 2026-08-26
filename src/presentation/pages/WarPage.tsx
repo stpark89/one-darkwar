@@ -388,16 +388,22 @@ export const WarPage = () => {
             </tbody>
             <tfoot className="sticky bottom-0 z-10">
               <tr className="bg-[var(--color-bg-surface)] border-t-2 border-[var(--color-border)]">
-                <td className="px-3 py-2.5 font-semibold text-[var(--color-text-muted)] text-xs whitespace-nowrap sticky left-0 z-20 bg-[var(--color-bg-surface)]">
-                  {t('common.total')} / {t('common.count_people')}
+                <td
+                  className="px-3 py-2.5 font-semibold text-[var(--color-text-muted)] text-xs whitespace-nowrap sticky left-0 z-20 bg-[var(--color-bg-surface)]"
+                  title={t('common.footer_participants_hint')}
+                >
+                  {t('common.footer_participants')}
                 </td>
                 <td className="px-3 py-2.5 text-center">
+                  {/* 이 값은 인원수가 아니라 "한 번이라도 참여한 사람 수" 다.
+                      전체 멤버 수와 달라 보인다는 문의가 반복돼 분모를 함께 보여준다. */}
                   <span className="text-xs font-bold text-[var(--color-text-primary)]">
                     {memberRows.filter(row =>
                       filterTeam
                         ? Object.values(row.entryMap).some(e => e.team === filterTeam && e.role !== '')
                         : row.total > 0
                     ).length}
+                    <span className="font-normal text-[var(--color-text-muted)]"> / {totalMembers}</span>
                   </span>
                 </td>
                 {rounds.map(r => {

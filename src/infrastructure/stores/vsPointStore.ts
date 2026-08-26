@@ -37,6 +37,7 @@ interface VsPointStore {
   updateRoundDate: (roundId: string, date: string) => Promise<void>
   batchSaveVs: (changes: { roundId: string; memberId: string; points: string }[]) => Promise<boolean>
   deleteVsPointsForRound: (roundId: string) => Promise<void>
+  syncAddMember: (memberId: string, inGameName: string) => void
   syncMemberName: (memberId: string, newName: string) => void
   syncDeleteMember: (memberId: string) => void
 }
@@ -177,6 +178,13 @@ export const useVsPointStore = create<VsPointStore>((set, get) => ({
       return false
     }
   },
+
+  // 멤버가 추가되면 이 화면 목록에도 즉시 반영한다.
+  // loadData 에 initialized 가드가 있어, 없으면 새로고침 전까지 새 멤버가 안 보인다.
+  syncAddMember: (memberId, inGameName) =>
+    set((s) => s.members.some((m) => m.id === memberId)
+      ? s
+      : { members: [...s.members, { id: memberId, inGameName }] }),
 
   syncMemberName: (memberId, newName) =>
     set((s) => ({

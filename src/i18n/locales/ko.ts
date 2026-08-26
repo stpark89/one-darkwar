@@ -384,6 +384,10 @@ export default {
     count_people: '명',
     // 필터가 걸렸을 때 "보이는 수 / 전체 수" — 전체 수는 항상 멤버 테이블 기준
     count_filtered: '{{shown}} / 총 {{total}}명',
+    // 표 하단 합계행은 인원수가 아니라 "참여한 사람 수" 다.
+    // 전체 멤버 수(95)와 다르게 보인다는 문의가 반복돼 라벨을 명시하고 분모를 병기한다.
+    footer_participants: '참여 인원',
+    footer_participants_hint: '한 번이라도 참여한 인원 / 전체 멤버 수',
     loading: '로딩 중...',
     no_data: '데이터가 없습니다',
   },

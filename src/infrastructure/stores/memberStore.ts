@@ -110,6 +110,12 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
     if (!data) return ''
     const newMember = toMember(data)
     set((s) => ({ members: [...s.members, newMember].sort(sortBycp) }))
+    // 다른 화면 스토어에도 전파 — 이름 변경·삭제와 동일하게 맞춘다.
+    // 각 스토어의 loadData 에 initialized 가드가 있어, 전파하지 않으면
+    // 새로고침 전까지 BG·이벤트·VS 화면에 새 멤버가 나타나지 않는다.
+    useWarStore.getState().syncAddMember(newMember.id, newMember.inGameName)
+    useEventStore.getState().syncAddMember(newMember.id, newMember.inGameName)
+    useVsPointStore.getState().syncAddMember(newMember.id, newMember.inGameName)
     return newMember.id
   },
 

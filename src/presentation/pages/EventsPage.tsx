@@ -572,14 +572,20 @@ export const EventsPage = () => {
             </tbody>
             <tfoot className="sticky bottom-0 z-10">
               <tr className="bg-[var(--color-bg-surface)] border-t-2 border-[var(--color-border)]">
-                <td className="px-2 sm:px-3 py-2 sm:py-2.5 font-semibold text-[var(--color-text-muted)] text-xs whitespace-nowrap sticky left-0 z-20 bg-[var(--color-bg-surface)]">
-                  {t('common.total')} / {t('common.count_people')}
+                <td
+                  className="px-2 sm:px-3 py-2 sm:py-2.5 font-semibold text-[var(--color-text-muted)] text-xs whitespace-nowrap sticky left-0 z-20 bg-[var(--color-bg-surface)]"
+                  title={t('common.footer_participants_hint')}
+                >
+                  {t('common.footer_participants')}
                 </td>
                 <td className="px-1 sm:px-3 py-2 sm:py-2.5 text-center">
+                  {/* 이 값은 인원수가 아니라 "한 번이라도 출석한 사람 수" 다.
+                      전체 멤버 수와 달라 보인다는 문의가 반복돼 분모를 함께 보여준다. */}
                   <span className="text-xs font-bold text-[var(--color-text-primary)]">
                     {attendance.filter(a =>
                       visibleEvents.some(e => isAttended((a.records[e.eventKey] ?? '') as AttendanceStatus))
                     ).length}
+                    <span className="font-normal text-[var(--color-text-muted)]"> / {allAttendance.length}</span>
                   </span>
                 </td>
                 {visibleEvents.map((e) => {

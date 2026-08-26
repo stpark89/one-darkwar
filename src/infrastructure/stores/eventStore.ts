@@ -20,6 +20,7 @@ interface EventStore {
   bulkUpdateEvent: (eventKey: string, updates: { memberId: string; status: AttendanceStatus }[]) => Promise<void>
   bulkUpdateMember: (memberId: string, updates: { eventKey: string; status: AttendanceStatus }[]) => Promise<void>
   batchSave: (changes: { memberId: string; eventKey: string; status: AttendanceStatus }[]) => Promise<boolean>
+  syncAddMember: (memberId: string, inGameName: string) => void
   syncMemberName: (memberId: string, newName: string) => void
   syncDeleteMember: (memberId: string) => void
   setSearchQuery: (q: string) => void
@@ -266,6 +267,24 @@ export const useEventStore = create<EventStore>((set, get) => ({
     toast.success('저장되었습니다.')
     return true
   },
+
+  // 멤버가 추가되면 이 화면 목록에도 즉시 반영한다(모든 이벤트는 미출석 상태).
+  // loadData 에 initialized 가드가 있어, 없으면 새로고침 전까지 새 멤버가 안 보인다.
+  syncAddMember: (memberId, inGameName) =>
+    set(s => s.attendance.some(a => a.memberId === memberId)
+      ? s
+      : {
+          attendance: [
+            ...s.attendance,
+            {
+              memberId,
+              inGameName,
+              records: Object.fromEntries(
+                s.events.map(e => [e.eventKey, '' as AttendanceStatus]),
+              ),
+            },
+          ],
+        }),
 
   syncMemberName: (memberId, newName) =>
     set(s => ({ attendance: s.attendance.map(a => a.memberId === memberId ? { ...a, inGameName: newName } : a) })),

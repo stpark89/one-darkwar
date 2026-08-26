@@ -383,6 +383,8 @@ export default {
     total: '共',
     count_people: '人',
     count_filtered: '{{shown}} / 共 {{total}} 人',
+    footer_participants: '參與人數',
+    footer_participants_hint: '至少參與一次的人數 / 全體成員數',
     loading: '載入中...',
     no_data: '無資料',
   },

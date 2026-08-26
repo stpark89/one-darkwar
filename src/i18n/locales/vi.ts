@@ -383,6 +383,8 @@ export default {
     total: 'Tổng',
     count_people: 'người',
     count_filtered: '{{shown}} / {{total}} người',
+    footer_participants: 'Số người tham gia',
+    footer_participants_hint: 'Số người đã tham gia ít nhất 1 lần / tổng số thành viên',
     loading: 'Đang tải...',
     no_data: 'Không có dữ liệu',
   },

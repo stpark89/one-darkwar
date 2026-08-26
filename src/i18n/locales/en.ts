@@ -383,6 +383,8 @@ export default {
     total: 'Total',
     count_people: 'members',
     count_filtered: '{{shown}} / {{total}} members',
+    footer_participants: 'Participants',
+    footer_participants_hint: 'Members who joined at least once / total members',
     loading: 'Loading...',
     no_data: 'No data',
   },
