@@ -216,12 +216,23 @@ export const HomePage = () => {
       ? Math.round((warSummary.filter((m) => m.total > 0).length / members.length) * 100)
       : 0
 
+  // 출석률 분모는 **참석 기록이 하나라도 있는 이벤트**만 센다.
+  // 운영은 이벤트를 먼저 만들어 두고 나중에 참석 정보를 올리는 흐름이라, 아직 비어 있는
+  // 이벤트가 분모에 들어가면 만드는 순간 전체 출석률이 떨어지고 지우면 복귀한다
+  // (길드원 제보 2026-09-28: "새로 추가한 이벤트를 삭제하니 다른 수치가 정상으로 돌아왔다").
   const visibleEvents = events.filter((e) => !e.hidden)
+  const ratedEventKeys = new Set<string>()
+  for (const a of attendance) {
+    for (const [key, status] of Object.entries(a.records)) {
+      if (status) ratedEventKeys.add(key)
+    }
+  }
+  const ratedEvents = visibleEvents.filter((e) => ratedEventKeys.has(e.eventKey))
   const eventRate =
-    members.length > 0 && visibleEvents.length > 0
+    members.length > 0 && ratedEvents.length > 0
       ? Math.round(
           (eventSummary.reduce((acc, m) => acc + m.total, 0) /
-            (members.length * visibleEvents.length)) *
+            (members.length * ratedEvents.length)) *
             100,
         )
       : 0
