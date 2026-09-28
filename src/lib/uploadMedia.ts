@@ -22,6 +22,15 @@ const COMPRESS_SKIP_BYTES = 300 * 1024
 export const THUMB_TARGET_MB = 0.06
 export const THUMB_MAX_DIMENSION = 480
 export const THUMB_SUFFIX = '.thumb.jpg'
+// 썸네일은 업로더 폴더가 아니라 공용 폴더에 둔다.
+// 원본은 `<userId>/파일` 에 있고 그 폴더는 소유자만 쓸 수 있어서, 남이 올린
+// 이미지의 썸네일을 만들려다 RLS 에 막혔다(실측: 403 "new row violates RLS").
+export const THUMB_PREFIX = 'thumbs/'
+
+/** 원본 storage path → 썸네일 storage path */
+function toThumbPath(path: string): string {
+  return THUMB_PREFIX + path.replace(/\.[^./?]+$/, THUMB_SUFFIX)
+}
 
 /**
  * 원본 public URL 에서 썸네일 URL 을 유도한다. 저장 구조(문자열 URL 배열)를
@@ -30,16 +39,20 @@ export const THUMB_SUFFIX = '.thumb.jpg'
  */
 export function thumbUrl(url: string): string {
   if (getMediaKind(url) !== 'image') return url
-  if (url.endsWith(THUMB_SUFFIX)) return url
-  return url.replace(/\.[^./?]+$/, THUMB_SUFFIX)
+  if (url.includes(`/${STORAGE_BUCKET}/${THUMB_PREFIX}`)) return url
+  const marker = `/storage/v1/object/public/${STORAGE_BUCKET}/`
+  const idx = url.indexOf(marker)
+  if (idx === -1) return url
+  const head = url.slice(0, idx + marker.length)
+  return head + toThumbPath(url.slice(idx + marker.length))
 }
 
-/** 원본 public URL 에 대응하는 썸네일을 만들어 올린다. 이미 있으면 덮어쓴다. */
+/** 원본 public URL 에 대응하는 썸네일을 만들어 공용 폴더에 올린다. */
 export async function uploadThumbFor(url: string, source: File | Blob): Promise<boolean> {
   const marker = `/storage/v1/object/public/${STORAGE_BUCKET}/`
   const idx = url.indexOf(marker)
   if (idx === -1) return false
-  const path = url.slice(idx + marker.length).replace(/\.[^./?]+$/, THUMB_SUFFIX)
+  const path = toThumbPath(url.slice(idx + marker.length))
   try {
     const asFile =
       source instanceof File ? source : new File([source], 'src.jpg', { type: source.type || 'image/jpeg' })
@@ -178,7 +191,7 @@ export async function deleteMediaByUrl(url: string): Promise<boolean> {
   const path = url.slice(idx + marker.length)
   // 썸네일도 같이 지운다 — 없으면 remove 가 조용히 넘어간다
   const paths = [path]
-  if (getMediaKind(url) === 'image') paths.push(path.replace(/\.[^.]+$/, THUMB_SUFFIX))
+  if (getMediaKind(url) === 'image') paths.push(toThumbPath(path))
   const { error } = await supabase.storage.from(STORAGE_BUCKET).remove(paths)
   if (error) {
     console.error('[deleteMediaByUrl] failed:', error)
