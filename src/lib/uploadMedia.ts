@@ -1,5 +1,5 @@
 // 미디어 (사진/동영상) 업로드 헬퍼.
-// - 사진: 항상 압축(장변 1920 · ~1MB) + 그리드용 썸네일(장변 480)을 함께 올린다
+// - 사진: 항상 압축(장변 1920 · ~1MB). 표시용 축소는 Storage image transform 이 한다
 // - 동영상: 압축 없이 size check 만 (30MB 상한)
 // - Supabase Storage 'media' 버킷에 업로드 후 public URL 반환
 
@@ -17,59 +17,28 @@ const IMAGE_MAX_DIMENSION = 1920
 // 이보다 작은 이미지는 재인코딩해봐야 득이 없다
 const COMPRESS_SKIP_BYTES = 300 * 1024
 
-// 그리드 썸네일. 96~200px 칸에 원본(1~4MB)을 넣으면 한 화면이 수십 MB 가 된다.
-// Storage image transform 은 유료 플랜 전용이라 쓰지 않는다 — 업로드 때 직접 만든다.
-export const THUMB_TARGET_MB = 0.06
-export const THUMB_MAX_DIMENSION = 480
-export const THUMB_SUFFIX = '.thumb.jpg'
-// 썸네일은 업로더 폴더가 아니라 공용 폴더에 둔다.
-// 원본은 `<userId>/파일` 에 있고 그 폴더는 소유자만 쓸 수 있어서, 남이 올린
-// 이미지의 썸네일을 만들려다 RLS 에 막혔다(실측: 403 "new row violates RLS").
-export const THUMB_PREFIX = 'thumbs/'
-
-/** 원본 storage path → 썸네일 storage path */
-function toThumbPath(path: string): string {
-  return THUMB_PREFIX + path.replace(/\.[^./?]+$/, THUMB_SUFFIX)
-}
+// 표시용 축소는 Supabase Storage image transform 에 맡긴다(Pro 플랜).
+// object 경로를 render 경로로 바꾸면 서버가 리사이즈해서 준다 — 이미 올라가 있는
+// 이미지에도 그대로 적용되고, 업로드도 권한도 필요 없다.
+//
+// ⚠️ 직접 썸네일을 만들어 올리는 방식(무료 플랜 호환)을 먼저 시도했다가 되돌렸다.
+// 실측: 로그인 상태에서는 생성되지만 게스트에서는 403 이다 — 썸네일 업로드는
+// authenticated 전용인데 게스트 모드는 localStorage 플래그일 뿐 Supabase 세션이
+// 없어 anon 으로 나간다. 게스트도 보는 화면이라 그 방식으로는 영영 안 채워지고
+// 403 요청만 쌓인다. transform 은 업로드도 권한도 없어 이 문제가 성립하지 않는다.
+const OBJECT_PATH = '/storage/v1/object/public/'
+const RENDER_PATH = '/storage/v1/render/image/public/'
 
 /**
- * 원본 public URL 에서 썸네일 URL 을 유도한다. 저장 구조(문자열 URL 배열)를
- * 바꾸지 않으려고 경로 규칙으로만 잇는다 — 썸네일이 아직 없는 과거 업로드분은
- * 404 가 나므로 표시 쪽에서 onError 로 원본에 폴백한다.
+ * 표시용 축소 URL. 96~200px 칸에 원본(1~4MB)을 넣으면 한 화면이 수십 MB 가 된다.
+ * 이미지가 아니거나 변환 대상이 아니면 원본 URL 을 그대로 돌려준다.
+ *
+ * @param width 요청할 가로 픽셀. 레티나를 감안해 표시 크기의 2배쯤 준다.
  */
-export function thumbUrl(url: string): string {
+export function displayUrl(url: string, width: number, quality = 70): string {
   if (getMediaKind(url) !== 'image') return url
-  if (url.includes(`/${STORAGE_BUCKET}/${THUMB_PREFIX}`)) return url
-  const marker = `/storage/v1/object/public/${STORAGE_BUCKET}/`
-  const idx = url.indexOf(marker)
-  if (idx === -1) return url
-  const head = url.slice(0, idx + marker.length)
-  return head + toThumbPath(url.slice(idx + marker.length))
-}
-
-/** 원본 public URL 에 대응하는 썸네일을 만들어 공용 폴더에 올린다. */
-export async function uploadThumbFor(url: string, source: File | Blob): Promise<boolean> {
-  const marker = `/storage/v1/object/public/${STORAGE_BUCKET}/`
-  const idx = url.indexOf(marker)
-  if (idx === -1) return false
-  const path = toThumbPath(url.slice(idx + marker.length))
-  try {
-    const asFile =
-      source instanceof File ? source : new File([source], 'src.jpg', { type: source.type || 'image/jpeg' })
-    const thumb = await compressTo(asFile, THUMB_TARGET_MB, THUMB_MAX_DIMENSION)
-    // upsert 는 쓰지 않는다 — storage RLS 에 UPDATE 정책이 없어 덮어쓰기가 막힌다.
-    // 이미 있으면 만들 이유도 없다(치유는 404 일 때만 돈다).
-    const { error } = await supabase.storage.from(STORAGE_BUCKET).upload(path, thumb, {
-      cacheControl: '3600',
-      upsert: false,
-      contentType: 'image/jpeg',
-    })
-    if (error) throw error
-    return true
-  } catch (err) {
-    console.warn('[uploadThumbFor] failed:', url, err)
-    return false
-  }
+  if (!url.includes(OBJECT_PATH)) return url
+  return `${url.replace(OBJECT_PATH, RENDER_PATH)}?width=${width}&quality=${quality}`
 }
 
 export type MediaKind = 'image' | 'video' | 'unsupported'
@@ -101,31 +70,8 @@ async function compressTo(file: File, maxSizeMB: number, maxWidthOrHeight: numbe
     : new File([out], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' })
 }
 
-// 자가 치유 중복 방지 — 같은 URL 을 여러 칸이 동시에 만나도 한 번만 만든다
-const healing = new Set<string>()
-
-/**
- * 썸네일이 없는 과거 업로드분을 발견했을 때 그 자리에서 만들어 올린다.
- * 화면이 한 번 훑고 나면 채워지므로 관리자가 따로 백필을 돌릴 필요가 없다.
- * 권한이 없거나(게스트) 실패하면 조용히 넘어간다 — 표시는 원본 폴백으로 이미 된다.
- */
-export function healThumb(url: string): void {
-  if (getMediaKind(url) !== 'image' || healing.has(url)) return
-  healing.add(url)
-  void (async () => {
-    try {
-      const res = await fetch(url)
-      if (!res.ok) return
-      await uploadThumbFor(url, await res.blob())
-    } catch (err) {
-      console.warn('[healThumb] skipped:', url, err)
-    }
-  })()
-}
-
 /**
  * 파일을 압축(이미지일 때) + Supabase Storage 업로드 → public URL 반환.
- * 이미지는 그리드용 썸네일도 함께 올린다(실패해도 원본 업로드는 살린다).
  * 실패 시 throw.
  */
 export async function uploadMedia(file: File, userId: string): Promise<string> {
@@ -161,10 +107,6 @@ export async function uploadMedia(file: File, userId: string): Promise<string> {
   if (error) throw new Error(error.message)
 
   const { data } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path)
-
-  // 썸네일은 부가물이다 — 실패해도 원본 업로드를 되돌리지 않는다(표시 쪽에서 원본 폴백)
-  if (kind === 'image') await uploadThumbFor(data.publicUrl, toUpload)
-
   return data.publicUrl
 }
 
@@ -190,10 +132,7 @@ export async function deleteMediaByUrl(url: string): Promise<boolean> {
   const idx = url.indexOf(marker)
   if (idx === -1) return false
   const path = url.slice(idx + marker.length)
-  // 썸네일도 같이 지운다 — 없으면 remove 가 조용히 넘어간다
-  const paths = [path]
-  if (getMediaKind(url) === 'image') paths.push(toThumbPath(path))
-  const { error } = await supabase.storage.from(STORAGE_BUCKET).remove(paths)
+  const { error } = await supabase.storage.from(STORAGE_BUCKET).remove([path])
   if (error) {
     console.error('[deleteMediaByUrl] failed:', error)
     return false

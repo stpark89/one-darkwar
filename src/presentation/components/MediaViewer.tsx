@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { X, ChevronLeft, ChevronRight } from 'lucide-react'
-import { getMediaKind, thumbUrl, healThumb } from '@/lib/uploadMedia'
+import { getMediaKind, displayUrl } from '@/lib/uploadMedia'
 import { cn } from '@/lib/utils'
 
 interface MediaViewerProps {
@@ -42,13 +42,11 @@ export const MediaViewer = ({ urls, className }: MediaViewerProps) => {
             >
               {kind === 'image' ? (
                 <img
-                  src={thumbUrl(url)}
+                  src={displayUrl(url, 480)}
                   onError={(e) => {
                     const img = e.currentTarget
-                    if (img.src === url) return
-                    // 썸네일이 아직 없는 과거 업로드분 — 원본을 보여주고 뒤에서 만들어 둔다
-                    img.src = url
-                    healThumb(url)
+                    // 변환이 안 되면(버킷 설정 등) 원본으로 보여준다
+                    if (img.src !== url) img.src = url
                   }}
                   alt=""
                   className="w-full h-full object-cover group-hover:opacity-90 transition-opacity"

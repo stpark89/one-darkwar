@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { X, ChevronLeft, ChevronRight, MessageSquare, Megaphone, Image as ImageIcon, ChevronRight as ChevronRightSmall } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { getMediaKind, thumbUrl, healThumb } from '@/lib/uploadMedia'
+import { getMediaKind, displayUrl } from '@/lib/uploadMedia'
 import { cn } from '@/lib/utils'
 
 export interface MediaItem {
@@ -88,13 +88,11 @@ export const MediaHighlights = ({ items, maxItems = 12, className }: Props) => {
                   // 96~112px 칸이다. 원본(1~4MB)을 그대로 넣으면 12장이 수십 MB 가 된다.
                   // 변환이 실패하면(버킷 설정 등) 원본으로 폴백한다.
                   <img
-                    src={thumbUrl(item.url)}
+                    src={displayUrl(item.url, 240)}
                     onError={(e) => {
                       const img = e.currentTarget
-                      if (img.src === item.url) return
-                      // 썸네일이 아직 없는 과거 업로드분 — 원본을 보여주고 뒤에서 만들어 둔다
-                      img.src = item.url
-                      healThumb(item.url)
+                      // 변환이 안 되면(버킷 설정 등) 원본으로 보여준다
+                      if (img.src !== item.url) img.src = item.url
                     }}
                     alt=""
                     width={112}
