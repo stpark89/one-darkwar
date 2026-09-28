@@ -41,7 +41,14 @@ export const useEventStore = create<EventStore>((set, get) => ({
     set({ loading: true })
     try {
       const [{ data: eventRows }, { data: memberRows }, { data: attRows }] = await Promise.all([
-        supabase.from('events').select('*').order('created_at'),
+        // 실제 이벤트 날짜순이다. created_at 으로 정렬하면 과거 이벤트를 뒤늦게
+        // 등록했을 때 목록 맨 뒤로 가고, 엑셀 열 순서도 그대로라 날짜순으로 착각해
+        // 엉뚱한 칸에 값을 넣게 된다(길드원 제보 2026-09-28).
+        supabase
+          .from('events')
+          .select('*')
+          .order('event_date', { ascending: true, nullsFirst: false })
+          .order('created_at', { ascending: true }),
         supabase.from('members').select('id, in_game_name'),
         supabase.from('attendance').select('*'),
       ])

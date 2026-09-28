@@ -225,6 +225,17 @@ const MemberAttendanceModal = ({ memberName, events, onStatusChange, onBulkSet, 
 }
 
 // ─── 메인 페이지 ──────────────────────────────────────────────────────────────
+/**
+ * 오늘 날짜(YYYY-MM-DD, 로컬 기준).
+ * toISOString() 은 UTC 라 한국 시간 오전 9시 이전에는 하루 전이 나온다.
+ */
+const todayLocal = () => {
+  const d = new Date()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${d.getFullYear()}-${m}-${day}`
+}
+
 export const EventsPage = () => {
   const { t } = useTranslation()
   const { events, addEvent, deleteEvent, toggleHidden, toggleShowHidden, showHidden, batchSave, getFiltered, searchQuery, setSearchQuery, getSummary, loadData, loading, attendance: allAttendance } = useEventStore()
@@ -259,7 +270,7 @@ export const EventsPage = () => {
   const [showAddEvent, setShowAddEvent] = useState(false)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
   const [newEventName, setNewEventName] = useState('')
-  const [newEventDate, setNewEventDate] = useState(() => new Date().toISOString().slice(0, 10))
+  const [newEventDate, setNewEventDate] = useState(todayLocal)
   const [attendanceModalEventId, setAttendanceModalEventId] = useState<string | null>(null)
   const [memberModalId, setMemberModalId] = useState<string | null>(null)
 
@@ -372,7 +383,7 @@ export const EventsPage = () => {
     if (!newEventName.trim()) return
     addEvent(newEventName.trim(), newEventDate)
     setNewEventName('')
-    setNewEventDate(new Date().toISOString().slice(0, 10))
+    setNewEventDate(todayLocal())
     setShowAddEvent(false)
   }
 
