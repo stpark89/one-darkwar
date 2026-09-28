@@ -2,9 +2,9 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "meongbob-dev",
+      "name": "one-darkwar",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--prefix", "C:\\dev\\meongbob-check"],
+      "runtimeArgs": ["run", "dev"],
       "port": 5173
     }
   ]
