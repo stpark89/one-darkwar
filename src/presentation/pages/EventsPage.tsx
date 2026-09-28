@@ -226,6 +226,22 @@ const MemberAttendanceModal = ({ memberName, events, onStatusChange, onBulkSet, 
 
 // ─── 메인 페이지 ──────────────────────────────────────────────────────────────
 /**
+ * 이벤트 이름에 적힌 날짜를 읽는다. 'MMDD.이름'(0919.AT.III) 과
+ * 'M/DD 이름'(8/15 AT.IV) 두 규칙을 인식하고, 없으면 null.
+ *
+ * 과거 이벤트를 뒤늦게 등록할 때 날짜란을 안 고치면 등록일이 박혀 목록·엑셀
+ * 순서가 이름과 어긋난다(길드원 제보 2026-09-28). 이름에서 읽어 미리 채워
+ * 그 실수를 구조적으로 줄인다 — 채워진 값은 그대로 고칠 수 있다.
+ */
+const dateFromEventName = (name: string, year: number): string | null => {
+  const compact = name.match(/^(\d{2})(\d{2})\./)
+  if (compact) return `${year}-${compact[1]}-${compact[2]}`
+  const slash = name.match(/^(\d{1,2})\/(\d{1,2})(?:\s|$)/)
+  if (slash) return `${year}-${slash[1].padStart(2, '0')}-${slash[2].padStart(2, '0')}`
+  return null
+}
+
+/**
  * 오늘 날짜(YYYY-MM-DD, 로컬 기준).
  * toISOString() 은 UTC 라 한국 시간 오전 9시 이전에는 하루 전이 나온다.
  */
@@ -700,7 +716,13 @@ export const EventsPage = () => {
                 <label className="text-xs text-[var(--color-text-muted)] mb-1 block">{t('events.event_name_label')} *</label>
                 <Input
                   value={newEventName}
-                  onChange={(e) => setNewEventName(e.target.value)}
+                  onChange={(e) => {
+                    const next = e.target.value
+                    setNewEventName(next)
+                    // 이름에 날짜가 들어 있으면 날짜란을 맞춰준다
+                    const parsed = dateFromEventName(next, new Date().getFullYear())
+                    if (parsed) setNewEventDate(parsed)
+                  }}
                   placeholder={t('events.event_name_placeholder')}
                   onKeyDown={(e) => e.key === 'Enter' && handleAddEvent()}
                   autoFocus
