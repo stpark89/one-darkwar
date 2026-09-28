@@ -226,19 +226,29 @@ const MemberAttendanceModal = ({ memberName, events, onStatusChange, onBulkSet, 
 
 // ─── 메인 페이지 ──────────────────────────────────────────────────────────────
 /**
- * 이벤트 이름에 적힌 날짜를 읽는다. 'MMDD.이름'(0919.AT.III) 과
- * 'M/DD 이름'(8/15 AT.IV) 두 규칙을 인식하고, 없으면 null.
+ * 이벤트 이름 규칙: `MMDD.이름` (예: 0928.AltarContest).
  *
- * 과거 이벤트를 뒤늦게 등록할 때 날짜란을 안 고치면 등록일이 박혀 목록·엑셀
- * 순서가 이름과 어긋난다(길드원 제보 2026-09-28). 이름에서 읽어 미리 채워
- * 그 실수를 구조적으로 줄인다 — 채워진 값은 그대로 고칠 수 있다.
+ * 과거에는 '8/15 AT.IV' 처럼 형식이 섞여 있었고, 날짜란을 안 고치면 등록일이 박혀
+ * 목록·엑셀 순서가 이름과 어긋났다(길드원 제보 2026-09-28). 형식을 하나로 고정하고
+ * 이름에서 날짜를 읽어 채우면 담당자가 날짜를 따로 신경 쓸 일이 없다.
  */
+const EVENT_NAME_RE = /^(\d{2})(\d{2})\.(.+)$/
+
+/** 이름이 규칙에 맞고 월·일이 실재하는 범위인지 */
+export const isValidEventName = (name: string): boolean => {
+  const m = name.trim().match(EVENT_NAME_RE)
+  if (!m) return false
+  const month = Number(m[1])
+  const day = Number(m[2])
+  return month >= 1 && month <= 12 && day >= 1 && day <= 31
+}
+
+/** 이름에서 날짜(YYYY-MM-DD)를 읽는다. 규칙에 안 맞으면 null */
 const dateFromEventName = (name: string, year: number): string | null => {
-  const compact = name.match(/^(\d{2})(\d{2})\./)
-  if (compact) return `${year}-${compact[1]}-${compact[2]}`
-  const slash = name.match(/^(\d{1,2})\/(\d{1,2})(?:\s|$)/)
-  if (slash) return `${year}-${slash[1].padStart(2, '0')}-${slash[2].padStart(2, '0')}`
-  return null
+  const trimmed = name.trim()
+  if (!isValidEventName(trimmed)) return null
+  const m = trimmed.match(EVENT_NAME_RE)!
+  return `${year}-${m[1]}-${m[2]}`
 }
 
 /**
@@ -396,7 +406,7 @@ export const EventsPage = () => {
   }, [setPending])
 
   const handleAddEvent = () => {
-    if (!newEventName.trim()) return
+    if (!isValidEventName(newEventName)) return
     addEvent(newEventName.trim(), newEventDate)
     setNewEventName('')
     setNewEventDate(todayLocal())
@@ -719,7 +729,7 @@ export const EventsPage = () => {
                   onChange={(e) => {
                     const next = e.target.value
                     setNewEventName(next)
-                    // 이름에 날짜가 들어 있으면 날짜란을 맞춰준다
+                    // 규칙에 맞으면 날짜란을 이름에 맞춰준다
                     const parsed = dateFromEventName(next, new Date().getFullYear())
                     if (parsed) setNewEventDate(parsed)
                   }}
@@ -727,6 +737,18 @@ export const EventsPage = () => {
                   onKeyDown={(e) => e.key === 'Enter' && handleAddEvent()}
                   autoFocus
                 />
+                <p
+                  className={cn(
+                    'text-[11px] mt-1 leading-relaxed',
+                    newEventName.trim() && !isValidEventName(newEventName)
+                      ? 'text-[var(--color-danger)]'
+                      : 'text-[var(--color-text-muted)]',
+                  )}
+                >
+                  {newEventName.trim() && !isValidEventName(newEventName)
+                    ? t('events.event_name_invalid')
+                    : t('events.event_name_hint')}
+                </p>
               </div>
               <div>
                 <label className="text-xs text-[var(--color-text-muted)] mb-1 block">{t('events.event_date_label')}</label>
@@ -739,7 +761,7 @@ export const EventsPage = () => {
             </div>
             <div className="flex gap-2 mt-5">
               <Button variant="outline" size="full" onClick={() => setShowAddEvent(false)}>{t('common.cancel')}</Button>
-              <Button size="full" onClick={handleAddEvent} disabled={!newEventName.trim()}>{t('common.add')}</Button>
+              <Button size="full" onClick={handleAddEvent} disabled={!isValidEventName(newEventName)}>{t('common.add')}</Button>
             </div>
           </div>
         </div>
