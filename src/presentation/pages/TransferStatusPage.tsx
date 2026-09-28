@@ -9,7 +9,8 @@ import { TIER_COLOR_CLASS } from '@/domain/entities/TransferTier'
 import { Input } from '@/presentation/components/ui/input'
 import { Button } from '@/presentation/components/ui/button'
 import { TierReference } from '@/presentation/components/TierReference'
-import { translateText } from '@/lib/translate'
+import { toast } from 'sonner'
+import { translate } from '@/lib/translate'
 import { parseCp } from '@/lib/cp'
 import { cn } from '@/lib/utils'
 
@@ -58,8 +59,9 @@ export const TransferStatusPage = () => {
     if (!original.trim()) return
     setTranslating((prev) => new Set(prev).add(id))
     try {
-      const translated = await translateText(original, i18n.language)
-      setTranslations((prev) => new Map(prev).set(id, translated))
+      const { text, sameLanguage } = await translate(original, i18n.language)
+      if (sameLanguage) toast.info(t('common.translate_same_language'))
+      setTranslations((prev) => new Map(prev).set(id, text))
     } catch (err) {
       console.error('[TransferStatus] translate error', err)
     } finally {

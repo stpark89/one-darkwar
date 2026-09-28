@@ -9,7 +9,8 @@ import type { Member } from '@/domain/entities/Member'
 import type { EventAttendance, EventSession } from '@/domain/entities/Event'
 import type { WarRound, WarEntry } from '@/domain/entities/War'
 import { cn } from '@/lib/utils'
-import { translateText } from '@/lib/translate'
+import { toast } from 'sonner'
+import { translate } from '@/lib/translate'
 import i18n from '@/i18n'
 import { useVoiceChat } from '@/hooks/useVoiceChat'
 import { VoicePanel } from '@/presentation/components/VoicePanel'
@@ -388,8 +389,9 @@ export const ChatWidget = () => {
     }
     setTranslatingIds((prev) => new Set(prev).add(msg.id))
     try {
-      const result = await translateText(msg.content, i18n.language)
-      setTranslations((prev) => new Map(prev).set(msg.id, result))
+      const { text, sameLanguage } = await translate(msg.content, i18n.language)
+      if (sameLanguage) toast.info(t('common.translate_same_language'))
+      setTranslations((prev) => new Map(prev).set(msg.id, text))
     } catch {
       setTranslations((prev) => new Map(prev).set(msg.id, '번역 실패'))
     } finally {

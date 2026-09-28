@@ -8,7 +8,8 @@ import { Input } from '@/presentation/components/ui/input'
 import { MediaUploader } from '@/presentation/components/MediaUploader'
 import { MediaViewer } from '@/presentation/components/MediaViewer'
 import { cn } from '@/lib/utils'
-import { translateText } from '@/lib/translate'
+import { toast } from 'sonner'
+import { translate } from '@/lib/translate'
 
 function timeAgo(dateStr: string, t: (k: string, o?: Record<string, unknown>) => string): string {
   const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000)
@@ -93,8 +94,9 @@ export const NoticePage = () => {
     }
     setTranslatingId(id)
     try {
-      const result = await translateText(content, i18n.language)
-      setTranslations((prev) => new Map(prev).set(id, result))
+      const { text, sameLanguage } = await translate(content, i18n.language)
+      if (sameLanguage) toast.info(t('common.translate_same_language'))
+      setTranslations((prev) => new Map(prev).set(id, text))
     } catch {
       // silent
     } finally {

@@ -11,7 +11,8 @@ import { Input } from '@/presentation/components/ui/input'
 import { MediaUploader } from '@/presentation/components/MediaUploader'
 import { MediaViewer } from '@/presentation/components/MediaViewer'
 import { cn } from '@/lib/utils'
-import { translateText } from '@/lib/translate'
+import { toast } from 'sonner'
+import { translate } from '@/lib/translate'
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -140,8 +141,9 @@ export const BoardPage = () => {
     }
     setTranslatingId(postId)
     try {
-      const result = await translateText(content, i18n.language)
-      setTranslations(prev => new Map(prev).set(postId, result))
+      const { text, sameLanguage } = await translate(content, i18n.language)
+      if (sameLanguage) toast.info(t('common.translate_same_language'))
+      setTranslations(prev => new Map(prev).set(postId, text))
     } catch {
       // silent
     } finally {

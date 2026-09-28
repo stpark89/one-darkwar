@@ -370,6 +370,7 @@ export default {
     delete_round_confirm: '이 VS 회차와 입력된 점수가 모두 삭제됩니다. BLACK GOLD 회차·참여 기록은 영향받지 않습니다.',
   },
   common: {
+    translate_same_language: '이미 현재 언어로 작성된 글입니다',
     copy: '복사',
     copied: '복사됨',
     copy_failed: '복사 실패',

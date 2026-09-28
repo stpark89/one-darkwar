@@ -5,7 +5,8 @@ import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { useGuestQuestionStore } from '@/infrastructure/stores/guestQuestionStore'
 import { Input } from '@/presentation/components/ui/input'
 import { Button } from '@/presentation/components/ui/button'
-import { translateText } from '@/lib/translate'
+import { toast } from 'sonner'
+import { translate } from '@/lib/translate'
 import { cn } from '@/lib/utils'
 
 const PREVIEW_LIMIT = 80
@@ -103,8 +104,9 @@ export const GuestQuestionsPage = () => {
     if (!original.trim()) return
     setTranslating((prev) => new Set(prev).add(key))
     try {
-      const translated = await translateText(original, i18n.language)
-      setTranslations((prev) => new Map(prev).set(key, translated))
+      const { text, sameLanguage } = await translate(original, i18n.language)
+      if (sameLanguage) toast.info(t('common.translate_same_language'))
+      setTranslations((prev) => new Map(prev).set(key, text))
     } catch (err) {
       console.error('translate error', err)
     } finally {
