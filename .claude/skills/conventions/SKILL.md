@@ -118,6 +118,10 @@ npx vitest run
 
 ## 주의사항
 
-- `guild-chat-${Date.now()}` 패턴 사용 중 (ChatWidget) — Realtime 채널명 낭비, 추후 개선 필요
+- Realtime 채널명은 **고정값**을 쓴다. `guild-chat-${Date.now()}` 처럼 가변값을 넣으면
+  presence 가 topic 단위라 각자 고립된다(ChatWidget 에서 실제 발생, 2026-08-25 수정)
+- Supabase Presence 의 `config.presence.key` 는 적용되지 않는 경우가 있다 —
+  id 는 `track()` 데이터에 담고 거기서 읽는다(음성채팅·채팅 2건 실측)
+- `members.id` 는 auth 계정 id 가 아니다. 계정 연결은 `members.profile_id` (FK) 로만 한다
 - 게스트 접근 시 UID/민감 정보는 `{!isGuest && ...}` 패턴으로 숨김
 - WebRTC 음성채팅: `src/hooks/useVoiceChat.ts` — [[WebRTC P2P 음성채팅 (Supabase Realtime 시그널링)]] 참조
