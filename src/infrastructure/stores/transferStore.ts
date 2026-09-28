@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { withTimeout } from '@/lib/timeout'
+import { useTransferSeasonStore } from './transferSeasonStore'
 import type {
   TransferApplication,
   TransferDraft,
@@ -44,6 +45,14 @@ const toGroup = (r: any): ApplicationGroup => ({
   memberCount: r.member_count ?? 0,
   createdAt: r.created_at,
 })
+
+/**
+ * 시즌 필터를 건다. 시즌이 아직 안 열렸으면(null) 필터 없이 그대로 둔다 —
+ * 마이그레이션 전 상태에서도 화면이 비지 않게 하기 위함이다.
+ */
+const withSeason = <T,>(q: T, seasonId: string | null): T =>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  seasonId ? ((q as any).eq('season_id', seasonId) as T) : q
 
 interface TransferStore {
   apps: TransferApplication[]
@@ -161,15 +170,23 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
     if (!force && get().initialized) return
     set({ loading: true })
     try {
+      // 시즌마다 신청 조건이 다르다 — 섞이면 정원·등급 집계가 전부 틀어진다
+      const seasonId = await useTransferSeasonStore.getState().ensureSeasonId()
       const [appsRes, groupsRes] = await Promise.all([
-        supabase
-          .from('transfer_applications')
-          .select('*')
-          .order('created_at', { ascending: false }),
-        supabase
-          .from('application_groups')
-          .select('*')
-          .order('created_at', { ascending: false }),
+        withSeason(
+          supabase
+            .from('transfer_applications')
+            .select('*')
+            .order('created_at', { ascending: false }),
+          seasonId,
+        ),
+        withSeason(
+          supabase
+            .from('application_groups')
+            .select('*')
+            .order('created_at', { ascending: false }),
+          seasonId,
+        ),
       ])
       if (appsRes.error) throw appsRes.error
       if (groupsRes.error) throw groupsRes.error
@@ -189,15 +206,22 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
     if (!force && get().initialized) return
     set({ loading: true })
     try {
+      const seasonId = await useTransferSeasonStore.getState().ensureSeasonId()
       const [appsRes, groupsRes] = await Promise.all([
-        supabase
-          .from('transfer_applications')
-          .select('id, in_game_name, uid, current_server, country, cp, total_power, tier_id, status, group_id, desired_alliance, desired_alliance_other, created_at')
-          .order('created_at', { ascending: false }),
-        supabase
-          .from('application_groups')
-          .select('*')
-          .order('created_at', { ascending: false }),
+        withSeason(
+          supabase
+            .from('transfer_applications')
+            .select('id, in_game_name, uid, current_server, country, cp, total_power, tier_id, status, group_id, desired_alliance, desired_alliance_other, created_at')
+            .order('created_at', { ascending: false }),
+          seasonId,
+        ),
+        withSeason(
+          supabase
+            .from('application_groups')
+            .select('*')
+            .order('created_at', { ascending: false }),
+          seasonId,
+        ),
       ])
       if (appsRes.error) throw appsRes.error
       if (groupsRes.error) throw groupsRes.error

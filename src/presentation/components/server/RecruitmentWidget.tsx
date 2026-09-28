@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { Ticket, ChevronRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useTransferTierStore, findTierForCp } from '@/infrastructure/stores/transferTierStore'
+import { useTransferSeasonStore } from '@/infrastructure/stores/transferSeasonStore'
 import { TIER_COLOR_CLASS } from '@/domain/entities/TransferTier'
 import { parseCp } from '@/lib/cp'
 import { cn } from '@/lib/utils'
@@ -24,9 +25,12 @@ export const RecruitmentWidget = () => {
     loadAll()
     const run = async () => {
       try {
-        const { data, error } = await supabase
+        // 지난 시즌 승인 건이 섞이면 정원이 이미 찬 것처럼 보인다
+        const seasonId = await useTransferSeasonStore.getState().ensureSeasonId()
+        const base = supabase
           .from('transfer_applications')
           .select('tier_id, total_power, status')
+        const { data, error } = await (seasonId ? base.eq('season_id', seasonId) : base)
         if (error) throw error
         setApprovedRows(
           (data ?? [])

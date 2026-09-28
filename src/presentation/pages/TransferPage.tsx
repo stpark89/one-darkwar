@@ -5,6 +5,7 @@ import { CopyButton } from '@/presentation/components/ui/copy-button'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { useTransferStore } from '@/infrastructure/stores/transferStore'
+import { SeasonBar } from '@/presentation/components/transfer/SeasonBar'
 import { useTransferTierStore, findTierForCp } from '@/infrastructure/stores/transferTierStore'
 import type { TransferStatus } from '@/domain/entities/Transfer'
 import { type TierColor, TIER_COLOR_CLASS } from '@/domain/entities/TransferTier'
@@ -624,6 +625,9 @@ export const TransferPage = () => {
       {/* 게스트 신청 폼 — 본인/단체 토글 */}
       {isGuest && <TransferSubmitForm />}
 
+
+      {/* 관리자 전용: 시즌 선택·개시 */}
+      {isAdmin && <SeasonBar />}
 
       {/* 관리자 전용: 신청서 목록 */}
       {isAdmin && (

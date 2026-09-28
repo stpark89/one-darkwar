@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import type { TransferTier, TransferTierDraft } from '@/domain/entities/TransferTier'
+import { useTransferSeasonStore } from './transferSeasonStore'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const toTier = (r: any): TransferTier => ({
@@ -34,10 +35,13 @@ export const useTransferTierStore = create<TransferTierStore>((set, get) => ({
     if (!force && get().initialized) return
     set({ loading: true })
     try {
-      const { data, error } = await supabase
+      // 등급·정원은 시즌마다 다르다 — 현재 시즌 것만 쓴다
+      const seasonId = await useTransferSeasonStore.getState().ensureSeasonId()
+      const base = supabase
         .from('transfer_tiers')
         .select('*')
         .order('sort_order', { ascending: true })
+      const { data, error } = await (seasonId ? base.eq('season_id', seasonId) : base)
       if (error) throw error
       set({ tiers: (data ?? []).map(toTier), initialized: true })
     } catch (err) {
@@ -79,7 +83,14 @@ export const useTransferTierStore = create<TransferTierStore>((set, get) => ({
         ).sort((a, b) => a.sortOrder - b.sortOrder),
       }))
     } else {
-      const { data, error } = await supabase.from('transfer_tiers').insert(payload).select().single()
+      // 보고 있는 시즌에 넣는다. 명시하지 않으면 DB DEFAULT 가 활성 시즌에 넣어,
+      // 과거 시즌을 열람하던 관리자가 엉뚱한 시즌에 등급을 만들게 된다.
+      const seasonId = await useTransferSeasonStore.getState().ensureSeasonId()
+      const { data, error } = await supabase
+        .from('transfer_tiers')
+        .insert({ ...payload, season_id: seasonId })
+        .select()
+        .single()
       if (error || !data) {
         toast.error('등급 추가 중 오류가 발생했습니다.')
         return false
