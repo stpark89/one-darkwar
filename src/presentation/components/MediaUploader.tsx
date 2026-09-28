@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { ImagePlus, Loader2, X, Film } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
-import { uploadMedia, deleteMediaByUrl, getMediaKind, IMAGE_MAX_BYTES, VIDEO_MAX_BYTES } from '@/lib/uploadMedia'
+import { uploadMedia, deleteMediaByUrl, getMediaKind, thumbUrl, healThumb, IMAGE_MAX_BYTES, VIDEO_MAX_BYTES } from '@/lib/uploadMedia'
 import { cn } from '@/lib/utils'
 
 interface MediaUploaderProps {
@@ -87,7 +87,20 @@ export const MediaUploader = ({ value, onChange, userId, maxCount = 5, className
             return (
               <div key={url} className="relative aspect-square rounded-lg overflow-hidden bg-[var(--color-bg-elevated)] group">
                 {kind === 'image' ? (
-                  <img src={url} alt="" className="w-full h-full object-cover" />
+                  <img
+                    src={thumbUrl(url)}
+                    onError={(e) => {
+                      const img = e.currentTarget
+                      if (img.src === url) return
+                      // 썸네일이 아직 없는 과거 업로드분 — 원본을 보여주고 뒤에서 만들어 둔다
+                      img.src = url
+                      healThumb(url)
+                    }}
+                    alt=""
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                    decoding="async"
+                  />
                 ) : kind === 'video' ? (
                   <div className="w-full h-full flex items-center justify-center bg-black/40">
                     <Film className="w-6 h-6 text-white/80" />

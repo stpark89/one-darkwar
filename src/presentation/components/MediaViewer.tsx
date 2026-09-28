@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { X, ChevronLeft, ChevronRight } from 'lucide-react'
-import { getMediaKind } from '@/lib/uploadMedia'
+import { getMediaKind, thumbUrl, healThumb } from '@/lib/uploadMedia'
 import { cn } from '@/lib/utils'
 
 interface MediaViewerProps {
@@ -41,7 +41,20 @@ export const MediaViewer = ({ urls, className }: MediaViewerProps) => {
               onClick={() => setLightboxIdx(i)}
             >
               {kind === 'image' ? (
-                <img src={url} alt="" className="w-full h-full object-cover group-hover:opacity-90 transition-opacity" loading="lazy" />
+                <img
+                  src={thumbUrl(url)}
+                  onError={(e) => {
+                    const img = e.currentTarget
+                    if (img.src === url) return
+                    // 썸네일이 아직 없는 과거 업로드분 — 원본을 보여주고 뒤에서 만들어 둔다
+                    img.src = url
+                    healThumb(url)
+                  }}
+                  alt=""
+                  className="w-full h-full object-cover group-hover:opacity-90 transition-opacity"
+                  loading="lazy"
+                  decoding="async"
+                />
               ) : kind === 'video' ? (
                 <>
                   <video src={url} className="w-full h-full object-cover" preload="metadata" muted />

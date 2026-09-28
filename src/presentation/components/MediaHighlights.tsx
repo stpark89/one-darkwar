@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { X, ChevronLeft, ChevronRight, MessageSquare, Megaphone, Image as ImageIcon, ChevronRight as ChevronRightSmall } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { getMediaKind } from '@/lib/uploadMedia'
+import { getMediaKind, thumbUrl, healThumb } from '@/lib/uploadMedia'
 import { cn } from '@/lib/utils'
 
 export interface MediaItem {
@@ -85,7 +85,24 @@ export const MediaHighlights = ({ items, maxItems = 12, className }: Props) => {
                 title={item.sourceTitle}
               >
                 {kind === 'image' ? (
-                  <img src={item.url} alt="" className="w-full h-full object-cover" loading="lazy" />
+                  // 96~112px 칸이다. 원본(1~4MB)을 그대로 넣으면 12장이 수십 MB 가 된다.
+                  // 변환이 실패하면(버킷 설정 등) 원본으로 폴백한다.
+                  <img
+                    src={thumbUrl(item.url)}
+                    onError={(e) => {
+                      const img = e.currentTarget
+                      if (img.src === item.url) return
+                      // 썸네일이 아직 없는 과거 업로드분 — 원본을 보여주고 뒤에서 만들어 둔다
+                      img.src = item.url
+                      healThumb(item.url)
+                    }}
+                    alt=""
+                    width={112}
+                    height={112}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                    decoding="async"
+                  />
                 ) : kind === 'video' ? (
                   <>
                     <video src={item.url} className="w-full h-full object-cover" preload="metadata" muted />
@@ -156,6 +173,7 @@ export const MediaHighlights = ({ items, maxItems = 12, className }: Props) => {
             {(() => {
               const kind = getMediaKind(current.url)
               if (kind === 'image') {
+                // 확대해서 보는 자리다 — 업로드 때 이미 1MB/1920 으로 줄인 원본을 쓴다
                 return <img src={current.url} alt="" className="max-w-[90vw] max-h-[70vh] object-contain rounded" />
               }
               if (kind === 'video') {
