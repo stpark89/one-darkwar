@@ -60,7 +60,7 @@ export async function uploadThumbFor(url: string, source: File | Blob): Promise<
     // upsert 는 쓰지 않는다 — storage RLS 에 UPDATE 정책이 없어 덮어쓰기가 막힌다.
     // 이미 있으면 만들 이유도 없다(치유는 404 일 때만 돈다).
     const { error } = await supabase.storage.from(STORAGE_BUCKET).upload(path, thumb, {
-      cacheControl: '31536000',
+      cacheControl: '3600',
       upsert: false,
       contentType: 'image/jpeg',
     })
@@ -152,8 +152,9 @@ export async function uploadMedia(file: File, userId: string): Promise<string> {
   const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
 
   const { error } = await supabase.storage.from(STORAGE_BUCKET).upload(path, toUpload, {
-    // 미디어는 한 번 올라가면 바뀌지 않는다 — 길게 잡아 재방문 시 재다운로드를 막는다
-    cacheControl: '31536000',
+    // ⚠️ 1년(31536000)으로 늘렸더니 Storage 가 업로드를 400 으로 거부했다(실측).
+    // 검증된 값은 3600 이다 — 늘리려면 실제 업로드로 확인하고 늘려라.
+    cacheControl: '3600',
     upsert: false,
     contentType: toUpload.type || undefined,
   })
