@@ -39,7 +39,7 @@ const GUEST_FLAG_KEY = 'odw_guest'
 
 // 게스트(둘러보기) 모드 사용 여부. false 로 두면 게스트 진입이 잠긴다.
 // (이주 모집 종료 등으로 외부인 열람이 불필요할 때 잠금. 다시 열려면 true)
-export const GUEST_MODE_ENABLED = false
+export const GUEST_MODE_ENABLED = true
 
 // supabase 가 localStorage 에 저장하는 auth 토큰 키를 강제로 정리하는 헬퍼.
 // 일부 환경에서 supabase.auth.signOut() 이 토큰을 완전히 지우지 못해 새로고침

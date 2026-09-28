@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { Home, Users, Swords, CalendarDays, FileSpreadsheet, BarChart3, Megaphone, ChevronUp, ChevronLeft, ChevronRight, X, LogOut, ShieldCheck, User, KeyRound, UserX, UserCheck, MessageSquare, Target, MessageCircleQuestion, Castle } from 'lucide-react'
+import { Home, Users, Swords, CalendarDays, FileSpreadsheet, BarChart3, Megaphone, ChevronUp, ChevronLeft, ChevronRight, X, LogOut, ShieldCheck, User, KeyRound, UserX, UserCheck, MessageSquare, Target, MessageCircleQuestion, Castle, UserPlus, ListChecks, TableProperties } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { LANGUAGES, type LangCode } from '@/i18n'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
@@ -61,7 +61,7 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
     items: [
       { to: '/server', icon: Home, label: t('nav.home'), end: true },
       { to: '/occupation', icon: Castle, label: t('nav.occupation') },
-      // { to: '/transfer/list', icon: ListChecks, label: t('nav.transfer_list') },  // 이주 종료 후 숨김
+      { to: '/transfer/list', icon: ListChecks, label: t('nav.transfer_list') },
       { to: '/questions', icon: MessageCircleQuestion, label: t('nav.questions') },
     ],
   }
@@ -73,8 +73,8 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
     items: [
       { to: '/server', icon: Home, label: t('nav.home'), end: true },
       { to: '/occupation', icon: Castle, label: t('nav.occupation') },
-      // { to: '/transfer', icon: UserPlus, label: t('nav.transfer'), end: true },  // 이주 종료 후 숨김
-      // { to: '/transfer/list', icon: ListChecks, label: t('nav.transfer_list') },  // 이주 종료 후 숨김
+      { to: '/transfer', icon: UserPlus, label: t('nav.transfer'), end: true },
+      { to: '/transfer/list', icon: ListChecks, label: t('nav.transfer_list') },
       { to: '/questions', icon: MessageCircleQuestion, label: t('nav.questions') },
     ],
   }
@@ -87,8 +87,8 @@ export const Sidebar = ({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
       { to: '/contribution', icon: BarChart3, label: t('nav.contribution') },
       { to: '/excel', icon: FileSpreadsheet, label: t('nav.excel') },
       { to: '/approval', icon: UserCheck, label: t('nav.join_management'), badge: pendingCount },
-      // { to: '/transfer', icon: UserPlus, label: t('nav.transfer'), end: true },  // 이주 종료 후 숨김
-      // { to: '/transfer/grid', icon: TableProperties, label: t('nav.transfer_grid') },  // 이주 종료 후 숨김
+      { to: '/transfer', icon: UserPlus, label: t('nav.transfer'), end: true },
+      { to: '/transfer/grid', icon: TableProperties, label: t('nav.transfer_grid') },
     ],
   }
 

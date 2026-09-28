@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
-  MessageCircleQuestion, ChevronRight, Search,
+  UserPlus, MessageCircleQuestion, ChevronRight, Search,
   Swords, Crown, Castle,
 } from 'lucide-react'
 import { getSessionAvatar } from '@/lib/avatars'
@@ -13,6 +13,7 @@ import type { Facility } from '@/domain/entities/Occupation'
 import { RecentQuestionsWidget } from '@/presentation/components/server/RecentQuestionsWidget'
 import { ServerEventsWidget } from '@/presentation/components/server/ServerEventsWidget'
 import { AllianceWidget } from '@/presentation/components/server/AllianceWidget'
+import { RecruitmentWidget } from '@/presentation/components/server/RecruitmentWidget'
 
 export const ServerHomePage = () => {
   const { t } = useTranslation()
@@ -87,11 +88,28 @@ export const ServerHomePage = () => {
         </div>
       </div>
 
+      {/* 이주 모집 현황 */}
+      <RecruitmentWidget />
+
       {/* 291 동맹 목록 (세력도/외교) */}
       <AllianceWidget />
 
       {/* 진입 CTA (게스트·멤버 공통 — 291 서버 공용 진입점) */}
       <div className="space-y-3">
+        <button
+          onClick={() => navigate('/transfer')}
+          className="w-full group flex items-start gap-4 bg-gradient-to-br from-[var(--color-brand)] to-blue-600 text-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all"
+        >
+          <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+            <UserPlus className="w-6 h-6" />
+          </div>
+          <div className="flex-1 text-left min-w-0">
+            <div className="text-base font-bold leading-snug">{t('guest_home.cta_transfer_title')}</div>
+            <div className="text-xs opacity-90 mt-1 leading-relaxed">{t('guest_home.cta_transfer_desc')}</div>
+          </div>
+          <ChevronRight className="w-5 h-5 flex-shrink-0 mt-1 group-hover:translate-x-1 transition-transform" />
+        </button>
+
         <button
           onClick={() => navigate('/questions')}
           className="w-full group flex items-start gap-4 bg-[var(--color-bg-surface)] border border-[var(--color-border-subtle)] text-[var(--color-text-primary)] rounded-2xl p-5 hover:border-[var(--color-brand)]/40 hover:bg-[var(--color-bg-elevated)] transition-all"
