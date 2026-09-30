@@ -11,7 +11,6 @@
 | 291 홈 히어로 시안(사용자 OK) | `.tasks/design/server-home-hero.html` — 브라우저로 연다 |
 | 미디어 축소를 왜 transform 으로 했나 | `src/lib/uploadMedia.ts` 머리 주석 · 커밋 `4fa80f9` |
 | members↔profiles 연결 구조·배경 | `supabase/migration_member_profile_id.sql` (주석에 배경 전부) |
-| WebRTC·Presence 패턴 | Obsidian `기술-레퍼런스/WebRTC P2P 음성채팅 (Supabase Realtime 시그널링).md` |
 
 ## 지금 한 줄
 
@@ -22,17 +21,14 @@
 
 ## 다음 1수
 
-1. **참여 횟수 재제보 확인** — 이벤트별 기록수를 다시 세어 09-28 값
-   (86/86/84/80/86/85/84/78/87/77/74/78/85, event_date 순)과 비교한다. 같으면 표시 문제,
-   다르면 그 사이 누가 저장·업로드했다. ⚠️ `events_backup_260928` 에 **attendance 는 없다**.
-   여러 명이 연락한 실제 장애라 가장 먼저다.
+1. **참여 횟수 재제보 확인** — 이벤트별 기록수를 09-28 값(86/86/84/80/86/85/84/78/87/77/74/78/85,
+   event_date 순)과 비교. ⚠️ 백업에 attendance 는 없다. 여러 명이 연락한 실제 장애라 먼저다.
 2. **291 홈 히어로 개발** — 시안대로 `ServerHomePage` 헤더를 **교체**(추가 아님). 개발 전 확정:
    문구 · 숫자 3개(93%는 ONE 동맹 값, 4는 사이트 언어 수라 교체 검토) · 게스트 전용 여부.
    기존 큰 「이주 신청하기」 버튼은 뺀다(신청 진입점 중복).
 3. **관리자로 SeasonBar·지난 시즌 UID 조회 확인** — 새로 만든 UI 라 눌러본 적이 없다.
 
 > 대기: 새 시즌 정원은 지난 시즌 복제값(60/20/5/1) · `events_backup_260928` 은 문제없으면 DROP.
-
 ## 룰북
 
 **손대지 않을 것**
@@ -61,4 +57,3 @@
 - 시즌을 바꿀 땐 `transferStore`·`transferTierStore` 의 **`initialized` 를 리셋**한다(캐시 가드).
 - Presence 는 **`config.presence.key` 를 믿지 마라**(실측 2건) — id 는 `track()` 에 담아 읽는다.
 - 멤버 추가·이름변경·삭제는 `warStore`·`eventStore`·`vsPointStore` 에 **전부 전파**한다.
-- 표 하단 합계행은 인원수가 **아니라** 참여자 수다 — 라벨과 분모를 함께 표시한다.
