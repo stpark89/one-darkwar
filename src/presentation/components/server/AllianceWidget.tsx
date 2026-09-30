@@ -75,12 +75,8 @@ export const AllianceWidget = () => {
           {alliances.map((a) => (
             <div
               key={a.id}
-              className={cn(
-                'rounded-xl border p-3.5 flex items-start gap-3',
-                a.isHome
-                  ? 'border-[var(--color-brand)]/40 bg-[var(--color-brand)]/5'
-                  : 'border-[var(--color-border-subtle)] bg-[var(--color-bg-surface)]',
-              )}
+              // 서버 홈은 291 전체를 소개하는 화면이라 특정 동맹만 "우리"로 강조하지 않는다
+              className="rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-bg-surface)] p-3.5 flex items-start gap-3"
             >
               <div className="w-10 h-10 rounded-lg bg-[var(--color-brand)]/15 flex items-center justify-center font-black text-[var(--color-brand)] text-xs flex-shrink-0 uppercase">
                 {(a.tag || a.name).slice(0, 3)}
@@ -88,13 +84,12 @@ export const AllianceWidget = () => {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <span className="text-sm font-bold text-[var(--color-text-primary)]">{a.name}</span>
-                  {a.isHome && (
-                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[var(--color-brand)] text-white">{t('server_home.home_badge')}</span>
-                  )}
                   <span
                     className={cn(
                       'text-[9px] font-bold px-1.5 py-0.5 rounded',
-                      a.recruiting ? 'bg-green-500/15 text-green-400' : 'bg-gray-500/15 text-gray-400',
+                      a.recruiting
+                        ? 'bg-[var(--color-success)]/15 text-[var(--color-success)]'
+                        : 'bg-[var(--color-text-muted)]/15 text-[var(--color-text-muted)]',
                     )}
                   >
                     {a.recruiting ? t('server_home.ally_recruiting') : t('server_home.ally_closed')}
