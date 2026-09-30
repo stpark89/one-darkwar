@@ -89,7 +89,7 @@ export default {
     badge: '291 migration open',
     title_1: 'Not the strongest,',
     title_2: 'but our best,',
-    desc: "We don't lean on one big spender.\nWe show up on time and hold the line together —\nthat's the 291 way.",
+    desc: "We don't lean on a whale.\nWe show up on time and hold the line together —\nthat's the 291 way.",
     remaining: 'Seats left',
     pending: 'Waiting to join',
     pending_unit: '',
