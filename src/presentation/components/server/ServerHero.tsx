@@ -95,7 +95,7 @@ export const ServerHero = () => {
 
       <button
         onClick={() => navigate('/transfer')}
-        className="mt-5 flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[var(--color-text-primary)] text-[17px] font-semibold tracking-[-0.01em] text-[var(--color-bg-base)] transition-transform active:scale-[0.98]"
+        className="mt-5 flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[var(--color-brand)] text-[17px] font-semibold tracking-[-0.01em] text-white transition-transform hover:opacity-90 active:scale-[0.98]"
       >
         {t('server_hero.cta')}
         <ArrowRight className="h-[18px] w-[18px]" strokeWidth={2.4} />
