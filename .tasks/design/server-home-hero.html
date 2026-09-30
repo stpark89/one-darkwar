@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>291 Hero 시안</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+  :root {
+    --bg: #07080c;
+    --ink: #f5f5f7;
+    --ink-2: rgba(245,245,247,.62);
+    --ink-3: rgba(245,245,247,.38);
+    --line: rgba(255,255,255,.08);
+    --glass: rgba(255,255,255,.045);
+    --brand: #4f8cff;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    min-height: 100vh; display: grid; place-items: center; gap: 28px;
+    background: #111217; font-family: "Pretendard Variable", -apple-system, system-ui, sans-serif;
+    color: var(--ink); -webkit-font-smoothing: antialiased; padding: 40px 16px;
+  }
+  .phone {
+    width: 390px; height: 844px; border-radius: 56px; padding: 12px;
+    background: #1c1d22; box-shadow: 0 0 0 1px #2a2b31, 0 40px 80px -20px rgba(0,0,0,.7);
+  }
+  .screen {
+    position: relative; width: 100%; height: 100%; border-radius: 46px; overflow: hidden;
+    background: var(--bg);
+  }
+  .island { position: absolute; top: 11px; left: 50%; translate: -50% 0; width: 122px; height: 36px; border-radius: 20px; background: #000; z-index: 5; }
+  .status { position: absolute; top: 0; inset-inline: 0; height: 54px; display: flex; justify-content: space-between; align-items: center; padding: 6px 32px 0; font-size: 16px; font-weight: 600; z-index: 4; }
+  .scroll { position: absolute; inset: 0; overflow-y: auto; padding: 60px 0 40px; scrollbar-width: none; }
+
+  .glow {
+    position: absolute; top: -120px; left: 50%; translate: -50% 0; width: 520px; height: 520px; pointer-events: none;
+    background:
+      radial-gradient(closest-side at 35% 45%, rgba(79,140,255,.45), transparent 70%),
+      radial-gradient(closest-side at 70% 55%, rgba(170,110,255,.30), transparent 70%);
+    filter: blur(30px); opacity: .9;
+  }
+  .nav { position: relative; display: flex; justify-content: space-between; align-items: center; padding: 8px 22px 0; }
+  .brand { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600; letter-spacing: -.01em; }
+  .logo { width: 26px; height: 26px; border-radius: 8px; background: linear-gradient(135deg,#ffb45a,#e24b4a); }
+  .lang { font-size: 13px; color: var(--ink-2); padding: 6px 12px; border-radius: 99px; background: var(--glass); border: 1px solid var(--line); }
+
+  .hero { position: relative; padding: 44px 24px 0; }
+  .live { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: var(--ink-2);
+    padding: 7px 14px 7px 10px; border-radius: 99px; background: rgba(255,255,255,.06); border: 1px solid var(--line);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #34d399; box-shadow: 0 0 0 4px rgba(52,211,153,.18); animation: pulse 2s infinite; }
+  @keyframes pulse { 50% { box-shadow: 0 0 0 7px rgba(52,211,153,0); } }
+  h1 { margin-top: 22px; font-size: 46px; line-height: 1.04; font-weight: 700; letter-spacing: -.045em; }
+  h1 .grad { background: linear-gradient(92deg,#ffffff 10%,#9cc0ff 55%,#c7a8ff 95%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .sub { margin-top: 16px; font-size: 16px; line-height: 1.55; color: var(--ink-2); letter-spacing: -.01em; }
+
+  .stats { margin: 30px 20px 0; display: grid; grid-template-columns: repeat(3,1fr); border-radius: 22px; overflow: hidden;
+    background: var(--glass); border: 1px solid var(--line); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); }
+  .stat { padding: 16px 0 14px; text-align: center; }
+  .stat + .stat { border-left: 1px solid var(--line); }
+  .num { font-size: 26px; font-weight: 700; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+  .num small { font-size: 15px; font-weight: 600; color: var(--ink-3); }
+  .lbl { margin-top: 2px; font-size: 12px; color: var(--ink-3); }
+
+  .cta { margin: 20px 20px 0; display: flex; align-items: center; justify-content: center; gap: 8px; height: 56px; border-radius: 18px;
+    background: #f5f5f7; color: #0b0b0f; font-size: 17px; font-weight: 600; letter-spacing: -.01em; border: 0; width: calc(100% - 40px); }
+  .cta svg { width: 18px; height: 18px; }
+  .ghost { margin-top: 14px; text-align: center; font-size: 14px; color: var(--ink-2); }
+  .ghost b { color: var(--brand); font-weight: 500; }
+
+  .fold { position: relative; margin: 28px 20px 16px; display: flex; align-items: center; gap: 10px; color: #ff6b6b; font-size: 11px; }
+  .fold::before, .fold::after { content: ""; flex: 1; border-top: 1px dashed rgba(255,107,107,.5); }
+  .rest { padding: 0 20px; display: grid; gap: 10px; }
+  .card { padding: 16px 18px; border-radius: 20px; background: rgba(255,255,255,.03); border: 1px solid var(--line); color: var(--ink-3); font-size: 14px; }
+
+  .note { max-width: 390px; font-size: 13px; color: #8a8b93; line-height: 1.6; text-align: center; }
+</style>
+</head>
+<body>
+  <div class="phone"><div class="screen">
+    <div class="island"></div>
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="scroll">
+      <div class="glow"></div>
+      <div class="nav">
+        <div class="brand"><span class="logo"></span>Server 291</div>
+        <div class="lang">한국어</div>
+      </div>
+
+      <section class="hero">
+        <span class="live"><span class="dot"></span>Season 2 이주 모집 중</span>
+        <h1>다음 시즌은<br><span class="grad">291에서.</span></h1>
+        <p class="sub">전투력보다 함께할 사람을 봅니다.<br>동맹은 신청 후에 같이 정해도 돼요.</p>
+      </section>
+
+      <div class="stats">
+        <div class="stat"><div class="num">86</div><div class="lbl">남은 자리</div></div>
+        <div class="stat"><div class="num">4<small>개</small></div><div class="lbl">지원 언어</div></div>
+        <div class="stat"><div class="num">93<small>%</small></div><div class="lbl">전쟁 참가율</div></div>
+      </div>
+
+      <button class="cta">이주 신청하기
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+      <p class="ghost">이미 신청했나요? <b>내 신청 조회</b></p>
+
+      <div class="fold">폰 첫 화면 끝</div>
+      <div class="rest">
+        <div class="card">서버 일정</div>
+        <div class="card">점령 현황</div>
+        <div class="card">이주 모집 현황 · 등급별 정원</div>
+        <div class="card">동맹 목록</div>
+      </div>
+    </div>
+  </div></div>
+  <p class="note">시안 · 실제 개발 아님. 숫자 3개는 자리 표시용이며 확정 필요.</p>
+</body>
+</html>

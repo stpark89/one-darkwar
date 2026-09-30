@@ -8,6 +8,7 @@
 | 제품 목표 | `.tasks/product-goal.md` |
 | 이주 시즌 분리 설계·되돌리기 | `.tasks/design/transfer-season.md` · `supabase/rollback_transfer_season.sql` |
 | 이벤트 날짜 교정·백업·복원 절차 | `supabase/fix_event_date_from_name.sql` |
+| 291 홈 히어로 시안(사용자 OK) | `.tasks/design/server-home-hero.html` — 브라우저로 연다 |
 | 미디어 축소를 왜 transform 으로 했나 | `src/lib/uploadMedia.ts` 머리 주석 · 커밋 `4fa80f9` |
 | members↔profiles 연결 구조·배경 | `supabase/migration_member_profile_id.sql` (주석에 배경 전부) |
 | WebRTC·Presence 패턴 | Obsidian `기술-레퍼런스/WebRTC P2P 음성채팅 (Supabase Realtime 시그널링).md` |
@@ -16,18 +17,21 @@
 
 새 시즌 이주(게스트 모드·메뉴·시즌 분리)와 이미지 축소(transform, 3.2MB→57KB 실측)를
 배포했다. 둘 다 **화면 체감은 미검증**이다.
-길드원 제보(09-28) 「이벤트 추가 시 수치 틀어짐」 **종료** — 코드·DB 교정 + 재발 차단
-(이름 형식 검증) 까지 완료. **화면에서 확인함**(사용자). 참석 기록 유실 없다.
+이벤트 날짜 꼬임은 해결했으나 **09-29 「참여 횟수가 다 이상하다」 재제보**가 미해결이다.
+291 홈 히어로 시안은 사용자가 방향 OK(09-30) — 문구 확정 후 개발한다.
 
 ## 다음 1수
 
-1. **관리자로 SeasonBar·지난 시즌 UID 조회 확인** — 새로 만든 UI 라 눌러본 적이 없다.
-   이게 깨지면 시즌 운영이 막힌다. 내일 이주가 시작되므로 가장 급하다.
-2. **홈 화면에서 이미지 로딩 체감 확인** — transform 실측은 56배인데 화면에서 재지 않았다.
-3. **`events_backup_260928` 정리** — 며칠 지켜보고 문제없으면 DROP.
-   절차는 `supabase/fix_event_date_from_name.sql` §4.
+1. **참여 횟수 재제보 확인** — 이벤트별 기록수를 다시 세어 09-28 값
+   (86/86/84/80/86/85/84/78/87/77/74/78/85, event_date 순)과 비교한다. 같으면 표시 문제,
+   다르면 그 사이 누가 저장·업로드했다. ⚠️ `events_backup_260928` 에 **attendance 는 없다**.
+   여러 명이 연락한 실제 장애라 가장 먼저다.
+2. **291 홈 히어로 개발** — 시안대로 `ServerHomePage` 헤더를 **교체**(추가 아님). 개발 전 확정:
+   문구 · 숫자 3개(93%는 ONE 동맹 값, 4는 사이트 언어 수라 교체 검토) · 게스트 전용 여부.
+   기존 큰 「이주 신청하기」 버튼은 뺀다(신청 진입점 중복).
+3. **관리자로 SeasonBar·지난 시즌 UID 조회 확인** — 새로 만든 UI 라 눌러본 적이 없다.
 
-> 대기 중(사용자 판단): 새 시즌 등급·정원은 지난 시즌 값 복제 상태다(GRAY 60/Blue 20/Purple 5/Orange 1).
+> 대기: 새 시즌 정원은 지난 시즌 복제값(60/20/5/1) · `events_backup_260928` 은 문제없으면 DROP.
 
 ## 룰북
 
