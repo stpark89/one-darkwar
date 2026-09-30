@@ -3,6 +3,23 @@ import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import type { EventSession, EventAttendance, AttendanceStatus } from '@/domain/entities/Event'
 
+// Supabase 는 한 번에 최대 1000행만 돌려준다. attendance 가 1000행을 넘자(09-27, 0922 이벤트 등록)
+// 초과분이 조용히 빠져 참여 횟수가 틀어졌다(길드원 재제보 2026-09-29). 페이지로 끝까지 읽는다.
+const PAGE = 1000
+async function fetchAllAttendance() {
+  const rows: { member_id: string; event_id: string; status: string }[] = []
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await supabase
+      .from('attendance')
+      .select('*')
+      .order('id', { ascending: true })
+      .range(from, from + PAGE - 1)
+    if (error) return { data: null, error }
+    rows.push(...(data ?? []))
+    if (!data || data.length < PAGE) return { data: rows, error: null }
+  }
+}
+
 interface EventStore {
   events: EventSession[]
   attendance: EventAttendance[]
@@ -50,7 +67,7 @@ export const useEventStore = create<EventStore>((set, get) => ({
           .order('event_date', { ascending: true, nullsFirst: false })
           .order('created_at', { ascending: true }),
         supabase.from('members').select('id, in_game_name'),
-        supabase.from('attendance').select('*'),
+        fetchAllAttendance(),
       ])
 
       const events: EventSession[] = (eventRows ?? []).map((r) => ({
