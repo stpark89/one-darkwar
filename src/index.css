@@ -2,6 +2,8 @@
 
 @theme {
   --color-brand: oklch(0.623 0.214 259.1);
+  /* 보조 포인트 — 291 히어로 그라데이션·빛 번짐용 */
+  --color-brand-2: oklch(0.72 0.16 300);
   --color-bg-base: oklch(0.13 0.02 260);
   --color-bg-surface: oklch(0.17 0.02 260);
   --color-bg-elevated: oklch(0.21 0.02 260);

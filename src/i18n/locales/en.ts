@@ -85,6 +85,17 @@ export default {
     add_week_desc: 'Register 8 slots for a new week at once. Order is auto-suggested from the previous week with 1-step rotation.',
     inline_hint: 'Tap an empty cell (—) to enter an alliance name directly.',
   },
+  server_hero: {
+    badge: '291 migration open',
+    title_1: 'Not the strongest,',
+    title_2: 'but our best,',
+    desc: "We don't lean on one big spender.\nWe show up on time and hold the line together —\nthat's the 291 way.",
+    remaining: 'Seats left',
+    pending: 'Waiting to join',
+    pending_unit: '',
+    cta: 'Apply to migrate',
+    alliance_later: 'You can pick an alliance after you arrive',
+  },
   server_home: {
     badge: 'Server 291',
     hero_title: 'DARK WAR · Server 291',

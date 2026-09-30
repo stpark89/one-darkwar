@@ -85,6 +85,17 @@ export default {
     add_week_desc: 'Đăng ký 8 slot cho tuần mới cùng lúc. Thứ tự được đề xuất tự động từ tuần trước với 1 bước xoay.',
     inline_hint: 'Nhấn vào ô trống (—) để nhập tên liên minh trực tiếp.',
   },
+  server_hero: {
+    badge: '291 đang tuyển di cư',
+    title_1: 'Không cần mạnh nhất,',
+    title_2: 'chỉ cần hết mình,',
+    desc: 'Chúng tôi không dựa vào một đại gia.\nĐúng giờ tập hợp, cùng trụ đến cuối —\nđó là cách của 291.',
+    remaining: 'Chỗ còn trống',
+    pending: 'Đang chờ duyệt',
+    pending_unit: '',
+    cta: 'Đăng ký di cư',
+    alliance_later: 'Vào rồi chọn liên minh sau cũng được',
+  },
   server_home: {
     badge: 'Server 291',
     hero_title: 'DARK WAR · Server 291',

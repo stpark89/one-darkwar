@@ -2,10 +2,9 @@ import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
-  UserPlus, MessageCircleQuestion, ChevronRight, Search,
+  MessageCircleQuestion, ChevronRight, Search,
   Swords, Crown, Castle,
 } from 'lucide-react'
-import { getSessionAvatar } from '@/lib/avatars'
 import { LangSelector } from '@/presentation/components/ui/lang-selector'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { useOccupationStore } from '@/infrastructure/stores/occupationStore'
@@ -13,6 +12,7 @@ import type { Facility } from '@/domain/entities/Occupation'
 import { RecentQuestionsWidget } from '@/presentation/components/server/RecentQuestionsWidget'
 import { ServerEventsWidget } from '@/presentation/components/server/ServerEventsWidget'
 import { AllianceWidget } from '@/presentation/components/server/AllianceWidget'
+import { ServerHero } from '@/presentation/components/server/ServerHero'
 import { RecruitmentWidget } from '@/presentation/components/server/RecruitmentWidget'
 
 export const ServerHomePage = () => {
@@ -35,18 +35,8 @@ export const ServerHomePage = () => {
         <LangSelector />
       </div>
 
-      {/* Hero */}
-      <div className="text-center pt-1 sm:pt-2">
-        <div className="inline-block w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden mb-4 shadow-xl bg-[var(--color-bg-elevated)]">
-          <img src={getSessionAvatar()} alt="ONE" className="w-full h-full object-cover" />
-        </div>
-        <h1 className="text-2xl sm:text-3xl font-black text-[var(--color-text-primary)] mb-2 leading-tight">
-          {t('server_home.hero_title')}
-        </h1>
-        <p className="text-sm sm:text-base text-[var(--color-text-secondary)] leading-relaxed max-w-md mx-auto px-2">
-          {t('server_home.hero_subtitle')}
-        </p>
-      </div>
+      {/* 히어로 — 시안 .tasks/design/server-home-hero.html */}
+      <ServerHero />
 
       {/* 서버 일정/이벤트 + 다음 일정 카운트다운 */}
       <ServerEventsWidget />
@@ -96,20 +86,6 @@ export const ServerHomePage = () => {
 
       {/* 진입 CTA (게스트·멤버 공통 — 291 서버 공용 진입점) */}
       <div className="space-y-3">
-        <button
-          onClick={() => navigate('/transfer')}
-          className="w-full group flex items-start gap-4 bg-gradient-to-br from-[var(--color-brand)] to-blue-600 text-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all"
-        >
-          <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
-            <UserPlus className="w-6 h-6" />
-          </div>
-          <div className="flex-1 text-left min-w-0">
-            <div className="text-base font-bold leading-snug">{t('guest_home.cta_transfer_title')}</div>
-            <div className="text-xs opacity-90 mt-1 leading-relaxed">{t('guest_home.cta_transfer_desc')}</div>
-          </div>
-          <ChevronRight className="w-5 h-5 flex-shrink-0 mt-1 group-hover:translate-x-1 transition-transform" />
-        </button>
-
         <button
           onClick={() => navigate('/questions')}
           className="w-full group flex items-start gap-4 bg-[var(--color-bg-surface)] border border-[var(--color-border-subtle)] text-[var(--color-text-primary)] rounded-2xl p-5 hover:border-[var(--color-brand)]/40 hover:bg-[var(--color-bg-elevated)] transition-all"

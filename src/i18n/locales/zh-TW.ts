@@ -85,6 +85,17 @@ export default {
     add_week_desc: '一次登錄新一週的 8 個插槽。自動從上週順序向前旋轉一格建議順序。',
     inline_hint: '點擊空白格（—）可直接輸入聯盟名稱。',
   },
+  server_hero: {
+    badge: '291 移民招募中',
+    title_1: '不求最強，',
+    title_2: '但求盡力，',
+    desc: '我們不依賴單一大課長。\n準時集合、一起撐到最後，\n這就是 291 的方式。',
+    remaining: '剩餘名額',
+    pending: '申請等待中',
+    pending_unit: '人',
+    cta: '申請移民',
+    alliance_later: '聯盟可以來了之後再慢慢選',
+  },
   server_home: {
     badge: 'Server 291',
     hero_title: 'DARK WAR · Server 291',

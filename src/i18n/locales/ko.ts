@@ -85,6 +85,17 @@ export default {
     add_week_desc: '새 주차 8슬롯을 한 번에 등록합니다. 이전 주차 순서에서 1칸 로테이션된 순서를 자동 제안합니다.',
     inline_hint: '표의 빈 셀(—)을 탭하면 바로 동맹명을 입력할 수 있습니다.',
   },
+  server_hero: {
+    badge: '291 이주 모집 중',
+    title_1: '최강보단',
+    title_2: '최선을,',
+    desc: '큰손 한 명에 기대지 않아요.\n제시간에 모이고, 끝까지 같이 버티는 게\n291의 방식입니다.',
+    remaining: '남은 자리',
+    pending: '신청 대기 중',
+    pending_unit: '명',
+    cta: '이주 신청하기',
+    alliance_later: '동맹은 들어와서 천천히 골라도 돼요',
+  },
   server_home: {
     badge: '291 서버',
     hero_title: 'DARK WAR · Server 291',
