@@ -129,7 +129,7 @@ export default {
     no_alliances: '등록된 동맹이 없습니다.',
     home_badge: '우리 동맹',
     ally_recruiting: '모집중',
-    ally_closed: '모집마감',
+    ally_closed: '모집 준비중',
     contact_label: '연락',
     alliance_add_title: '동맹 추가',
     alliance_edit_title: '동맹 수정',

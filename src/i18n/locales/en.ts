@@ -129,7 +129,7 @@ export default {
     no_alliances: 'No alliances registered.',
     home_badge: 'Us',
     ally_recruiting: 'Recruiting',
-    ally_closed: 'Closed',
+    ally_closed: 'Preparing',
     contact_label: 'Contact',
     alliance_add_title: 'Add Alliance',
     alliance_edit_title: 'Edit Alliance',

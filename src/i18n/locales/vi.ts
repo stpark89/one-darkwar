@@ -129,7 +129,7 @@ export default {
     no_alliances: 'Chưa có liên minh nào.',
     home_badge: 'Chúng tôi',
     ally_recruiting: 'Đang tuyển',
-    ally_closed: 'Đã đóng',
+    ally_closed: 'Đang chuẩn bị',
     contact_label: 'Liên hệ',
     alliance_add_title: 'Thêm liên minh',
     alliance_edit_title: 'Sửa liên minh',

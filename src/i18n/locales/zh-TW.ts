@@ -129,7 +129,7 @@ export default {
     no_alliances: '尚無登錄的聯盟。',
     home_badge: '我方',
     ally_recruiting: '招募中',
-    ally_closed: '已關閉',
+    ally_closed: '準備中',
     contact_label: '聯絡',
     alliance_add_title: '新增聯盟',
     alliance_edit_title: '編輯聯盟',
