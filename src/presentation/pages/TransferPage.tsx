@@ -31,7 +31,7 @@ interface TierDraftForm {
 
 const EMPTY_TIER_DRAFT: TierDraftForm = { name: '', minCpStr: '', maxCpStr: '', capacityStr: '0', sortOrderStr: '0', seasonName: '', color: 'gray' }
 
-const TIER_COLOR_OPTIONS: TierColor[] = ['orange', 'purple', 'blue', 'gray']
+const TIER_COLOR_OPTIONS: TierColor[] = ['red', 'orange', 'purple', 'blue', 'gray']
 
 // 게임 룰상 티켓 등급 최대치 (주황·보라·파랑·회색)
 const MAX_TIERS = 4

@@ -46,6 +46,7 @@ export default {
     delete_title: '티켓 등급 삭제',
     delete_desc: '이 티켓 등급을 영구 삭제합니다. 되돌릴 수 없습니다.',
     field_color: '색상',
+    color_red: '빨강',
     color_orange: '오렌지',
     color_purple: '보라',
     color_blue: '블루',

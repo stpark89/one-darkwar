@@ -46,6 +46,7 @@ export default {
     delete_title: 'Xóa hạng vé',
     delete_desc: 'Hạng vé này sẽ bị xóa vĩnh viễn. Không thể hoàn tác.',
     field_color: 'Màu',
+    color_red: 'Đỏ',
     color_orange: 'Cam',
     color_purple: 'Tím',
     color_blue: 'Xanh dương',

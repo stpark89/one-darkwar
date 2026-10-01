@@ -1,5 +1,5 @@
 /** 등급 색상 — 게임 티켓 색상과 매칭 */
-export type TierColor = 'orange' | 'purple' | 'blue' | 'gray'
+export type TierColor = 'red' | 'orange' | 'purple' | 'blue' | 'gray'
 
 export interface TransferTier {
   id: string
@@ -25,6 +25,7 @@ export interface TransferTierDraft {
 
 /** 색상 → Tailwind 클래스 (배지/막대). 한 곳에서 관리 */
 export const TIER_COLOR_CLASS: Record<TierColor, { badge: string; dot: string; bar: string }> = {
+  red:    { badge: 'bg-red-500/15 text-red-400',       dot: 'bg-red-500',    bar: 'bg-red-500' },
   orange: { badge: 'bg-orange-500/15 text-orange-400', dot: 'bg-orange-500', bar: 'bg-orange-500' },
   purple: { badge: 'bg-purple-500/15 text-purple-400', dot: 'bg-purple-500', bar: 'bg-purple-500' },
   blue:   { badge: 'bg-blue-500/15 text-blue-400',     dot: 'bg-blue-500',   bar: 'bg-blue-500' },

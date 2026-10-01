@@ -46,6 +46,7 @@ export default {
     delete_title: 'Delete Ticket Tier',
     delete_desc: 'This ticket tier will be permanently deleted. This cannot be undone.',
     field_color: 'Color',
+    color_red: 'Red',
     color_orange: 'Orange',
     color_purple: 'Purple',
     color_blue: 'Blue',

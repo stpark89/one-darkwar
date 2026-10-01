@@ -46,6 +46,7 @@ export default {
     delete_title: '刪除票券等級',
     delete_desc: '將永久刪除此票券等級，無法復原。',
     field_color: '顏色',
+    color_red: '紅色',
     color_orange: '橘色',
     color_purple: '紫色',
     color_blue: '藍色',
