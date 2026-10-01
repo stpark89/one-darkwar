@@ -409,6 +409,7 @@ const TierSlotsPanel = ({ apps, tiers }: TierSlotsPanelProps) => {
 
             // Tailwind 퍼지를 피하기 위해 inline style로 색상 직접 지정
             const COLOR_STYLES: Record<string, { bg: string; text: string; bar: string }> = {
+              red:    { bg: 'rgba(239,68,68,0.25)',   text: 'rgb(252,165,165)', bar: 'rgb(239,68,68)' },
               orange: { bg: 'rgba(249,115,22,0.25)', text: 'rgb(253,186,116)',  bar: 'rgb(249,115,22)' },
               purple: { bg: 'rgba(168,85,247,0.25)',  text: 'rgb(216,180,254)', bar: 'rgb(168,85,247)' },
               blue:   { bg: 'rgba(59,130,246,0.25)',  text: 'rgb(147,197,253)', bar: 'rgb(59,130,246)' },
