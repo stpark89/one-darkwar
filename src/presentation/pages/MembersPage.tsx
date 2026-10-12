@@ -31,6 +31,8 @@ export const MembersPage = () => {
   const { user, isGuest } = useAuthStore()
   const canEdit = user?.role === 'ROLE_ADMIN'
   const showUid = !isGuest
+  // 게스트에게는 전투력을 노출하지 않는다 — 열뿐 아니라 전투력 순 정렬(순위 유추)도 막는다
+  const showCp = !isGuest
   const canEditRow = (m: Member) => canEdit || m.inGameName === user?.inGameName
   const base = getFiltered()
 
@@ -97,6 +99,7 @@ export const MembersPage = () => {
     .filter((m) => !filterTroopType || m.troopType === filterTroopType)
 
   const members = [...displayList].sort((a, b) => {
+    if (!showCp && sortKey === 'cp') return a.inGameName.localeCompare(b.inGameName)
     if (!sortDir) return 0
     let cmp = 0
     if (sortKey === 'cp') cmp = parseCp(a.cp) - parseCp(b.cp)
@@ -249,7 +252,7 @@ export const MembersPage = () => {
                   {t('members.zalo_name')}
                 </th>
               )}
-              {th('cp', t('members.cp'))}
+              {showCp && th('cp', t('members.cp'))}
               {th('houseLevel', t('members.house_level'))}
               <th className="px-3 sm:px-4 py-3 text-left text-xs font-semibold text-[var(--color-text-muted)] whitespace-nowrap">
                 {t('members.troop_type')}
@@ -314,9 +317,11 @@ export const MembersPage = () => {
                   )}
                 </td>
                 {showUid && <td className="hidden md:table-cell px-4 py-3 text-[var(--color-text-secondary)]">{m.zaloName || '-'}</td>}
-                <td className="px-3 sm:px-4 py-2.5 sm:py-3">
-                  {m.cp ? <Badge variant="success">{m.cp}</Badge> : <span className="text-[var(--color-text-muted)]">-</span>}
-                </td>
+                {showCp && (
+                  <td className="px-3 sm:px-4 py-2.5 sm:py-3">
+                    {m.cp ? <Badge variant="success">{m.cp}</Badge> : <span className="text-[var(--color-text-muted)]">-</span>}
+                  </td>
+                )}
                 <td className="px-3 sm:px-4 py-2.5 sm:py-3">
                   {m.houseLevel ? <Badge variant="default">{m.houseLevel}</Badge> : <span className="text-[var(--color-text-muted)]">-</span>}
                 </td>
