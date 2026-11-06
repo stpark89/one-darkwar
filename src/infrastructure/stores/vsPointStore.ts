@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import type { VsPointEntry } from '@/domain/entities/War'
+import i18n from '@/i18n'
 
 // VS POINT 전용 회차. BLACK GOLD 의 war_rounds 와는 완전히 별개.
 // BG 는 격주, VS 는 매주처럼 주기가 다르므로 회차를 분리해서 관리.
@@ -174,7 +175,7 @@ export const useVsPointStore = create<VsPointStore>((set, get) => ({
       return true
     } catch (err) {
       console.error('[vsPointStore] batchSaveVs error', err)
-      toast.error('VS 포인트 저장 중 오류가 발생했습니다.')
+      toast.error(i18n.t('notify.vs_save_error'))
       return false
     }
   },

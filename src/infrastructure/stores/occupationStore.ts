@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import type { OccupationTurn, OccupationTurnDraft, Facility } from '@/domain/entities/Occupation'
+import i18n from '@/i18n'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const toTurn = (r: any): OccupationTurn => ({
@@ -54,7 +55,7 @@ export const useOccupationStore = create<OccupationStore>((set, get) => ({
   add: async (draft) => {
     const name = draft.allianceName.trim()
     if (!name) {
-      toast.error('동맹명을 입력해주세요.')
+      toast.error(i18n.t('notify.alliance_name_required'))
       return false
     }
     const { data, error } = await supabase
@@ -69,7 +70,7 @@ export const useOccupationStore = create<OccupationStore>((set, get) => ({
       .select()
       .single()
     if (error || !data) {
-      toast.error('추가 중 오류가 발생했습니다.')
+      toast.error(i18n.t('notify.add_error'))
       return false
     }
     set((s) => ({ turns: [...s.turns, toTurn(data)] }))
@@ -84,7 +85,7 @@ export const useOccupationStore = create<OccupationStore>((set, get) => ({
     if (draft.note !== undefined) payload.note = draft.note.trim()
     const { error } = await supabase.from('occupation_turns').update(payload).eq('id', id)
     if (error) {
-      toast.error('수정 중 오류가 발생했습니다.')
+      toast.error(i18n.t('notify.update_error'))
       return
     }
     set((s) => ({
@@ -95,7 +96,7 @@ export const useOccupationStore = create<OccupationStore>((set, get) => ({
   remove: async (id) => {
     const { error } = await supabase.from('occupation_turns').delete().eq('id', id)
     if (error) {
-      toast.error('삭제 중 오류가 발생했습니다.')
+      toast.error(i18n.t('notify.delete_error'))
       return
     }
     set((s) => ({ turns: s.turns.filter((tn) => tn.id !== id) }))
@@ -117,7 +118,7 @@ export const useOccupationStore = create<OccupationStore>((set, get) => ({
       }))
     } catch (err) {
       console.error('[occupationStore] setCurrent error', err)
-      toast.error('현재 차례 지정 중 오류가 발생했습니다.')
+      toast.error(i18n.t('notify.current_turn_error'))
     }
   },
 
@@ -146,7 +147,7 @@ export const useOccupationStore = create<OccupationStore>((set, get) => ({
       }))
     } catch (err) {
       console.error('[occupationStore] move error', err)
-      toast.error('순서 변경 중 오류가 발생했습니다.')
+      toast.error(i18n.t('notify.reorder_error'))
     }
   },
 }))

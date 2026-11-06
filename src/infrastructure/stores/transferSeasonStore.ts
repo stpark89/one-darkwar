@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import type { TransferSeason } from '@/domain/entities/TransferSeason'
+import i18n from '@/i18n'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const toSeason = (r: any): TransferSeason => ({
@@ -74,7 +75,7 @@ export const useTransferSeasonStore = create<TransferSeasonStore>((set, get) => 
 export const openNewTransferSeason = async (name: string): Promise<boolean> => {
   const trimmed = name.trim()
   if (!trimmed) {
-    toast.error('시즌 이름을 입력해주세요.')
+    toast.error(i18n.t('notify.season_name_required'))
     return false
   }
   const { seasons } = useTransferSeasonStore.getState()
@@ -87,7 +88,7 @@ export const openNewTransferSeason = async (name: string): Promise<boolean> => {
     .eq('is_active', true)
   if (closeError) {
     console.error('season close error', closeError)
-    toast.error('이전 시즌을 닫는 중 오류가 발생했습니다.')
+    toast.error(i18n.t('notify.season_close_error'))
     return false
   }
 
@@ -96,7 +97,7 @@ export const openNewTransferSeason = async (name: string): Promise<boolean> => {
     .insert({ name: trimmed, is_active: true, sort_order: nextOrder })
   if (error) {
     console.error('season open error', error)
-    toast.error('새 시즌 생성 중 오류가 발생했습니다.')
+    toast.error(i18n.t('notify.season_create_error'))
     return false
   }
   // 새 시즌을 바로 보도록 선택도 옮긴다

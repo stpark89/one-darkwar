@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import type { ServerEvent, ServerEventDraft } from '@/domain/entities/ServerEvent'
+import i18n from '@/i18n'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const toEvent = (r: any): ServerEvent => ({
@@ -48,7 +49,7 @@ export const useServerEventStore = create<ServerEventStore>((set, get) => ({
   add: async (draft) => {
     const title = draft.title.trim()
     if (!title) {
-      toast.error('일정 제목을 입력해주세요.')
+      toast.error(i18n.t('notify.schedule_title_required'))
       return false
     }
     const { data, error } = await supabase
@@ -62,7 +63,7 @@ export const useServerEventStore = create<ServerEventStore>((set, get) => ({
       .select()
       .single()
     if (error || !data) {
-      toast.error('일정 추가 중 오류가 발생했습니다.')
+      toast.error(i18n.t('notify.schedule_add_error'))
       return false
     }
     set((s) => ({
@@ -79,7 +80,7 @@ export const useServerEventStore = create<ServerEventStore>((set, get) => ({
     if (draft.note !== undefined) payload.note = draft.note.trim()
     const { error } = await supabase.from('server_events').update(payload).eq('id', id)
     if (error) {
-      toast.error('일정 수정 중 오류가 발생했습니다.')
+      toast.error(i18n.t('notify.schedule_update_error'))
       return
     }
     set((s) => ({
@@ -102,7 +103,7 @@ export const useServerEventStore = create<ServerEventStore>((set, get) => ({
   remove: async (id) => {
     const { error } = await supabase.from('server_events').delete().eq('id', id)
     if (error) {
-      toast.error('일정 삭제 중 오류가 발생했습니다.')
+      toast.error(i18n.t('notify.schedule_delete_error'))
       return
     }
     set((s) => ({ events: s.events.filter((e) => e.id !== id) }))

@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import type { TransferTier, TransferTierDraft } from '@/domain/entities/TransferTier'
 import { useTransferSeasonStore } from './transferSeasonStore'
+import i18n from '@/i18n'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const toTier = (r: any): TransferTier => ({
@@ -64,7 +65,7 @@ export const useTransferTierStore = create<TransferTierStore>((set, get) => ({
     if (draft.id) {
       const { error } = await supabase.from('transfer_tiers').update(payload).eq('id', draft.id)
       if (error) {
-        toast.error('등급 저장 중 오류가 발생했습니다.')
+        toast.error(i18n.t('notify.tier_save_error'))
         return false
       }
       set((s) => ({
@@ -92,7 +93,7 @@ export const useTransferTierStore = create<TransferTierStore>((set, get) => ({
         .select()
         .single()
       if (error || !data) {
-        toast.error('등급 추가 중 오류가 발생했습니다.')
+        toast.error(i18n.t('notify.tier_add_error'))
         return false
       }
       set((s) => ({ tiers: [...s.tiers, toTier(data)].sort((a, b) => a.sortOrder - b.sortOrder) }))
@@ -103,7 +104,7 @@ export const useTransferTierStore = create<TransferTierStore>((set, get) => ({
   remove: async (id) => {
     const { error } = await supabase.from('transfer_tiers').delete().eq('id', id)
     if (error) {
-      toast.error('등급 삭제 중 오류가 발생했습니다.')
+      toast.error(i18n.t('notify.tier_delete_error'))
       return
     }
     set((s) => ({ tiers: s.tiers.filter((t) => t.id !== id) }))

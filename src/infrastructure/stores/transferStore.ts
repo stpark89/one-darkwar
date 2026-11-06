@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { withTimeout } from '@/lib/timeout'
+import i18n from '@/i18n'
 import { useTransferSeasonStore } from './transferSeasonStore'
 import type {
   TransferApplication,
@@ -95,7 +96,7 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
   submit: async (draft) => {
     const inGameName = draft.inGameName.trim()
     if (!inGameName) {
-      toast.error('인게임명을 입력해주세요.')
+      toast.error(i18n.t('notify.name_required'))
       return false
     }
     const { error } = await supabase.from('transfer_applications').insert({
@@ -112,7 +113,7 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
     })
     if (error) {
       console.error('transfer submit error', error)
-      toast.error('신청 중 오류가 발생했습니다.')
+      toast.error(i18n.t('notify.transfer_submit_error'))
       return false
     }
     return true
@@ -121,11 +122,11 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
   submitGroup: async (draft) => {
     const leaderName = draft.leaderName.trim()
     if (!leaderName) {
-      toast.error('대표자 인게임명을 입력해주세요.')
+      toast.error(i18n.t('notify.leader_required'))
       return null
     }
     if (draft.members.length === 0) {
-      toast.error('최소 1명 이상의 멤버 정보가 필요합니다.')
+      toast.error(i18n.t('notify.min_one_member'))
       return null
     }
     const membersPayload = draft.members.map((m) => ({
@@ -155,13 +156,13 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
       )
       if (res.error) {
         console.error('submit_transfer_group error', res.error)
-        toast.error('단체 신청 중 오류가 발생했습니다.')
+        toast.error(i18n.t('notify.group_submit_error'))
         return null
       }
       return res.data as string
     } catch (err) {
       console.error('submit_transfer_group timeout', err)
-      toast.error('신청 시간 초과. 다시 시도해주세요.')
+      toast.error(i18n.t('notify.submit_timeout'))
       return null
     }
   },
@@ -247,7 +248,7 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
     const { error } = await supabase.from('application_groups').delete().eq('id', groupId)
     if (error) {
       console.error('group delete error', error)
-      toast.error('그룹 삭제 중 오류가 발생했습니다.')
+      toast.error(i18n.t('notify.group_delete_error'))
       return
     }
     set((s) => ({
@@ -269,7 +270,7 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
       .eq('id', id)
     if (error) {
       console.error('transfer update error', error)
-      toast.error('상태 변경 중 오류가 발생했습니다.')
+      toast.error(i18n.t('notify.status_change_error'))
       return
     }
     set((s) => ({
@@ -295,7 +296,7 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
       .eq('group_id', groupId)
     if (error) {
       console.error('transfer group update error', error)
-      toast.error('그룹 상태 변경 중 오류가 발생했습니다.')
+      toast.error(i18n.t('notify.group_status_error'))
       return
     }
     set((s) => ({
@@ -314,7 +315,7 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
       .eq('id', id)
     if (error) {
       console.error('transfer updateAdminMessage error', error)
-      toast.error('메시지 저장 중 오류가 발생했습니다.')
+      toast.error(i18n.t('notify.message_save_error'))
       return
     }
     set((s) => ({
@@ -339,17 +340,17 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
     })
     if (error) {
       console.error('transfer updateApplication RPC error', error)
-      toast.error('수정 중 오류가 발생했습니다.')
+      toast.error(i18n.t('transfer_status.err_update'))
       return false
     }
     const result = (data ?? {}) as { ok: boolean; reason?: string }
     if (!result.ok) {
       if (result.reason === 'already_approved') {
-        toast.error('이미 승인된 신청서는 수정할 수 없습니다.')
+        toast.error(i18n.t('transfer_status.err_already_approved'))
       } else if (result.reason === 'not_found') {
-        toast.error('신청서를 찾을 수 없습니다. UID를 확인해주세요.')
+        toast.error(i18n.t('transfer_status.err_not_found'))
       } else {
-        toast.error('수정 중 오류가 발생했습니다.')
+        toast.error(i18n.t('transfer_status.err_update'))
       }
       return false
     }
@@ -378,13 +379,13 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
       )
       if (res.error) {
         console.error('transfer lookup error', res.error)
-        toast.error('조회 중 오류가 발생했습니다.')
+        toast.error(i18n.t('transfer_status.err_lookup'))
         return []
       }
       return ((res.data ?? []) as unknown[]).map(toApp)
     } catch (err) {
       console.error('transfer lookup timeout/exception', err)
-      toast.error('조회 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.')
+      toast.error(i18n.t('transfer_status.err_lookup_timeout'))
       return []
     }
   },
@@ -396,7 +397,7 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
       .eq('id', id)
     if (error) {
       console.error('transfer updateTier error', error)
-      toast.error('등급 변경 중 오류가 발생했습니다.')
+      toast.error(i18n.t('notify.tier_change_error'))
       return
     }
     set((s) => ({
@@ -412,7 +413,7 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
       .eq('id', id)
     if (error) {
       console.error('transfer setInvited error', error)
-      toast.error('초대 상태 변경 중 오류가 발생했습니다.')
+      toast.error(i18n.t('notify.invite_change_error'))
       return
     }
     set((s) => ({
@@ -424,7 +425,7 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
     const { error } = await supabase.from('transfer_applications').delete().eq('id', id)
     if (error) {
       console.error('transfer delete error', error)
-      toast.error('삭제 중 오류가 발생했습니다.')
+      toast.error(i18n.t('notify.delete_error'))
       return
     }
     set((s) => ({ apps: s.apps.filter((a) => a.id !== id) }))
@@ -437,7 +438,7 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
       .eq('id', id)
     if (error) {
       console.error('updateGroupId error', error)
-      toast.error('단체 변경 중 오류가 발생했습니다.')
+      toast.error(i18n.t('notify.group_change_error'))
       return
     }
     set((s) => ({
@@ -462,7 +463,7 @@ export const useTransferStore = create<TransferStore>((set, get) => ({
       .single()
     if (error) {
       console.error('createGroupByAdmin error', error)
-      toast.error('단체 생성 중 오류가 발생했습니다.')
+      toast.error(i18n.t('notify.group_create_error'))
       return null
     }
     const group = toGroup(data)

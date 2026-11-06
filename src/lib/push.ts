@@ -4,6 +4,7 @@
 // - 동일 endpoint 가 다시 들어오면 INSERT 시 unique 제약으로 거절되므로 그냥 무시
 
 import { supabase } from '@/lib/supabase'
+import i18n from '@/i18n'
 
 // .env / Vercel env 로 받되, 없으면 빌드 시점에 박힌 디폴트 사용 (개발용)
 const VAPID_PUBLIC_KEY =
@@ -39,12 +40,12 @@ export async function getCurrentSubscription(): Promise<PushSubscription | null>
 /** 알림 권한 + 구독 + DB 저장. 성공 시 PushSubscription 반환 */
 export async function subscribeToPush(userId: string): Promise<PushSubscription | null> {
   if (!isPushSupported()) {
-    throw new Error('이 브라우저는 푸시 알림을 지원하지 않습니다.')
+    throw new Error(i18n.t('notify.push_unsupported'))
   }
   // 권한 요청
   const perm = await Notification.requestPermission()
   if (perm !== 'granted') {
-    throw new Error('알림 권한이 거부되었습니다.')
+    throw new Error(i18n.t('notify.push_denied'))
   }
   const reg = await navigator.serviceWorker.ready
   let sub = await reg.pushManager.getSubscription()
@@ -69,7 +70,7 @@ export async function subscribeToPush(userId: string): Promise<PushSubscription 
   )
   if (error) {
     console.error('[push] DB insert error:', error)
-    throw new Error('구독 정보 저장에 실패했습니다.')
+    throw new Error(i18n.t('notify.push_save_failed'))
   }
   return sub
 }

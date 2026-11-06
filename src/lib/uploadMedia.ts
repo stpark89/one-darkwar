@@ -5,6 +5,7 @@
 
 import imageCompression from 'browser-image-compression'
 import { supabase } from '@/lib/supabase'
+import i18n from '@/i18n'
 
 export const IMAGE_MAX_BYTES = 5 * 1024 * 1024   // 5MB — 입력 허용 상한
 export const VIDEO_MAX_BYTES = 30 * 1024 * 1024  // 30MB
@@ -77,7 +78,7 @@ async function compressTo(file: File, maxSizeMB: number, maxWidthOrHeight: numbe
 export async function uploadMedia(file: File, userId: string): Promise<string> {
   const kind = getMediaKind(file)
   if (kind === 'unsupported') {
-    throw new Error('지원하지 않는 형식입니다.')
+    throw new Error(i18n.t('notify.upload_unsupported'))
   }
 
   let toUpload: File = file
@@ -90,7 +91,7 @@ export async function uploadMedia(file: File, userId: string): Promise<string> {
     }
   } else if (kind === 'video') {
     if (file.size > VIDEO_MAX_BYTES) {
-      throw new Error(`동영상은 ${VIDEO_MAX_BYTES / 1024 / 1024}MB 이하만 가능합니다.`)
+      throw new Error(i18n.t('notify.upload_video_too_large', { mb: VIDEO_MAX_BYTES / 1024 / 1024 }))
     }
   }
 

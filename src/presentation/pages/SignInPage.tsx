@@ -127,7 +127,7 @@ export const SignInPage = () => {
           <>
             <div className="relative my-4 flex items-center gap-3">
               <div className="flex-1 h-px bg-[var(--color-border-subtle)]" />
-              <span className="text-xs text-[var(--color-text-muted)]">또는</span>
+              <span className="text-xs text-[var(--color-text-muted)]">{t('auth.or')}</span>
               <div className="flex-1 h-px bg-[var(--color-border-subtle)]" />
             </div>
 

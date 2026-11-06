@@ -10,12 +10,14 @@ import { useTransferTierStore } from '@/infrastructure/stores/transferTierStore'
 import { Button } from '@/presentation/components/ui/button'
 import { Input } from '@/presentation/components/ui/input'
 import { cn } from '@/lib/utils'
+import { Trans, useTranslation } from 'react-i18next'
 
 /**
  * 관리자 전용 이주 시즌 바 — 어느 시즌을 보고 있는지 알리고, 과거 시즌 열람과
  * 새 시즌 개시를 담당한다. 신청자 화면에는 나오지 않는다(항상 활성 시즌).
  */
 export const SeasonBar = () => {
+  const { t } = useTranslation()
   const { seasons, activeSeasonId, selectedSeasonId, load, selectSeason } = useTransferSeasonStore()
   const [open, setOpen] = useState(false)
   const [newOpen, setNewOpen] = useState(false)
@@ -52,7 +54,7 @@ export const SeasonBar = () => {
     setNewName('')
     setNewOpen(false)
     await reloadForSeason()
-    toast.success('새 시즌이 열렸습니다. 지금부터 들어오는 신청은 이 시즌에 쌓입니다.')
+    toast.success(t('season.opened'))
   }
 
   if (seasons.length === 0) return null
@@ -79,10 +81,10 @@ export const SeasonBar = () => {
           />
           <div className="min-w-0">
             <div className="text-xs font-bold text-[var(--color-text-primary)] truncate">
-              {current?.name ?? '시즌 미지정'}
+              {current?.name ?? t('season.unnamed')}
             </div>
             <div className="text-[10px] text-[var(--color-text-muted)]">
-              {viewingPast ? '지난 시즌을 보는 중 — 신청은 현재 시즌으로 들어갑니다' : '신청을 받는 중'}
+              {viewingPast ? t('season.viewing_past') : t('season.accepting')}
             </div>
           </div>
         </div>
@@ -93,7 +95,7 @@ export const SeasonBar = () => {
               onClick={() => setOpen((v) => !v)}
               className="flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-surface)] transition-colors"
             >
-              시즌 <ChevronDown className="w-3 h-3" />
+              {t('season.menu')} <ChevronDown className="w-3 h-3" />
             </button>
             {open && (
               <>
@@ -108,7 +110,7 @@ export const SeasonBar = () => {
                       <span className="truncate text-[var(--color-text-primary)]">{s.name}</span>
                       <span className="flex items-center gap-1 flex-shrink-0">
                         {s.isActive && (
-                          <span className="text-[10px] font-bold text-[var(--color-brand)]">진행중</span>
+                          <span className="text-[10px] font-bold text-[var(--color-brand)]">{t('season.active')}</span>
                         )}
                         {s.id === selectedSeasonId && <Check className="w-3 h-3 text-[var(--color-brand)]" />}
                       </span>
@@ -121,10 +123,10 @@ export const SeasonBar = () => {
 
           <button
             onClick={() => setNewOpen((v) => !v)}
-            title="새 시즌 열기"
+            title={t('season.open_new')}
             className="flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold text-[var(--color-brand)] hover:bg-[var(--color-bg-surface)] transition-colors"
           >
-            <Plus className="w-3 h-3" /> 새 시즌
+            <Plus className="w-3 h-3" /> {t('season.new_btn')}
           </button>
         </div>
       </div>
@@ -132,22 +134,21 @@ export const SeasonBar = () => {
       {newOpen && (
         <div className="px-3 py-3 rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-bg-surface)] space-y-2">
           <p className="text-[11px] text-[var(--color-text-muted)] leading-relaxed">
-            새 시즌을 열면 <b>현재 시즌이 닫히고</b> 이후 신청은 전부 새 시즌에 쌓입니다.
-            지난 신청은 지워지지 않고 시즌 선택으로 계속 볼 수 있습니다.
+            <Trans i18nKey="season.new_desc_1" components={{ b: <b /> }} />
             <br />
-            등급·정원은 <b>자동으로 복제되지 않습니다</b> — 새 시즌 등급을 직접 등록해주세요.
+            <Trans i18nKey="season.new_desc_2" components={{ b: <b /> }} />
           </p>
           <Input
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
-            placeholder="예: S3 (2026 겨울 이주)"
+            placeholder={t('season.name_placeholder')}
           />
           <div className="flex gap-2">
             <Button size="full" disabled={!newName.trim() || saving} onClick={handleCreate}>
-              {saving ? '여는 중…' : '새 시즌 열기'}
+              {saving ? t('season.opening') : t('season.open_new')}
             </Button>
             <Button size="full" variant="outline" onClick={() => setNewOpen(false)}>
-              취소
+              {t('common.cancel')}
             </Button>
           </div>
         </div>

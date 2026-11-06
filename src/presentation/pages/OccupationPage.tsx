@@ -269,7 +269,7 @@ export const OccupationPage = () => {
                                         else setInlineEdit(null)
                                       }}
                                       disabled={inlineSaving}
-                                      placeholder="동맹명"
+                                      placeholder={t('occupation.field_alliance')}
                                       className="flex-1 min-w-0 px-2 py-3 text-center text-xs bg-[var(--color-brand)]/5 border-2 border-[var(--color-brand)] outline-none placeholder:text-[var(--color-text-muted)]/40 text-[var(--color-text-primary)] h-full"
                                     />
                                     {/* 기존 항목이면 삭제 버튼 */}
@@ -354,7 +354,7 @@ export const OccupationPage = () => {
                     onChange={(e) => {
                       const next = [...weekDraft]; next[i] = e.target.value; setWeekDraft(next)
                     }}
-                    placeholder={`슬롯 ${i + 1} 동맹명`}
+                    placeholder={t('occupation.slot_placeholder', { n: i + 1 })}
                     autoFocus={i === 0}
                   />
                 </div>

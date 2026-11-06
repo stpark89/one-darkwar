@@ -1,6 +1,7 @@
 import { Mic, MicOff, PhoneOff, PhoneCall, AlertCircle } from 'lucide-react'
 import type { VoiceUser } from '@/hooks/useVoiceChat'
 import { cn } from '@/lib/utils'
+import { useTranslation } from 'react-i18next'
 
 interface VoicePanelProps {
   isInVoice: boolean
@@ -45,6 +46,7 @@ const UserAvatar = ({
   isMuted: boolean
   isSpeaking: boolean
 }) => {
+  const { t } = useTranslation()
   const [from, to] = getAvatarColor(user.id)
   const speaking = isMe ? isSpeaking && !isMuted : false
 
@@ -109,7 +111,7 @@ const UserAvatar = ({
           {user.name}
         </p>
         {isMe && (
-          <p className="text-[9px] text-[var(--color-text-muted)] mt-0.5">나</p>
+          <p className="text-[9px] text-[var(--color-text-muted)] mt-0.5">{t('voice.me')}</p>
         )}
       </div>
     </div>
@@ -127,6 +129,7 @@ export const VoicePanel = ({
   onLeave,
   onToggleMute,
 }: VoicePanelProps) => {
+  const { t } = useTranslation()
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* 참여자 그리드 */}
@@ -137,14 +140,14 @@ export const VoicePanel = ({
               <Mic className="w-7 h-7 opacity-20" />
             </div>
             <div className="text-center">
-              <p className="text-xs font-medium">음성채팅 참여자 없음</p>
-              <p className="text-[10px] opacity-50 mt-0.5">아래 버튼을 눌러 참여하세요</p>
+              <p className="text-xs font-medium">{t('voice.empty')}</p>
+              <p className="text-[10px] opacity-50 mt-0.5">{t('voice.empty_hint')}</p>
             </div>
           </div>
         ) : (
           <div>
             <p className="text-[10px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-4">
-              참여중 {voiceUsers.length}명
+              {t('voice.participants', { n: voiceUsers.length })}
             </p>
             <div className="flex flex-wrap gap-5 justify-start">
               {voiceUsers.map((u) => (
@@ -181,13 +184,13 @@ export const VoicePanel = ({
                   : 'bg-[var(--color-bg-elevated)] text-[var(--color-text-primary)] hover:bg-[var(--color-border)]',
               )}
             >
-              {isMuted ? <><MicOff className="w-3.5 h-3.5" /> 음소거 해제</> : <><Mic className="w-3.5 h-3.5" /> 마이크</>}
+              {isMuted ? <><MicOff className="w-3.5 h-3.5" /> {t('voice.unmute')}</> : <><Mic className="w-3.5 h-3.5" /> {t('voice.mic')}</>}
             </button>
             <button
               onClick={onLeave}
               className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-semibold bg-red-500/15 text-red-400 hover:bg-red-500/25 transition-colors"
             >
-              <PhoneOff className="w-3.5 h-3.5" /> 나가기
+              <PhoneOff className="w-3.5 h-3.5" /> {t('voice.leave')}
             </button>
           </>
         ) : (
@@ -195,7 +198,7 @@ export const VoicePanel = ({
             onClick={onJoin}
             className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold bg-green-500/15 text-green-400 hover:bg-green-500/25 transition-colors border border-green-500/20"
           >
-            <PhoneCall className="w-4 h-4" /> 음성채팅 참여
+            <PhoneCall className="w-4 h-4" /> {t('voice.join')}
           </button>
         )}
       </div>

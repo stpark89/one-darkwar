@@ -348,13 +348,13 @@ export const TransferPage = () => {
                                 <>
                                   <div className="fixed inset-0 z-10" onClick={() => setGroupDropdownId(null)} />
                                   <div className="absolute left-0 mt-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-surface)] shadow-xl overflow-hidden z-20 min-w-[180px]">
-                                    <p className="text-[10px] text-[var(--color-text-muted)] px-3 pt-2 pb-1 font-semibold">단체 변경</p>
+                                    <p className="text-[10px] text-[var(--color-text-muted)] px-3 pt-2 pb-1 font-semibold">{t('transfer.group_change')}</p>
                                     <button
                                       type="button"
                                       onClick={async () => { await updateGroupId(a.id, null); setGroupDropdownId(null) }}
                                       className="w-full flex items-center gap-2 px-3 py-2 text-xs text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 transition-colors text-left"
                                     >
-                                      단체에서 제거
+                                      {t('transfer.group_remove')}
                                     </button>
                                     {groups.filter((g) => g.id !== a.groupId).map((g) => (
                                       <button
@@ -364,7 +364,7 @@ export const TransferPage = () => {
                                         className="w-full flex items-center gap-2 px-3 py-2 text-xs text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-elevated)] transition-colors text-left"
                                       >
                                         <Users className="w-3 h-3 flex-shrink-0" />
-                                        <span className="flex-1 truncate">{g.leaderName} 단체</span>
+                                        <span className="flex-1 truncate">{t('transfer.group_label', { name: g.leaderName })}</span>
                                       </button>
                                     ))}
                                   </div>
@@ -379,14 +379,14 @@ export const TransferPage = () => {
                                 className="text-[11px] font-bold px-2 py-1 rounded-md border border-purple-500/40 bg-purple-500/10 text-purple-400 hover:bg-purple-500/25 hover:border-purple-500/60 flex items-center gap-1 transition-colors"
                               >
                                 <Users className="w-3 h-3" />
-                                단체 추가
+                                {t('transfer.group_add')}
                                 <ChevronDown className="w-3 h-3" />
                               </button>
                               {groupDropdownId === a.id && (
                                 <>
                                   <div className="fixed inset-0 z-10" onClick={() => setGroupDropdownId(null)} />
                                   <div className="absolute left-0 mt-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-surface)] shadow-xl overflow-hidden z-20 min-w-[180px]">
-                                    <p className="text-[10px] text-[var(--color-text-muted)] px-3 pt-2 pb-1 font-semibold">단체 선택</p>
+                                    <p className="text-[10px] text-[var(--color-text-muted)] px-3 pt-2 pb-1 font-semibold">{t('transfer.group_select')}</p>
                                     {groups.map((g) => (
                                       <button
                                         key={g.id}
@@ -395,8 +395,8 @@ export const TransferPage = () => {
                                         className="w-full flex items-center gap-2 px-3 py-2 text-xs text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-elevated)] transition-colors text-left"
                                       >
                                         <Users className="w-3 h-3 flex-shrink-0" />
-                                        <span className="flex-1 truncate">{g.leaderName} 단체</span>
-                                        <span className="text-[var(--color-text-muted)] text-[10px]">({g.memberCount}명)</span>
+                                        <span className="flex-1 truncate">{t('transfer.group_label', { name: g.leaderName })}</span>
+                                        <span className="text-[var(--color-text-muted)] text-[10px]">({t('transfer.admin_group_n_members', { n: g.memberCount })})</span>
                                       </button>
                                     ))}
                                   </div>
@@ -939,7 +939,7 @@ export const TransferPage = () => {
             className="flex items-center gap-1 px-2.5 py-1.5 rounded text-xs font-semibold bg-purple-500/15 text-purple-400 hover:bg-purple-500/25 transition-colors"
           >
             <Plus className="w-3.5 h-3.5" />
-            단체 만들기
+            {t('transfer.group_create')}
           </button>
           </div>
 
@@ -1082,19 +1082,19 @@ export const TransferPage = () => {
       {newGroupDraft !== null && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
           <div className="bg-[var(--color-bg-surface)] rounded-xl border border-[var(--color-border)] w-full max-w-sm p-6 space-y-3">
-            <h2 className="text-base font-bold text-[var(--color-text-primary)]">단체 만들기</h2>
+            <h2 className="text-base font-bold text-[var(--color-text-primary)]">{t('transfer.group_create')}</h2>
             <div>
-              <label className="text-xs text-[var(--color-text-muted)] mb-1 block">단체명 *</label>
+              <label className="text-xs text-[var(--color-text-muted)] mb-1 block">{t('transfer.group_name_label')} *</label>
               <Input
                 autoFocus
                 value={newGroupDraft.name}
                 onChange={(e) => setNewGroupDraft({ ...newGroupDraft, name: e.target.value })}
                 onKeyDown={(e) => { if (e.key === 'Escape') setNewGroupDraft(null) }}
-                placeholder="단체 이름 입력"
+                placeholder={t('transfer.group_name_placeholder')}
               />
             </div>
             <div>
-              <label className="text-xs text-[var(--color-text-muted)] mb-1 block">희망 동맹</label>
+              <label className="text-xs text-[var(--color-text-muted)] mb-1 block">{t('transfer.field_alliance')}</label>
               <div className="flex gap-1.5 flex-wrap">
                 {(['ONE', 'NXO', 'NH_D', 'OTHER'] as const).map((code) => (
                   <button

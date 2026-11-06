@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { supabase } from '@/lib/supabase'
 import { withTimeout } from '@/lib/timeout'
+import i18n from '@/i18n'
 
 export type UserRole = 'ROLE_USER' | 'ROLE_ADMIN'
 
@@ -190,20 +191,20 @@ export const useAuthStore = create<AuthStore>((set) => ({
       return null
     } catch (err) {
       console.error('[authStore] signIn exception:', err)
-      return '로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+      return i18n.t('notify.sign_in_exception')
     }
   },
 
   signUp: async (inGameName, password) => {
     const trimmed = inGameName.trim()
-    if (!trimmed) return '인게임명을 입력해주세요.'
+    if (!trimmed) return i18n.t('notify.name_required')
 
     const { data, error } = await supabase.auth.signUp({
       email: toEmail(trimmed),
       password,
     })
     if (error) return error.message
-    if (!data.user) return '회원가입에 실패했습니다.'
+    if (!data.user) return i18n.t('notify.sign_up_failed')
 
     // 프로필 생성 (status: PENDING — 관리자 승인 필요)
     const { error: profileError } = await supabase.from('profiles').insert({

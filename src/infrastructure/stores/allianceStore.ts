@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import type { Alliance, AllianceDraft } from '@/domain/entities/Alliance'
+import i18n from '@/i18n'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const toAlliance = (r: any): Alliance => ({
@@ -56,7 +57,7 @@ export const useAllianceStore = create<AllianceStore>((set, get) => ({
   add: async (draft) => {
     const name = draft.name.trim()
     if (!name) {
-      toast.error('동맹명을 입력해주세요.')
+      toast.error(i18n.t('notify.alliance_name_required'))
       return false
     }
     const { data, error } = await supabase
@@ -73,7 +74,7 @@ export const useAllianceStore = create<AllianceStore>((set, get) => ({
       .select()
       .single()
     if (error || !data) {
-      toast.error('동맹 추가 중 오류가 발생했습니다.')
+      toast.error(i18n.t('notify.alliance_add_error'))
       return false
     }
     set((s) => ({ alliances: [...s.alliances, toAlliance(data)].sort(sortFn) }))
@@ -91,7 +92,7 @@ export const useAllianceStore = create<AllianceStore>((set, get) => ({
     if (draft.sortOrder !== undefined) payload.sort_order = draft.sortOrder
     const { error } = await supabase.from('alliances').update(payload).eq('id', id)
     if (error) {
-      toast.error('동맹 수정 중 오류가 발생했습니다.')
+      toast.error(i18n.t('notify.alliance_update_error'))
       return
     }
     set((s) => ({
@@ -117,7 +118,7 @@ export const useAllianceStore = create<AllianceStore>((set, get) => ({
   remove: async (id) => {
     const { error } = await supabase.from('alliances').delete().eq('id', id)
     if (error) {
-      toast.error('동맹 삭제 중 오류가 발생했습니다.')
+      toast.error(i18n.t('notify.alliance_delete_error'))
       return
     }
     set((s) => ({ alliances: s.alliances.filter((a) => a.id !== id) }))

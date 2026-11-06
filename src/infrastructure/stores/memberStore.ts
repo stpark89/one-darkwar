@@ -5,6 +5,7 @@ import type { Member, CreateMemberInput } from '@/domain/entities/Member'
 import { useWarStore } from './warStore'
 import { useVsPointStore } from './vsPointStore'
 import { useEventStore } from './eventStore'
+import i18n from '@/i18n'
 
 // authStore 의 toEmail 과 동일 규칙 (signIn 시 사용)
 const toLoginEmail = (name: string) =>
@@ -150,13 +151,13 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
             .eq('id', id)
           if (directErr) {
             console.error('[memberStore] direct rename error:', directErr)
-            toast.error('이름 변경 중 오류가 발생했습니다.')
+            toast.error(i18n.t('notify.rename_error'))
             return false
           }
           // fallback 성공 — 이름 외 다른 필드는 아래 updates 에서 처리
         } else {
           console.error('[memberStore] rename RPC error:', error)
-          toast.error('이름 변경 중 오류가 발생했습니다.')
+          toast.error(i18n.t('notify.rename_error'))
           return false
         }
       } else {
@@ -164,16 +165,16 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
         const result = (data ?? {}) as { ok: boolean; reason?: string; profile_updated?: boolean }
         if (!result.ok) {
           if (result.reason === 'email_conflict') {
-            toast.error('해당 인게임명의 로그인 계정이 이미 존재합니다. 다른 이름을 사용하세요.')
+            toast.error(i18n.t('notify.rename_conflict'))
           } else if (result.reason === 'member_not_found') {
-            toast.error('멤버를 찾을 수 없습니다.')
+            toast.error(i18n.t('notify.member_not_found'))
           } else if (result.reason !== 'no_change') {
-            toast.error('이름 변경에 실패했습니다.')
+            toast.error(i18n.t('notify.rename_failed'))
           }
           if (result.reason !== 'no_change') return false
         }
         if (result.profile_updated) {
-          toast.success('이름이 멤버 명단 + 로그인 계정에 함께 반영되었습니다.')
+          toast.success(i18n.t('notify.rename_success'))
         }
       }
     }
@@ -192,7 +193,7 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
       const { error } = await supabase.from('members').update(updates).eq('id', id)
       if (error) {
         console.error('[memberStore] updateMember error:', error)
-        toast.error('저장 중 오류가 발생했습니다.')
+        toast.error(i18n.t('notify.save_error'))
         return false
       }
     }
@@ -200,7 +201,7 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
     set((s) => ({
       members: s.members.map((m) => (m.id === id ? { ...m, ...input } : m)).sort(sortBycp),
     }))
-    if (!nameChanged) toast.success('저장되었습니다.')
+    if (!nameChanged) toast.success(i18n.t('notify.saved'))
     if (input.inGameName !== undefined) {
       useWarStore.getState().syncMemberName(id, input.inGameName)
       useEventStore.getState().syncMemberName(id, input.inGameName)
@@ -216,7 +217,7 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
     const { error } = await supabase.from('members').update({ online_status: status }).eq('id', id)
     if (error) {
       console.error('[memberStore] setOnlineStatus error:', error)
-      toast.error('저장 중 오류가 발생했습니다.')
+      toast.error(i18n.t('notify.save_error'))
       set({ members: prev }) // 롤백
     }
   },
@@ -228,11 +229,11 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
     const { error } = await supabase.from('members').update({ online_status: 'none' }).neq('online_status', 'none')
     if (error) {
       console.error('[memberStore] resetAllOnline error:', error)
-      toast.error('초기화 중 오류가 발생했습니다.')
+      toast.error(i18n.t('notify.reset_error'))
       set({ members: prev }) // 롤백
       return
     }
-    toast.success('참여 여부가 초기화되었습니다.')
+    toast.success(i18n.t('notify.reset_success'))
   },
 
   deleteMember: async (id) => {
@@ -247,7 +248,7 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
   adminResetPassword: async (memberId, newPassword) => {
     const { data: { session } } = await supabase.auth.getSession()
     const jwt = session?.access_token
-    if (!jwt) { toast.error('로그인이 필요합니다.'); return false }
+    if (!jwt) { toast.error(i18n.t('notify.login_required')); return false }
 
     // members.id 는 auth 계정 id 가 아니다 — 서버가 members.profile_id 로 계정을 확정한다
     const res = await fetch('/api/admin/reset-password', {
@@ -256,11 +257,11 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
       body: JSON.stringify({ memberId, newPassword }),
     })
     if (res.ok) {
-      toast.success('비밀번호가 변경되었습니다.')
+      toast.success(i18n.t('notify.password_changed'))
       return true
     }
     const body = await res.json().catch(() => ({}))
-    toast.error(body.error ?? '비밀번호 변경 중 오류가 발생했습니다.')
+    toast.error(body.error ?? i18n.t('notify.password_change_error'))
     return false
   },
 

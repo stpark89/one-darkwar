@@ -393,7 +393,7 @@ export const ChatWidget = () => {
       if (sameLanguage) toast.info(t('common.translate_same_language'))
       setTranslations((prev) => new Map(prev).set(msg.id, text))
     } catch {
-      setTranslations((prev) => new Map(prev).set(msg.id, '번역 실패'))
+      setTranslations((prev) => new Map(prev).set(msg.id, i18n.t('chat.translate_failed')))
     } finally {
       setTranslatingIds((prev) => { const next = new Set(prev); next.delete(msg.id); return next })
     }
@@ -581,7 +581,7 @@ export const ChatWidget = () => {
                 className={cn('flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-semibold transition-colors relative', tab === 'voice' ? 'bg-[var(--color-brand)] text-white' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]')}
               >
                 <Mic className="w-3 h-3" />
-                음성
+                {i18n.t('chat.voice_tab')}
                 {isInVoice && (
                   <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-green-400 border border-[var(--color-bg-elevated)]" />
                 )}

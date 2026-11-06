@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import type { Season, WarRound, WarEntry, WarTeam, WarRole, MemberWarRow } from '@/domain/entities/War'
+import i18n from '@/i18n'
 
 interface SummaryRow {
   memberId: string
@@ -180,7 +181,7 @@ export const useWarStore = create<WarStore>((set, get) => ({
       return true
     } catch (err) {
       console.error('batchSave error', err)
-      toast.error('저장 중 오류가 발생했습니다.')
+      toast.error(i18n.t('notify.save_error'))
       return false
     }
   },

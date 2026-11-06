@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import i18n from '@/i18n'
 
 const ICE_SERVERS: RTCIceServer[] = [
   { urls: 'stun:stun.l.google.com:19302' },
@@ -220,7 +221,7 @@ export function useVoiceChat(userId: string, userName: string) {
       })
     } catch (err) {
       console.error('Voice join error', err)
-      setMicError('마이크 접근 권한이 필요합니다.')
+      setMicError(i18n.t('voice.mic_permission'))
       isInVoiceRef.current = false
       setIsInVoice(false)
     }

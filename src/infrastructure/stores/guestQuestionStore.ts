@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { withTimeout } from '@/lib/timeout'
 import type { GuestQuestion, GuestAnswer, GuestQuestionDraft } from '@/domain/entities/GuestQuestion'
+import i18n from '@/i18n'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const toAnswer = (r: any): GuestAnswer => ({
@@ -79,7 +80,7 @@ export const useGuestQuestionStore = create<GuestQuestionStore>((set, get) => ({
     const authorName = draft.authorName.trim()
     const title = draft.title.trim()
     if (!authorName || !title) {
-      toast.error('이름과 제목을 입력해주세요.')
+      toast.error(i18n.t('notify.name_title_required'))
       return false
     }
     const { data, error } = await supabase
@@ -93,7 +94,7 @@ export const useGuestQuestionStore = create<GuestQuestionStore>((set, get) => ({
       .single()
     if (error || !data) {
       console.error('guest question submit error', error)
-      toast.error('질문 등록 중 오류가 발생했습니다.')
+      toast.error(i18n.t('notify.question_create_error'))
       return false
     }
     set((s) => ({ questions: [toQuestion(data, []), ...s.questions] }))
@@ -104,7 +105,7 @@ export const useGuestQuestionStore = create<GuestQuestionStore>((set, get) => ({
     const trimmed = content.trim()
     const name = authorName.trim()
     if (!trimmed || !name) {
-      toast.error('이름과 내용을 입력해주세요.')
+      toast.error(i18n.t('notify.name_content_required'))
       return false
     }
     const { data, error } = await supabase
@@ -120,7 +121,7 @@ export const useGuestQuestionStore = create<GuestQuestionStore>((set, get) => ({
       .single()
     if (error || !data) {
       console.error('guest answer error', error)
-      toast.error('답변 등록 중 오류가 발생했습니다.')
+      toast.error(i18n.t('notify.answer_create_error'))
       return false
     }
     const answer = toAnswer(data)
@@ -135,7 +136,7 @@ export const useGuestQuestionStore = create<GuestQuestionStore>((set, get) => ({
   deleteQuestion: async (id) => {
     const { error } = await supabase.from('guest_questions').delete().eq('id', id)
     if (error) {
-      toast.error('질문 삭제 중 오류가 발생했습니다.')
+      toast.error(i18n.t('notify.question_delete_error'))
       return
     }
     set((s) => ({ questions: s.questions.filter((q) => q.id !== id) }))
@@ -144,7 +145,7 @@ export const useGuestQuestionStore = create<GuestQuestionStore>((set, get) => ({
   deleteAnswer: async (answerId, questionId) => {
     const { error } = await supabase.from('guest_answers').delete().eq('id', answerId)
     if (error) {
-      toast.error('답변 삭제 중 오류가 발생했습니다.')
+      toast.error(i18n.t('notify.answer_delete_error'))
       return
     }
     set((s) => ({

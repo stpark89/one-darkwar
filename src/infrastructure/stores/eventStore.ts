@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import type { EventSession, EventAttendance, AttendanceStatus } from '@/domain/entities/Event'
+import i18n from '@/i18n'
 
 // Supabase 는 한 번에 최대 1000행만 돌려준다. attendance 가 1000행을 넘자(09-27, 0922 이벤트 등록)
 // 초과분이 조용히 빠져 참여 횟수가 틀어졌다(길드원 재제보 2026-09-29). 페이지로 끝까지 읽는다.
@@ -164,7 +165,7 @@ export const useEventStore = create<EventStore>((set, get) => ({
 
     if (failed) {
       set({ attendance: prev })
-      toast.error('출석 저장 실패 — Supabase 콘솔에서 RLS 정책을 확인하세요.')
+      toast.error(i18n.t('notify.attendance_save_rls'))
     }
   },
 
@@ -200,9 +201,9 @@ export const useEventStore = create<EventStore>((set, get) => ({
 
     if (errors.length > 0) {
       set({ attendance: prev })
-      const msg = (errors[0] as { message?: string }).message ?? '저장 실패'
+      const msg = (errors[0] as { message?: string }).message ?? i18n.t('notify.save_failed')
       console.error('[bulkUpdateEvent]', errors)
-      toast.error(`일괄 저장 실패: ${msg}`)
+      toast.error(i18n.t('notify.bulk_save_failed', { msg }))
     }
   },
 
@@ -239,9 +240,9 @@ export const useEventStore = create<EventStore>((set, get) => ({
 
     if (errors.length > 0) {
       set({ attendance: prev })
-      const msg = (errors[0] as { message?: string }).message ?? '저장 실패'
+      const msg = (errors[0] as { message?: string }).message ?? i18n.t('notify.save_failed')
       console.error('[bulkUpdateMember]', errors)
-      toast.error(`일괄 저장 실패: ${msg}`)
+      toast.error(i18n.t('notify.bulk_save_failed', { msg }))
     }
   },
 
@@ -283,12 +284,12 @@ export const useEventStore = create<EventStore>((set, get) => ({
 
     if (errors.length > 0) {
       set({ attendance: prev })
-      const msg = (errors[0] as { message?: string }).message ?? '저장 실패'
+      const msg = (errors[0] as { message?: string }).message ?? i18n.t('notify.save_failed')
       console.error('[batchSave]', errors)
-      toast.error(`저장 실패: ${msg}`)
+      toast.error(i18n.t('notify.save_failed_detail', { msg }))
       return false
     }
-    toast.success('저장되었습니다.')
+    toast.success(i18n.t('notify.saved'))
     return true
   },
 

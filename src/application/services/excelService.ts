@@ -2,6 +2,7 @@ import * as XLSX from 'xlsx'
 import type { Member } from '@/domain/entities/Member'
 import type { MemberWarRow, WarRound, WarEntry } from '@/domain/entities/War'
 import type { EventSession, EventAttendance } from '@/domain/entities/Event'
+import i18n from '@/i18n'
 
 // ─── Export header types ───────────────────────────────────────────────────
 
@@ -158,11 +159,11 @@ function extractRoundNumber(col: string): number | null {
 
 function parseMembersSheet(ws: XLSX.WorkSheet, existing: Member[]): MemberChange[] | string {
   const rows = XLSX.utils.sheet_to_json<Record<string, string>>(ws)
-  if (!rows.length) return '데이터가 없습니다.'
+  if (!rows.length) return i18n.t('excel.err_no_data')
 
   const keys = Object.keys(rows[0])
   const nameCol = findCol(keys, NAME_ALIASES)
-  if (!nameCol) return `인게임명 컬럼을 찾을 수 없습니다. (${NAME_ALIASES.join(', ')} 중 하나여야 합니다.)`
+  if (!nameCol) return i18n.t('excel.err_no_name_col_aliases', { aliases: NAME_ALIASES.join(', ') })
 
   const uidCol   = findCol(keys, UID_ALIASES)
   const cpCol    = findCol(keys, CP_ALIASES)
@@ -205,11 +206,11 @@ function parseWarSheet(
   members: Member[],
 ): EntryChange[] | string {
   const rows = XLSX.utils.sheet_to_json<Record<string, string>>(ws)
-  if (!rows.length) return '데이터가 없습니다.'
+  if (!rows.length) return i18n.t('excel.err_no_data')
 
   const keys = Object.keys(rows[0])
   const nameCol = findCol(keys, NAME_ALIASES)
-  if (!nameCol) return '인게임명 컬럼을 찾을 수 없습니다.'
+  if (!nameCol) return i18n.t('excel.err_no_name_col')
 
   const roundCols: { col: string; roundId: string }[] = []
   for (const col of keys) {
@@ -220,7 +221,7 @@ function parseWarSheet(
       if (round) roundCols.push({ col, roundId: round.id })
     }
   }
-  if (!roundCols.length) return '인식 가능한 회차 컬럼이 없습니다. (예: 1차, Round 1, Đợt 1)'
+  if (!roundCols.length) return i18n.t('excel.err_no_round_col')
 
   const changes: EntryChange[] = []
   for (const row of rows) {
@@ -254,11 +255,11 @@ function parseEventsSheet(
   members: Member[],
 ): EntryChange[] | string {
   const rows = XLSX.utils.sheet_to_json<Record<string, string>>(ws)
-  if (!rows.length) return '데이터가 없습니다.'
+  if (!rows.length) return i18n.t('excel.err_no_data')
 
   const keys = Object.keys(rows[0])
   const nameCol = findCol(keys, NAME_ALIASES)
-  if (!nameCol) return '인게임명 컬럼을 찾을 수 없습니다.'
+  if (!nameCol) return i18n.t('excel.err_no_name_col')
 
   const eventCols: { col: string; eventId: string; eventName: string }[] = []
   for (const col of keys) {
@@ -266,7 +267,7 @@ function parseEventsSheet(
     const event = events.find(e => e.name === col)
     if (event) eventCols.push({ col, eventId: event.id, eventName: event.name })
   }
-  if (!eventCols.length) return '인식 가능한 이벤트 컬럼이 없습니다. (이벤트 이름과 컬럼명이 일치해야 합니다.)'
+  if (!eventCols.length) return i18n.t('excel.err_no_event_col')
 
   const changes: EntryChange[] = []
   for (const row of rows) {
@@ -303,7 +304,7 @@ export async function parseImportPreview(
   },
 ): Promise<ParseResult> {
   if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
-    return { ok: false, error: '❌ .xlsx 또는 .xls 파일만 지원합니다.' }
+    return { ok: false, error: i18n.t('excel.import_invalid') }
   }
 
   const buf = await file.arrayBuffer()
@@ -325,7 +326,7 @@ export async function parseImportPreview(
     return { ok: true, preview: { type: 'events', changes: r } }
   }
 
-  return { ok: false, error: '⚠️ 인식할 수 없는 시트입니다. (MEMBERS, BLACK GOLD, EVENTS 시트 중 하나여야 합니다.)' }
+  return { ok: false, error: i18n.t('excel.err_unknown_sheet') }
 }
 
 // ─── Legacy import (kept for backward compat) ─────────────────────────────

@@ -8,6 +8,7 @@ import { parseCp } from '@/lib/cp'
 import { CopyButton } from '@/presentation/components/ui/copy-button'
 import { cn } from '@/lib/utils'
 import { TIER_COLOR_CLASS } from '@/domain/entities/TransferTier'
+import { useTranslation } from 'react-i18next'
 
 type SortKey = 'server' | 'name' | 'uid' | 'invited' | 'tier' | 'group'
 type SortDir = 'asc' | 'desc'
@@ -20,6 +21,7 @@ const SortIcon = ({ col, sortKey, sortDir }: { col: SortKey; sortKey: SortKey; s
 }
 
 export const TransferGridPage = () => {
+  const { t } = useTranslation()
   const { user } = useAuthStore()
   const isAdmin = user?.role === 'ROLE_ADMIN'
 
@@ -50,7 +52,7 @@ export const TransferGridPage = () => {
   }
 
   const getTier = (app: typeof apps[number]) => {
-    if (app.tierId) return tiers.find((t) => t.id === app.tierId) ?? null
+    if (app.tierId) return tiers.find((tt) => tt.id === app.tierId) ?? null
     if (app.totalPower.trim()) return findTierForCp(tiers, parseCp(app.totalPower))
     return null
   }
@@ -97,16 +99,16 @@ export const TransferGridPage = () => {
       {/* Header */}
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
-          <h1 className="text-lg sm:text-xl font-bold text-[var(--color-text-primary)]">이주 진행 현황</h1>
+          <h1 className="text-lg sm:text-xl font-bold text-[var(--color-text-primary)]">{t('transfer_grid.title')}</h1>
           <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
-            초대 완료 {invitedCount} / {rows.length}명
+            {t('transfer_grid.invited_summary', { invited: invitedCount, total: rows.length })}
           </p>
         </div>
         <button
           onClick={() => loadAll(true)}
           className="flex items-center gap-1 text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
         >
-          <RotateCcw className="w-3.5 h-3.5" /> 새로고침
+          <RotateCcw className="w-3.5 h-3.5" /> {t('transfer_grid.refresh')}
         </button>
       </div>
 
@@ -114,7 +116,7 @@ export const TransferGridPage = () => {
       <div className="flex flex-wrap gap-2">
         {/* 상태 필터 */}
         <div className="flex gap-1 p-1 bg-[var(--color-bg-surface)] rounded-lg border border-[var(--color-border-subtle)]">
-          {([['APPROVED', '승인'], ['PENDING', '대기'], ['ALL', '전체']] as const).map(([v, label]) => (
+          {([['APPROVED', 'transfer.status_approved'], ['PENDING', 'transfer.status_pending'], ['ALL', 'transfer.filter_all']] as const).map(([v, label]) => (
             <button
               key={v}
               onClick={() => setStatusFilter(v)}
@@ -123,14 +125,14 @@ export const TransferGridPage = () => {
                 statusFilter === v ? 'bg-[var(--color-brand)] text-white' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]',
               )}
             >
-              {label}
+              {t(label)}
             </button>
           ))}
         </div>
 
         {/* 초대 필터 */}
         <div className="flex gap-1 p-1 bg-[var(--color-bg-surface)] rounded-lg border border-[var(--color-border-subtle)]">
-          {([['all', '전체'], ['no', '미초대'], ['yes', '초대완료']] as const).map(([v, label]) => (
+          {([['all', 'transfer.filter_all'], ['no', 'transfer.invite_filter_no'], ['yes', 'transfer.invite_filter_yes']] as const).map(([v, label]) => (
             <button
               key={v}
               onClick={() => setInviteFilter(v)}
@@ -139,7 +141,7 @@ export const TransferGridPage = () => {
                 inviteFilter === v ? 'bg-[var(--color-brand)] text-white' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]',
               )}
             >
-              {label}
+              {t(label)}
             </button>
           ))}
         </div>
@@ -151,7 +153,7 @@ export const TransferGridPage = () => {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="인게임명 · UID · 서버 검색..."
+            placeholder={t('transfer_grid.search_placeholder')}
             className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg bg-[var(--color-bg-surface)] border border-[var(--color-border-subtle)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] outline-none focus:border-[var(--color-brand)]"
           />
         </div>
@@ -164,33 +166,33 @@ export const TransferGridPage = () => {
             <thead className="bg-[var(--color-bg-surface)] border-b border-[var(--color-border-subtle)]">
               <tr>
                 <th className={thClass} onClick={() => handleSort('server')}>
-                  <span className="flex items-center gap-1">서버 <SortIcon col="server" sortKey={sortKey} sortDir={sortDir} /></span>
+                  <span className="flex items-center gap-1">{t('transfer_grid.col_server')} <SortIcon col="server" sortKey={sortKey} sortDir={sortDir} /></span>
                 </th>
                 <th className={thClass} onClick={() => handleSort('name')}>
-                  <span className="flex items-center gap-1">인게임명 <SortIcon col="name" sortKey={sortKey} sortDir={sortDir} /></span>
+                  <span className="flex items-center gap-1">{t('transfer_grid.col_name')} <SortIcon col="name" sortKey={sortKey} sortDir={sortDir} /></span>
                 </th>
                 <th className={thClass} onClick={() => handleSort('uid')}>
                   <span className="flex items-center gap-1">UID <SortIcon col="uid" sortKey={sortKey} sortDir={sortDir} /></span>
                 </th>
                 <th className={thClass} onClick={() => handleSort('tier')}>
-                  <span className="flex items-center gap-1">등급 <SortIcon col="tier" sortKey={sortKey} sortDir={sortDir} /></span>
+                  <span className="flex items-center gap-1">{t('transfer_grid.col_tier')} <SortIcon col="tier" sortKey={sortKey} sortDir={sortDir} /></span>
                 </th>
                 <th className={thClass} onClick={() => handleSort('group')}>
-                  <span className="flex items-center gap-1">단체 <SortIcon col="group" sortKey={sortKey} sortDir={sortDir} /></span>
+                  <span className="flex items-center gap-1">{t('transfer_grid.col_group')} <SortIcon col="group" sortKey={sortKey} sortDir={sortDir} /></span>
                 </th>
                 <th className={thClass} onClick={() => handleSort('invited')}>
-                  <span className="flex items-center gap-1">초대 완료 <SortIcon col="invited" sortKey={sortKey} sortDir={sortDir} /></span>
+                  <span className="flex items-center gap-1">{t('transfer_grid.col_invited')} <SortIcon col="invited" sortKey={sortKey} sortDir={sortDir} /></span>
                 </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--color-border-subtle)]">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-12 text-xs text-[var(--color-text-muted)]">불러오는 중...</td>
+                  <td colSpan={6} className="text-center py-12 text-xs text-[var(--color-text-muted)]">{t('common.loading')}</td>
                 </tr>
               ) : rows.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-12 text-xs text-[var(--color-text-muted)]">신청서가 없습니다.</td>
+                  <td colSpan={6} className="text-center py-12 text-xs text-[var(--color-text-muted)]">{t('transfer_grid.empty')}</td>
                 </tr>
               ) : rows.map((a) => {
                 const tier = getTier(a)
@@ -211,10 +213,10 @@ export const TransferGridPage = () => {
                       <div className="flex items-center gap-1.5">
                         <span className={cn('text-xs font-semibold', a.invitedAt ? 'text-[var(--color-text-muted)]' : 'text-[var(--color-text-primary)]')}>{a.inGameName}</span>
                         {a.status === 'APPROVED' && (
-                          <span className="text-[9px] font-bold px-1 py-0.5 rounded bg-[var(--color-success)]/15 text-[var(--color-success)]">승인</span>
+                          <span className="text-[9px] font-bold px-1 py-0.5 rounded bg-[var(--color-success)]/15 text-[var(--color-success)]">{t('transfer.status_approved')}</span>
                         )}
                         {a.status === 'PENDING' && (
-                          <span className="text-[9px] font-bold px-1 py-0.5 rounded bg-yellow-400/15 text-yellow-400">대기</span>
+                          <span className="text-[9px] font-bold px-1 py-0.5 rounded bg-yellow-400/15 text-yellow-400">{t('transfer.status_pending')}</span>
                         )}
                       </div>
                     </td>
@@ -256,8 +258,8 @@ export const TransferGridPage = () => {
                         )}
                       >
                         {a.invitedAt
-                          ? <><MailCheck className="w-3.5 h-3.5" /> 완료</>
-                          : <><Mail className="w-3.5 h-3.5" /> 미완료</>
+                          ? <><MailCheck className="w-3.5 h-3.5" /> {t('transfer_grid.invited_done')}</>
+                          : <><Mail className="w-3.5 h-3.5" /> {t('transfer_grid.invited_not')}</>
                         }
                       </button>
                     </td>
@@ -271,9 +273,9 @@ export const TransferGridPage = () => {
         {/* 하단 집계 */}
         {rows.length > 0 && (
           <div className="px-4 py-2.5 bg-[var(--color-bg-surface)] border-t border-[var(--color-border-subtle)] flex items-center gap-4 text-[11px] text-[var(--color-text-muted)]">
-            <span>총 {rows.length}명</span>
-            <span className="text-[var(--color-success)]">초대완료 {invitedCount}명</span>
-            <span className="text-yellow-400">미초대 {rows.length - invitedCount}명</span>
+            <span>{t('transfer_grid.footer_total', { n: rows.length })}</span>
+            <span className="text-[var(--color-success)]">{t('transfer_grid.footer_invited', { n: invitedCount })}</span>
+            <span className="text-yellow-400">{t('transfer_grid.footer_not_invited', { n: rows.length - invitedCount })}</span>
           </div>
         )}
       </div>

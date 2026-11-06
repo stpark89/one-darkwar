@@ -450,7 +450,7 @@ export const EventsPage = () => {
           {canEdit && hiddenCount > 0 && (
             <Button size="sm" variant="outline" onClick={toggleShowHidden}>
               {showHidden ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-              <span className="hidden sm:inline">{showHidden ? '숨김 해제' : `숨긴 이벤트 ${hiddenCount}개`}</span>
+              <span className="hidden sm:inline">{showHidden ? t('events.unhide') : t('events.hidden_count', { n: hiddenCount })}</span>
             </Button>
           )}
           {canEdit && (
@@ -523,7 +523,7 @@ export const EventsPage = () => {
                         'font-semibold text-[10px] sm:text-[11px] flex items-center justify-center gap-0.5 w-full',
                         canEdit && 'hover:text-[var(--color-brand)] transition-colors cursor-pointer',
                       )}
-                      title={canEdit ? '출석 입력' : undefined}
+                      title={canEdit ? t('events.attendance_input') : undefined}
                     >
                       <span className="sm:hidden">{e.name.length > 4 ? e.name.slice(0, 4) + '…' : e.name}</span>
                       <span className="hidden sm:inline">{e.name.length > 8 ? e.name.slice(0, 8) + '…' : e.name}</span>
@@ -533,7 +533,7 @@ export const EventsPage = () => {
                         <button
                           onClick={() => setAttendanceModalEventId(e.id)}
                           className="p-1 rounded text-[var(--color-brand)] hover:bg-[var(--color-brand)]/20 transition-colors"
-                          title="출석 입력"
+                          title={t('events.attendance_input')}
                         >
                           <ClipboardList className="w-3 h-3" />
                         </button>
@@ -545,14 +545,14 @@ export const EventsPage = () => {
                               ? 'text-[var(--color-brand)] hover:bg-[var(--color-brand)]/20'
                               : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-elevated)]',
                           )}
-                          title={e.hidden ? '숨김 해제' : '숨기기'}
+                          title={e.hidden ? t('events.unhide') : t('events.hide')}
                         >
                           {e.hidden ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
                         </button>
                         <button
                           onClick={() => setDeleteConfirmId(e.id)}
                           className="p-1 rounded text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 transition-colors"
-                          title="삭제"
+                          title={t('common.delete')}
                         >
                           <Trash2 className="w-3 h-3" />
                         </button>
@@ -572,7 +572,7 @@ export const EventsPage = () => {
                         <button
                           onClick={() => setMemberModalId(a.memberId)}
                           className="text-left text-[var(--color-text-primary)] hover:text-[var(--color-brand)] transition-colors"
-                          title="출석 일괄 입력"
+                          title={t('events.bulk_input')}
                         >
                           {a.inGameName}
                         </button>
