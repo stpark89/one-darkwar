@@ -21,7 +21,7 @@ src/
 ├── domain/
 │   └── entities/       # 순수 타입/인터페이스만
 ├── hooks/              # 커스텀 훅
-├── i18n/               # 다국어 (ko/vi/en)
+├── i18n/               # 다국어 (ko/vi/en/zh-TW)
 │   └── locales/
 ├── lib/                # 유틸 (avatars, push, uploadMedia, utils)
 └── app/                # 라우터 설정, 앱 진입점
@@ -88,9 +88,9 @@ const isAdmin = user?.role === 'ROLE_ADMIN'
 
 ## 다국어 (i18n)
 
-- 모든 UI 텍스트는 `useTranslation()` 훅으로
-- 언어 파일: `src/i18n/locales/ko.ts`, `vi.ts`, `en.ts`
-- 키 추가 시 세 파일 모두 동시에 추가
+- 모든 UI 텍스트는 `useTranslation()` 훅으로. 스토어·lib(toast·에러)는 `import i18n from '@/i18n'` 후 `i18n.t()`
+- 언어 파일: `src/i18n/locales/ko.ts`, `vi.ts`, `en.ts`, `zh-TW.ts`
+- 키 추가 시 네 파일 모두 동시에 추가 (상세·예외: `CLAUDE.md` §3)
 
 ## 검증 (순서대로 실행)
 
