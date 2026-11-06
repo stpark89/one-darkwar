@@ -52,6 +52,11 @@ export default {
     color_purple: 'Purple',
     color_blue: 'Blue',
     color_gray: 'Gray',
+    name_red: 'Commander',
+    name_orange: 'Elite',
+    name_purple: 'Advanced',
+    name_blue: 'Intermediate',
+    name_gray: 'Regular',
   },
   occupation: {
     title: 'Occupation Turns',

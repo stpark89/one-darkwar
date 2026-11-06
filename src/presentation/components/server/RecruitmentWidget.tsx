@@ -8,6 +8,7 @@ import { useTransferSeasonStore } from '@/infrastructure/stores/transferSeasonSt
 import { TIER_COLOR_CLASS } from '@/domain/entities/TransferTier'
 import { parseCp } from '@/lib/cp'
 import { cn } from '@/lib/utils'
+import { tierDisplayName } from '@/lib/tierName'
 
 /**
  * 이주 모집 현황 — 시즌 티켓 등급별 승인 인원 / 정원.
@@ -84,7 +85,7 @@ export const RecruitmentWidget = () => {
               <div className="flex items-center justify-between text-xs mb-1">
                 <span className="flex items-center gap-1.5 min-w-0">
                   <span className={cn('w-2 h-2 rounded-full flex-shrink-0', cls.dot)} />
-                  <span className="font-semibold text-[var(--color-text-primary)] truncate">{tier.name}</span>
+                  <span className="font-semibold text-[var(--color-text-primary)] truncate">{tierDisplayName(tier, t)}</span>
                 </span>
                 <span className="text-[var(--color-text-muted)] flex-shrink-0 tabular-nums">
                   {hasCap ? `${filled} / ${tier.capacity}` : t('server_home.applied_count', { count: filled })}

@@ -52,6 +52,11 @@ export default {
     color_purple: '보라',
     color_blue: '블루',
     color_gray: '회색',
+    name_red: '통솔자',
+    name_orange: '특급',
+    name_purple: '고급',
+    name_blue: '중급',
+    name_gray: '일반',
   },
   occupation: {
     title: '점령 순번',

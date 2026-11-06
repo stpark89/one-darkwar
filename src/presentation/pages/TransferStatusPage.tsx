@@ -13,6 +13,7 @@ import { toast } from 'sonner'
 import { translate } from '@/lib/translate'
 import { parseCp } from '@/lib/cp'
 import { cn } from '@/lib/utils'
+import { tierDisplayName } from '@/lib/tierName'
 
 const STATUS_META: Record<TransferStatus, { icon: typeof Clock; color: string; bg: string }> = {
   PENDING: { icon: Clock, color: 'text-yellow-400', bg: 'bg-yellow-400/15' },
@@ -291,7 +292,7 @@ export const TransferStatusPage = () => {
                           return tier ? (
                             <p className="text-[11px] text-[var(--color-text-muted)] mt-1 flex items-center gap-1.5">
                               {t('transfer.auto_tier')}:
-                              <span className={cn('font-bold px-1.5 py-0.5 rounded', TIER_COLOR_CLASS[tier.color].badge)}>{tier.name}</span>
+                              <span className={cn('font-bold px-1.5 py-0.5 rounded', TIER_COLOR_CLASS[tier.color].badge)}>{tierDisplayName(tier, t)}</span>
                             </p>
                           ) : null
                         })()}
@@ -376,7 +377,7 @@ export const TransferStatusPage = () => {
                     {tier && (
                       <div className="flex gap-2">
                         <span className="text-[var(--color-text-muted)] w-16 flex-shrink-0">{t('transfer.field_tier')}</span>
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[var(--color-brand)]/15 text-[var(--color-brand)]">{tier.name}</span>
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[var(--color-brand)]/15 text-[var(--color-brand)]">{tierDisplayName(tier, t)}</span>
                       </div>
                     )}
                     {a.cp && (

@@ -5,6 +5,7 @@ import { useTransferTierStore } from '@/infrastructure/stores/transferTierStore'
 import { TIER_COLOR_CLASS } from '@/domain/entities/TransferTier'
 import { formatCp } from '@/lib/cp'
 import { cn } from '@/lib/utils'
+import { tierDisplayName } from '@/lib/tierName'
 
 /** 이주 등급표 참조 — 합산 전투력 기준 등급 구간을 접었다 펼 수 있게 표시 */
 export const TierReference = () => {
@@ -37,7 +38,7 @@ export const TierReference = () => {
             {sorted.map((tier) => (
               <div key={tier.id} className="flex items-center gap-2 px-3 py-2 text-xs">
                 <span className={cn('w-2.5 h-2.5 rounded-full flex-shrink-0', TIER_COLOR_CLASS[tier.color].dot)} />
-                <span className="font-semibold text-[var(--color-text-primary)] flex-1 min-w-0 truncate">{tier.name}</span>
+                <span className="font-semibold text-[var(--color-text-primary)] flex-1 min-w-0 truncate">{tierDisplayName(tier, t)}</span>
                 <span className="text-[var(--color-text-muted)] tabular-nums flex-shrink-0">{range(tier.minCp, tier.maxCp)}</span>
               </div>
             ))}

@@ -20,6 +20,7 @@ import { parseCp } from '@/lib/cp'
 import { Button } from '@/presentation/components/ui/button'
 import { CopyButton } from '@/presentation/components/ui/copy-button'
 import { cn } from '@/lib/utils'
+import { tierDisplayName } from '@/lib/tierName'
 
 const ALLIANCE_FILTERS: Array<{ code: 'ALL' | DesiredAlliance; label: string }> = [
   { code: 'ALL', label: 'all' },
@@ -425,7 +426,7 @@ const TierSlotsPanel = ({ apps, tiers }: TierSlotsPanelProps) => {
                       className="text-xs font-bold px-2 py-0.5 rounded"
                       style={{ backgroundColor: cs.bg, color: cs.text }}
                     >
-                      {tier.name}
+                      {tierDisplayName(tier, t)}
                     </span>
                     <span className="text-[11px] text-[var(--color-text-muted)]">
                       {approved} / {tier.capacity}

@@ -4,6 +4,7 @@ import { BarChart3, ChevronDown, Users, User, Ticket } from 'lucide-react'
 import type { TransferApplication, ApplicationGroup, DesiredAlliance } from '@/domain/entities/Transfer'
 import type { TransferTier } from '@/domain/entities/TransferTier'
 import { cn } from '@/lib/utils'
+import { tierDisplayName } from '@/lib/tierName'
 
 interface Props {
   apps: TransferApplication[]
@@ -137,7 +138,7 @@ export const TransferStatsPanel = ({ apps, groups, tiers }: Props) => {
             <div className="flex flex-wrap gap-1.5">
               {tiers.map((tier) => (
                 <span key={tier.id} className="text-[11px] px-2 py-1 rounded bg-[var(--color-bg-elevated)] text-[var(--color-text-secondary)]">
-                  {tier.name} <span className="font-bold text-[var(--color-text-primary)]">{stats.byTier.get(tier.id) ?? 0}</span>
+                  {tierDisplayName(tier, t)} <span className="font-bold text-[var(--color-text-primary)]">{stats.byTier.get(tier.id) ?? 0}</span>
                 </span>
               ))}
               <span className="text-[11px] px-2 py-1 rounded bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)]">

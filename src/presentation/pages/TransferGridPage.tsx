@@ -9,6 +9,7 @@ import { CopyButton } from '@/presentation/components/ui/copy-button'
 import { cn } from '@/lib/utils'
 import { TIER_COLOR_CLASS } from '@/domain/entities/TransferTier'
 import { useTranslation } from 'react-i18next'
+import { tierDisplayName } from '@/lib/tierName'
 
 type SortKey = 'server' | 'name' | 'uid' | 'invited' | 'tier' | 'group'
 type SortDir = 'asc' | 'desc'
@@ -231,7 +232,7 @@ export const TransferGridPage = () => {
                     <td className="px-3 py-2.5 whitespace-nowrap">
                       {tier ? (
                         <span className={cn('text-[10px] font-bold px-1.5 py-0.5 rounded', TIER_COLOR_CLASS[tier.color].badge)}>
-                          {tier.name}
+                          {tierDisplayName(tier, t)}
                         </span>
                       ) : (
                         <span className="text-[var(--color-text-muted)] text-xs">—</span>

@@ -19,6 +19,7 @@ import { Input } from '@/presentation/components/ui/input'
 import { Button } from '@/presentation/components/ui/button'
 import { TierReference } from '@/presentation/components/TierReference'
 import { cn } from '@/lib/utils'
+import { tierDisplayName } from '@/lib/tierName'
 
 // 동맹 옵션 (코드값) 와 라벨
 const ALLIANCE_OPTIONS: DesiredAlliance[] = ['ONE', 'NXO', 'NH_D', 'OTHER']
@@ -558,7 +559,7 @@ const MemberFields = ({
             {tier && (
               <p className="text-[11px] text-[var(--color-text-muted)] flex items-center gap-1.5">
                 {t('transfer.auto_tier')}:
-                <span className={cn('font-bold px-1.5 py-0.5 rounded', TIER_COLOR_CLASS[tier.color].badge)}>{tier.name}</span>
+                <span className={cn('font-bold px-1.5 py-0.5 rounded', TIER_COLOR_CLASS[tier.color].badge)}>{tierDisplayName(tier, t)}</span>
               </p>
             )}
             {value.totalPower.trim() !== '' && tiers.length > 0 && !tier && (

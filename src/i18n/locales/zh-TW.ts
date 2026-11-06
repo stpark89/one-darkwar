@@ -52,6 +52,11 @@ export default {
     color_purple: '紫色',
     color_blue: '藍色',
     color_gray: '灰色',
+    name_red: '統帥',
+    name_orange: '特級',
+    name_purple: '高級',
+    name_blue: '中級',
+    name_gray: '一般',
   },
   occupation: {
     title: '佔領順序',

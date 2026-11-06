@@ -52,6 +52,11 @@ export default {
     color_purple: 'Tím',
     color_blue: 'Xanh dương',
     color_gray: 'Xám',
+    name_red: 'Chỉ huy',
+    name_orange: 'Đặc cấp',
+    name_purple: 'Cao cấp',
+    name_blue: 'Trung cấp',
+    name_gray: 'Thường',
   },
   occupation: {
     title: 'Lượt chiếm đóng',

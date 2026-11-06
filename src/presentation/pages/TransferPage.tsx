@@ -17,6 +17,7 @@ import { parseCp, formatCp } from '@/lib/cp'
 import { isPushSupported, isCurrentlySubscribed, subscribeToPush, unsubscribeFromPush } from '@/lib/push'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { tierDisplayName } from '@/lib/tierName'
 
 interface TierDraftForm {
   id?: string
@@ -448,7 +449,7 @@ export const TransferPage = () => {
                           {(() => {
                             const effTier = getEffectiveTier(a)
                             return effTier ? (
-                              <span className={cn('text-[10px] font-bold px-1.5 py-0.5 rounded', TIER_COLOR_CLASS[effTier.color].badge)}>{effTier.name}</span>
+                              <span className={cn('text-[10px] font-bold px-1.5 py-0.5 rounded', TIER_COLOR_CLASS[effTier.color].badge)}>{tierDisplayName(effTier, t)}</span>
                             ) : (
                               <span className="text-[var(--color-text-muted)]">—</span>
                             )
@@ -487,7 +488,7 @@ export const TransferPage = () => {
                                         )}
                                       >
                                         <span className="w-2 h-2 rounded-full bg-[var(--color-brand)]" />
-                                        <span className="flex-1">{tier.name}</span>
+                                        <span className="flex-1">{tierDisplayName(tier, t)}</span>
                                       </button>
                                     ))}
                                   </div>
@@ -767,7 +768,7 @@ export const TransferPage = () => {
                       <div className="flex items-center justify-between mb-1 gap-1">
                         <span className="text-[11px] sm:text-xs font-semibold text-[var(--color-text-primary)] truncate flex items-center gap-1">
                           <span className={cn('w-2 h-2 rounded-full flex-shrink-0', TIER_COLOR_CLASS[tier.color].dot)} />
-                          {tier.name}
+                          {tierDisplayName(tier, t)}
                         </span>
                         <span className={cn(
                           'text-[10px] sm:text-[11px] font-bold flex-shrink-0',
@@ -847,7 +848,7 @@ export const TransferPage = () => {
                         : 'bg-[var(--color-bg-elevated)] text-[var(--color-text-secondary)] hover:bg-[var(--color-border)]',
                     )}
                   >
-                    {tier.name}
+                    {tierDisplayName(tier, t)}
                   </button>
                 ))}
                 <button
