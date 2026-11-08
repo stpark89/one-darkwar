@@ -12,6 +12,7 @@ const toTurn = (r: any): OccupationTurn => ({
   sortOrder: r.sort_order ?? 0,
   isCurrent: r.is_current ?? false,
   note: r.note ?? '',
+  weekDate: r.week_date ?? null,
   createdAt: r.created_at,
 })
 
@@ -23,6 +24,10 @@ interface OccupationStore {
   add: (draft: OccupationTurnDraft) => Promise<boolean>
   update: (id: string, draft: Partial<OccupationTurnDraft>) => Promise<void>
   remove: (id: string) => Promise<void>
+  /** 여러 항목 일괄 삭제 (주차 삭제) */
+  removeMany: (ids: string[]) => Promise<boolean>
+  /** 여러 항목의 주차 날짜 일괄 지정 */
+  setWeekDate: (ids: string[], date: string | null) => Promise<void>
   /** 해당 시설에서 이 항목만 현재 차례로 지정 (나머지는 해제) */
   setCurrent: (facility: Facility, id: string) => Promise<void>
   /** 순서 이동 (위/아래) — 인접 항목과 sort_order 교환 */
@@ -66,6 +71,8 @@ export const useOccupationStore = create<OccupationStore>((set, get) => ({
         sort_order: draft.sortOrder,
         is_current: draft.isCurrent,
         note: draft.note.trim(),
+        // 마이그레이션 전에도 단건 추가가 깨지지 않도록 값이 있을 때만 보낸다
+        ...(draft.weekDate ? { week_date: draft.weekDate } : {}),
       })
       .select()
       .single()
@@ -100,6 +107,31 @@ export const useOccupationStore = create<OccupationStore>((set, get) => ({
       return
     }
     set((s) => ({ turns: s.turns.filter((tn) => tn.id !== id) }))
+  },
+
+  removeMany: async (ids) => {
+    if (ids.length === 0) return true
+    const { error } = await supabase.from('occupation_turns').delete().in('id', ids)
+    if (error) {
+      console.error('[occupationStore] removeMany error', error)
+      toast.error(i18n.t('notify.delete_error'))
+      return false
+    }
+    set((s) => ({ turns: s.turns.filter((tn) => !ids.includes(tn.id)) }))
+    return true
+  },
+
+  setWeekDate: async (ids, date) => {
+    if (ids.length === 0) return
+    const { error } = await supabase.from('occupation_turns').update({ week_date: date }).in('id', ids)
+    if (error) {
+      console.error('[occupationStore] setWeekDate error', error)
+      toast.error(i18n.t('notify.update_error'))
+      return
+    }
+    set((s) => ({
+      turns: s.turns.map((tn) => (ids.includes(tn.id) ? { ...tn, weekDate: date } : tn)),
+    }))
   },
 
   setCurrent: async (facility, id) => {

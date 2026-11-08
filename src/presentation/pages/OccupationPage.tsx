@@ -16,6 +16,19 @@ const ARMORY_SLOT_KEYS = [
   'armory_slot_5', 'armory_slot_6', 'armory_slot_7', 'armory_slot_8',
 ] as const
 
+// YYYY-MM-DD ↔ 로컬 날짜 (UTC 변환으로 하루 밀리는 것 방지)
+const toIso = (dt: Date) =>
+  `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`
+const parseIso = (iso: string) => {
+  const [y, m, d] = iso.split('-').map(Number)
+  return new Date(y, m - 1, d)
+}
+const addDays = (iso: string, n: number) => {
+  const dt = parseIso(iso)
+  dt.setDate(dt.getDate() + n)
+  return toIso(dt)
+}
+
 // 인라인 편집 상태 — existingId 있으면 수정, 없으면 신규 추가
 interface InlineEdit {
   wi: number
@@ -25,14 +38,14 @@ interface InlineEdit {
 }
 
 export const OccupationPage = () => {
-  const { t } = useTranslation()
   const { user } = useAuthStore()
   const isAdmin = user?.role === 'ROLE_ADMIN'
-  const { turns, loading, loadAll, add, update, remove } = useOccupationStore()
+  const { t, i18n } = useTranslation()
+  const { turns, loading, loadAll, add, update, remove, removeMany, setWeekDate } = useOccupationStore()
 
   const [facility, setFacility] = useState<Facility>('armory')
   const [saving, setSaving] = useState(false)
-  const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [deleteWeekIdx, setDeleteWeekIdx] = useState<number | null>(null)
 
   // 인라인 편집
   const [inlineEdit, setInlineEdit] = useState<InlineEdit | null>(null)
@@ -42,6 +55,7 @@ export const OccupationPage = () => {
   // 주차 추가 다이얼로그
   const [addWeekOpen, setAddWeekOpen] = useState(false)
   const [weekDraft, setWeekDraft] = useState<string[]>(Array(SLOTS).fill(''))
+  const [weekDateDraft, setWeekDateDraft] = useState('')
 
   useEffect(() => { loadAll(true) }, [loadAll])
 
@@ -55,6 +69,34 @@ export const OccupationPage = () => {
     for (let i = 0; i < list.length; i += SLOTS) result.push(list.slice(i, i + SLOTS))
     return result
   }, [list])
+
+  // 주차 날짜 — 그 주차 행 중 날짜가 있는 첫 값
+  const weekDates = useMemo(
+    () => weeks.map((w) => w.find((tn) => tn.weekDate)?.weekDate ?? null),
+    [weeks],
+  )
+
+  const formatWeekDate = (iso: string) =>
+    parseIso(iso).toLocaleDateString(i18n.language, { month: 'numeric', day: 'numeric', weekday: 'short' })
+
+  const handleWeekDateChange = (wi: number, value: string) => {
+    // 키보드 입력 중 연도가 0002 → 2026 으로 자라는 중간값은 저장하지 않는다
+    if (value && Number(value.slice(0, 4)) < 2000) return
+    const next = value || null
+    if (next === weekDates[wi]) return
+    void setWeekDate(weeks[wi].map((tn) => tn.id), next)
+  }
+
+  const handleDeleteWeek = async () => {
+    if (deleteWeekIdx === null || saving) return
+    setSaving(true)
+    try {
+      const ok = await removeMany((weeks[deleteWeekIdx] ?? []).map((tn) => tn.id))
+      if (ok) setDeleteWeekIdx(null)
+    } finally {
+      setSaving(false)
+    }
+  }
 
   const currentWeekIdx = useMemo(
     () => weeks.findIndex((w) => w.some((tn) => tn.isCurrent)),
@@ -82,6 +124,7 @@ export const OccupationPage = () => {
           note: '',
           sortOrder: targetOrder,
           isCurrent: list.length === 0,
+          weekDate: weekDates[inlineEdit.wi] ?? null,
         })
       }
       setInlineEdit(null)
@@ -112,6 +155,8 @@ export const OccupationPage = () => {
     const names = lastWeek.map((tn) => tn.allianceName)
     const rotated = names.length > 0 ? [...names.slice(1), names[0]] : Array(SLOTS).fill('')
     setWeekDraft([...rotated, ...Array(SLOTS).fill('')].slice(0, SLOTS))
+    const lastDate = weekDates[weekDates.length - 1]
+    setWeekDateDraft(lastDate ? addDays(lastDate, 7) : toIso(new Date()))
     setAddWeekOpen(true)
   }
 
@@ -123,7 +168,10 @@ export const OccupationPage = () => {
       for (let i = 0; i < weekDraft.length; i++) {
         const name = weekDraft[i].trim()
         if (!name) continue
-        await add({ facility, allianceName: name, note: '', sortOrder: maxOrder + i + 1, isCurrent: false })
+        await add({
+          facility, allianceName: name, note: '', sortOrder: maxOrder + i + 1, isCurrent: false,
+          weekDate: weekDateDraft || null,
+        })
       }
       setAddWeekOpen(false)
     } finally {
@@ -137,7 +185,8 @@ export const OccupationPage = () => {
   ]
 
   const facilityLabel = facility === 'armory' ? t('occupation.armory') : t('occupation.castle')
-  const LABEL_W = 64
+  const LABEL_W = isAdmin ? 80 : 64
+  const DATE_W  = 96
   const CELL_W  = 88
 
   const slotHeaders: string[] = facility === 'armory'
@@ -203,7 +252,7 @@ export const OccupationPage = () => {
               <div className="overflow-x-auto">
                 <table
                   className="text-xs border-separate border-spacing-0"
-                  style={{ minWidth: LABEL_W + CELL_W * SLOTS }}
+                  style={{ minWidth: LABEL_W + DATE_W + CELL_W * SLOTS }}
                 >
                   {/* 헤더 */}
                   <thead>
@@ -213,6 +262,12 @@ export const OccupationPage = () => {
                         style={{ width: LABEL_W, minWidth: LABEL_W }}
                       >
                         {facilityLabel}
+                      </th>
+                      <th
+                        className="border-r border-b border-[var(--color-border-subtle)] bg-[var(--color-bg-elevated)] text-center px-2 py-3 font-bold text-[var(--color-text-muted)] text-[11px]"
+                        style={{ width: DATE_W, minWidth: DATE_W }}
+                      >
+                        {t('occupation.date_col')}
                       </th>
                       {slotHeaders.map((label, i) => (
                         <th
@@ -242,7 +297,42 @@ export const OccupationPage = () => {
                             )}
                             style={{ width: LABEL_W, minWidth: LABEL_W }}
                           >
-                            {wi + 1}{t('occupation.week_suffix')}
+                            <div className="flex items-center justify-between gap-1">
+                              <span>{wi + 1}{t('occupation.week_suffix')}</span>
+                              {isAdmin && (
+                                <button
+                                  onClick={() => setDeleteWeekIdx(wi)}
+                                  className="p-0.5 rounded text-[var(--color-text-muted)]/50 hover:text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10"
+                                  title={t('occupation.delete_week')}
+                                  aria-label={t('occupation.delete_week')}
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* 주차 날짜 */}
+                          <td
+                            className={cn(
+                              'border-r border-b border-[var(--color-border-subtle)] text-center whitespace-nowrap text-[11px]',
+                              isAdmin ? 'p-0' : 'px-2 py-3',
+                              isCurrentWeek ? 'text-[var(--color-brand)] font-bold' : 'text-[var(--color-text-secondary)]',
+                            )}
+                            style={{ width: DATE_W, minWidth: DATE_W }}
+                          >
+                            {isAdmin ? (
+                              <input
+                                key={`${wi}-${weekDates[wi] ?? ''}`}
+                                type="date"
+                                defaultValue={weekDates[wi] ?? ''}
+                                onChange={(e) => handleWeekDateChange(wi, e.target.value)}
+                                aria-label={t('occupation.field_week_date')}
+                                className="w-full px-1 py-3 bg-transparent text-center text-[11px] outline-none cursor-pointer hover:bg-[var(--color-brand)]/10 focus:bg-[var(--color-brand)]/5"
+                              />
+                            ) : (
+                              weekDates[wi] ? formatWeekDate(weekDates[wi]!) : '—'
+                            )}
                           </td>
 
                           {/* 슬롯 셀 */}
@@ -343,6 +433,17 @@ export const OccupationPage = () => {
               </button>
             </div>
 
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-[var(--color-text-muted)] flex-shrink-0">
+                {t('occupation.field_week_date')}
+              </span>
+              <Input
+                type="date"
+                value={weekDateDraft}
+                onChange={(e) => setWeekDateDraft(e.target.value)}
+              />
+            </div>
+
             <div className="space-y-2">
               {Array.from({ length: SLOTS }, (_, i) => (
                 <div key={i} className="flex items-center gap-2">
@@ -371,22 +472,27 @@ export const OccupationPage = () => {
         </div>
       )}
 
-      {/* ── 삭제 확인 (그리드 외부 삭제 경로용) ─────────────── */}
-      {deleteId && (
+      {/* ── 주차 삭제 확인 ─────────────────────────────────── */}
+      {deleteWeekIdx !== null && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
           <div className="bg-[var(--color-bg-surface)] rounded-xl border border-[var(--color-border)] w-full max-w-sm p-6">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-[var(--color-danger)]/15 flex items-center justify-center flex-shrink-0">
                 <Trash2 className="w-5 h-5 text-[var(--color-danger)]" />
               </div>
-              <h2 className="text-base font-bold text-[var(--color-text-primary)]">{t('occupation.delete_title')}</h2>
+              <h2 className="text-base font-bold text-[var(--color-text-primary)]">{t('occupation.delete_week_title')}</h2>
             </div>
-            <p className="text-sm text-[var(--color-text-secondary)] mb-5">{t('occupation.delete_desc')}</p>
+            <p className="text-sm text-[var(--color-text-secondary)] mb-5">
+              {t('occupation.delete_week_desc', {
+                week: `${deleteWeekIdx + 1}${t('occupation.week_suffix')}`,
+                count: weeks[deleteWeekIdx]?.length ?? 0,
+              })}
+            </p>
             <div className="flex gap-2">
-              <Button variant="outline" size="full" onClick={() => setDeleteId(null)}>{t('common.cancel')}</Button>
+              <Button variant="outline" size="full" disabled={saving} onClick={() => setDeleteWeekIdx(null)}>{t('common.cancel')}</Button>
               <Button size="full" className="bg-[var(--color-danger)] hover:bg-red-700 text-white"
-                onClick={async () => { await remove(deleteId); setDeleteId(null) }}>
-                {t('common.delete')}
+                disabled={saving} onClick={handleDeleteWeek}>
+                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : t('common.delete')}
               </Button>
             </div>
           </div>
