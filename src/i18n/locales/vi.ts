@@ -426,6 +426,11 @@ export default {
     footer_participants_hint: 'Số người đã tham gia ít nhất 1 lần / tổng số thành viên',
     loading: 'Đang tải...',
     no_data: 'Không có dữ liệu',
+    pick_date: 'Chọn ngày',
+    clear: 'Xóa',
+    today: 'Hôm nay',
+    prev_month: 'Tháng trước',
+    next_month: 'Tháng sau',
   },
   members: {
     title: 'Quản lý thành viên',

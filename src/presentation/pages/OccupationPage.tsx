@@ -6,6 +6,8 @@ import { useOccupationStore } from '@/infrastructure/stores/occupationStore'
 import type { Facility, OccupationTurn } from '@/domain/entities/Occupation'
 import { Input } from '@/presentation/components/ui/input'
 import { Button } from '@/presentation/components/ui/button'
+import { DatePicker } from '@/presentation/components/ui/date-picker'
+import { toIso, addDays, formatIsoDate } from '@/lib/date'
 import { cn } from '@/lib/utils'
 
 const SLOTS = 8
@@ -15,19 +17,6 @@ const ARMORY_SLOT_KEYS = [
   'armory_slot_1', 'armory_slot_2', 'armory_slot_3', 'armory_slot_4',
   'armory_slot_5', 'armory_slot_6', 'armory_slot_7', 'armory_slot_8',
 ] as const
-
-// YYYY-MM-DD ↔ 로컬 날짜 (UTC 변환으로 하루 밀리는 것 방지)
-const toIso = (dt: Date) =>
-  `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`
-const parseIso = (iso: string) => {
-  const [y, m, d] = iso.split('-').map(Number)
-  return new Date(y, m - 1, d)
-}
-const addDays = (iso: string, n: number) => {
-  const dt = parseIso(iso)
-  dt.setDate(dt.getDate() + n)
-  return toIso(dt)
-}
 
 // 인라인 편집 상태 — existingId 있으면 수정, 없으면 신규 추가
 interface InlineEdit {
@@ -76,12 +65,7 @@ export const OccupationPage = () => {
     [weeks],
   )
 
-  const formatWeekDate = (iso: string) =>
-    parseIso(iso).toLocaleDateString(i18n.language, { month: 'numeric', day: 'numeric', weekday: 'short' })
-
   const handleWeekDateChange = (wi: number, value: string) => {
-    // 키보드 입력 중 연도가 0002 → 2026 으로 자라는 중간값은 저장하지 않는다
-    if (value && Number(value.slice(0, 4)) < 2000) return
     const next = value || null
     if (next === weekDates[wi]) return
     void setWeekDate(weeks[wi].map((tn) => tn.id), next)
@@ -322,16 +306,15 @@ export const OccupationPage = () => {
                             style={{ width: DATE_W, minWidth: DATE_W }}
                           >
                             {isAdmin ? (
-                              <input
-                                key={`${wi}-${weekDates[wi] ?? ''}`}
-                                type="date"
-                                defaultValue={weekDates[wi] ?? ''}
-                                onChange={(e) => handleWeekDateChange(wi, e.target.value)}
-                                aria-label={t('occupation.field_week_date')}
-                                className="w-full px-1 py-3 bg-transparent text-center text-[11px] outline-none cursor-pointer hover:bg-[var(--color-brand)]/10 focus:bg-[var(--color-brand)]/5"
+                              <DatePicker
+                                value={weekDates[wi] ?? ''}
+                                onChange={(v) => handleWeekDateChange(wi, v)}
+                                placeholder="—"
+                                ariaLabel={t('occupation.field_week_date')}
+                                className="w-full px-1 py-3 text-center text-[11px] cursor-pointer hover:bg-[var(--color-brand)]/10"
                               />
                             ) : (
-                              weekDates[wi] ? formatWeekDate(weekDates[wi]!) : '—'
+                              weekDates[wi] ? formatIsoDate(weekDates[wi]!, i18n.language) : '—'
                             )}
                           </td>
 
@@ -437,10 +420,12 @@ export const OccupationPage = () => {
               <span className="text-xs font-bold text-[var(--color-text-muted)] flex-shrink-0">
                 {t('occupation.field_week_date')}
               </span>
-              <Input
-                type="date"
+              <DatePicker
                 value={weekDateDraft}
-                onChange={(e) => setWeekDateDraft(e.target.value)}
+                onChange={setWeekDateDraft}
+                withYear
+                ariaLabel={t('occupation.field_week_date')}
+                className="flex h-9 w-full items-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 text-sm text-left text-[var(--color-text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--color-brand)]"
               />
             </div>
 

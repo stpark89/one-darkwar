@@ -426,6 +426,11 @@ export default {
     footer_participants_hint: 'Members who joined at least once / total members',
     loading: 'Loading...',
     no_data: 'No data',
+    pick_date: 'Pick a date',
+    clear: 'Clear',
+    today: 'Today',
+    prev_month: 'Previous month',
+    next_month: 'Next month',
   },
   members: {
     title: 'Members',

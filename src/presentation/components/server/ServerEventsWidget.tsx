@@ -7,6 +7,7 @@ import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { useServerEventStore } from '@/infrastructure/stores/serverEventStore'
 import type { EventCategory, ServerEvent } from '@/domain/entities/ServerEvent'
 import { Input } from '@/presentation/components/ui/input'
+import { DateTimePicker } from '@/presentation/components/ui/date-picker'
 import { Button } from '@/presentation/components/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -15,10 +16,8 @@ const isoToLocalInput = (iso: string) => {
   const d = new Date(iso)
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
-const fmtDate = (iso: string) => {
-  const d = new Date(iso)
-  return `${d.getMonth() + 1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}`
-}
+const fmtDate = (iso: string, lang: string) =>
+  new Date(iso).toLocaleString(lang, { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })
 
 const CAT_META: Record<EventCategory, { icon: typeof Crown; key: string }> = {
   siege: { icon: Crown, key: 'server_home.cat_siege' },
@@ -30,13 +29,13 @@ const CAT_META: Record<EventCategory, { icon: typeof Crown; key: string }> = {
 interface Draft {
   id?: string
   title: string
-  eventAt: string // datetime-local 값 (로컬)
+  eventAt: string // YYYY-MM-DDTHH:mm (로컬)
   category: EventCategory
   note: string
 }
 
 export const ServerEventsWidget = () => {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { user } = useAuthStore()
   const isAdmin = user?.role === 'ROLE_ADMIN'
   const { events, loadAll, add, update, remove } = useServerEventStore()
@@ -120,7 +119,7 @@ export const ServerEventsWidget = () => {
           <p className="text-[11px] uppercase tracking-wider opacity-80 mb-0.5">{t('server_home.next_event')}</p>
           <p className="text-base font-bold leading-snug">{next.title}</p>
           <div className="flex items-end justify-between mt-1.5">
-            <span className="text-xs opacity-90">{fmtDate(next.eventAt)}</span>
+            <span className="text-xs opacity-90">{fmtDate(next.eventAt, i18n.language)}</span>
             <span className="font-black tabular-nums flex items-baseline gap-1">
               {countdown.d > 0 && <span className="text-sm">D-{countdown.d}</span>}
               <span className="text-lg">{countdown.label}</span>
@@ -147,7 +146,7 @@ export const ServerEventsWidget = () => {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-[var(--color-text-primary)] truncate">{e.title}</p>
                   <p className="text-[11px] text-[var(--color-text-muted)]">
-                    {fmtDate(e.eventAt)} · {t(key)}{e.note ? ` · ${e.note}` : ''}
+                    {fmtDate(e.eventAt, i18n.language)} · {t(key)}{e.note ? ` · ${e.note}` : ''}
                   </p>
                 </div>
                 {isAdmin && (
@@ -184,7 +183,7 @@ export const ServerEventsWidget = () => {
             </div>
             <div>
               <label className="text-xs text-[var(--color-text-muted)] mb-1 block">{t('server_home.event_field_when')} *</label>
-              <Input type="datetime-local" value={draft.eventAt} onChange={(e) => setDraft({ ...draft, eventAt: e.target.value })} />
+              <DateTimePicker value={draft.eventAt} onChange={(v) => setDraft({ ...draft, eventAt: v })} ariaLabel={t('server_home.event_field_when')} />
             </div>
             <div>
               <label className="text-xs text-[var(--color-text-muted)] mb-1 block">{t('server_home.event_field_category')}</label>

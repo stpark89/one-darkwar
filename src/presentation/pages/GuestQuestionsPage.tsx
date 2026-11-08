@@ -162,7 +162,7 @@ export const GuestQuestionsPage = () => {
                 )}
               </div>
               <p className="text-[11px] text-[var(--color-text-muted)] mb-2">
-                {q.authorName} · {new Date(q.createdAt).toLocaleString()}
+                {q.authorName} · {new Date(q.createdAt).toLocaleString(i18n.language)}
               </p>
               {q.content && (
                 <p className="text-xs text-[var(--color-text-secondary)] line-clamp-2">{truncate(q.content)}</p>
@@ -223,7 +223,7 @@ export const GuestQuestionsPage = () => {
                   {displayOrTranslation(`q-title-${activeQuestion.id}`, activeQuestion.title)}
                 </h2>
                 <p className="text-[11px] text-[var(--color-text-muted)] mt-1">
-                  {activeQuestion.authorName} · {new Date(activeQuestion.createdAt).toLocaleString()}
+                  {activeQuestion.authorName} · {new Date(activeQuestion.createdAt).toLocaleString(i18n.language)}
                 </p>
               </div>
               <div className="flex items-center gap-1 flex-shrink-0 -mt-1 -mr-1">
@@ -292,7 +292,7 @@ export const GuestQuestionsPage = () => {
                                 {t('questions.admin_badge')}
                               </span>
                             )}
-                            <span className="text-[var(--color-text-muted)] font-normal">· {new Date(a.createdAt).toLocaleString()}</span>
+                            <span className="text-[var(--color-text-muted)] font-normal">· {new Date(a.createdAt).toLocaleString(i18n.language)}</span>
                           </div>
                           {isAdmin && (
                             <button

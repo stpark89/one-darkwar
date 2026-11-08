@@ -3,6 +3,7 @@ import { useNavigate, Navigate } from 'react-router-dom'
 import { Loader2, CheckCircle2, XCircle, Clock, Trash2, RotateCcw, Layers, Pencil, Plus, Save, X, Search, Bell, BellOff, Users, ChevronDown, Mail, MailCheck } from 'lucide-react'
 import { CopyButton } from '@/presentation/components/ui/copy-button'
 import { useTranslation } from 'react-i18next'
+import i18n from '@/i18n'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { useTransferStore } from '@/infrastructure/stores/transferStore'
 import { SeasonBar } from '@/presentation/components/transfer/SeasonBar'
@@ -407,7 +408,7 @@ export const TransferPage = () => {
                           ) : null}
                         </div>
                         <p className="text-[11px] text-[var(--color-text-muted)] mt-0.5">
-                          {new Date(a.createdAt).toLocaleString()}
+                          {new Date(a.createdAt).toLocaleString(i18n.language)}
                         </p>
                       </div>
                       <div className="flex flex-col items-end gap-1 flex-shrink-0">
@@ -591,7 +592,7 @@ export const TransferPage = () => {
                     >
                       {a.invitedAt ? <MailCheck className="w-3.5 h-3.5" /> : <Mail className="w-3.5 h-3.5" />}
                       {a.invitedAt
-                        ? t('transfer.invited_on', { date: new Date(a.invitedAt).toLocaleDateString() })
+                        ? t('transfer.invited_on', { date: new Date(a.invitedAt).toLocaleDateString(i18n.language) })
                         : t('transfer.mark_invited')}
                     </button>
                   </div>

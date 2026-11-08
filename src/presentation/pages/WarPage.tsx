@@ -5,6 +5,7 @@ import { useWarStore } from '@/infrastructure/stores/warStore'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import type { WarTeam, WarRole } from '@/domain/entities/War'
 import { Input } from '@/presentation/components/ui/input'
+import { DatePicker } from '@/presentation/components/ui/date-picker'
 import { Button } from '@/presentation/components/ui/button'
 import { SortIcon, nextSortDir } from '@/presentation/components/ui/sort-icon'
 import type { SortDir } from '@/presentation/components/ui/sort-icon'
@@ -507,7 +508,7 @@ export const WarPage = () => {
             </div>
             <div>
               <label className="text-xs text-[var(--color-text-muted)] mb-1 block">{t('war.round_date_label')}</label>
-              <Input type="date" value={newRoundDate} onChange={e => setNewRoundDate(e.target.value)} />
+              <DatePicker value={newRoundDate} onChange={setNewRoundDate} withYear ariaLabel={t('war.round_date_label')} className="flex h-9 w-full items-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 text-sm text-left text-[var(--color-text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--color-brand)]" />
             </div>
             <div className="flex gap-2 mt-5">
               <Button variant="outline" size="full" onClick={() => setShowAddRound(false)}>{t('common.cancel')}</Button>
@@ -527,7 +528,7 @@ export const WarPage = () => {
             </div>
             <div>
               <label className="text-xs text-[var(--color-text-muted)] mb-1 block">{t('war.round_date_label')}</label>
-              <Input type="date" value={editRoundDate} onChange={e => setEditRoundDate(e.target.value)} />
+              <DatePicker value={editRoundDate} onChange={setEditRoundDate} withYear ariaLabel={t('war.round_date_label')} className="flex h-9 w-full items-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 text-sm text-left text-[var(--color-text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--color-brand)]" />
             </div>
             <div className="flex gap-2 mt-5">
               <Button variant="outline" size="full" onClick={() => setEditRoundId(null)}>{t('common.cancel')}</Button>

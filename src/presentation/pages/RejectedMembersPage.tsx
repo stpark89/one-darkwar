@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { Loader2, Trash2, UserX, RotateCcw } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import i18n from '@/i18n'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { useApprovalStore } from '@/infrastructure/stores/approvalStore'
 
@@ -60,7 +61,7 @@ export const RejectedMembersPage = () => {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-[var(--color-text-primary)] truncate">{u.inGameName}</p>
                 <p className="text-[11px] text-[var(--color-text-muted)]">
-                  {new Date(u.createdAt).toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })} {t('approval.applied_at')}
+                  {new Date(u.createdAt).toLocaleString(i18n.language, { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })} {t('approval.applied_at')}
                 </p>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">

@@ -112,6 +112,13 @@ signOut: async () => {
 컴포넌트는 `t()`, 스토어·lib 는 `import i18n from '@/i18n'` 후 `i18n.t()`.
 예외: 엑셀 헤더 다국어 별칭(`excelService`)·채팅 한글 명령어 별칭(`ChatWidget`) — 입력 인식용이다.
 
+🔴 **브라우저가 그리는 문구도 다국어 대상이다** — `t()` 로 못 바꾸므로 아예 쓰지 않는다.
+- ⛔ `<input type="date|datetime-local|time">` — 자리표시자(「연도. 월. 일.」)·달력이 **OS 언어**로 뜬다.
+  → [`ui/date-picker.tsx`](src/presentation/components/ui/date-picker.tsx) 의 `DatePicker` 를 쓴다.
+- ⛔ 인자 없는 `toLocaleString()`·`toLocaleDateString()` — 브라우저 언어로 찍힌다. → `(i18n.language, …)` 를 넘긴다.
+- ⛔ `window.alert`·`confirm`·`prompt` — 버튼이 OS 언어다. → 앱 모달 + `t()`.
+- 근거: 2026-11-08 점령 순번 날짜 열이 영어 화면에서 한국어 달력으로 떴다(키 4종은 다 넣었는데도).
+
 ---
 
 ## 4. Supabase 마이그레이션

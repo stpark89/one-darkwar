@@ -627,7 +627,7 @@ export const ChatWidget = () => {
                           {msg.content}
                         </div>
                         <span className="text-[10px] text-[var(--color-text-muted)] px-1">
-                          {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {new Date(msg.created_at).toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
                     )
@@ -671,7 +671,7 @@ export const ChatWidget = () => {
                         </button>
                       </div>
                       <span className="text-[10px] text-[var(--color-text-muted)] px-1">
-                        {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {new Date(msg.created_at).toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
                   )

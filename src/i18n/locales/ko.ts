@@ -429,6 +429,11 @@ export default {
     footer_participants_hint: '한 번이라도 참여한 인원 / 전체 멤버 수',
     loading: '로딩 중...',
     no_data: '데이터가 없습니다',
+    pick_date: '날짜 선택',
+    clear: '지우기',
+    today: '오늘',
+    prev_month: '이전 달',
+    next_month: '다음 달',
   },
   members: {
     title: '멤버 관리',

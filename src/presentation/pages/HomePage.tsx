@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Users, Wifi, Swords, CalendarDays, Loader2, AlertCircle, Megaphone, Pin, ChevronRight, MessageSquare, MessageCircle, Download, X, Share, MoreVertical, RefreshCw } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import i18n from '@/i18n'
 import { useMemberStore } from '@/infrastructure/stores/memberStore'
 import { useWarStore } from '@/infrastructure/stores/warStore'
 import { useEventStore } from '@/infrastructure/stores/eventStore'
@@ -568,7 +569,7 @@ export const HomePage = () => {
                   {notice.authorName}
                 </span>
                 <span className="text-[11px] text-[var(--color-text-muted)] flex-shrink-0 hidden sm:block">
-                  {new Date(notice.createdAt).toLocaleDateString([], { month: '2-digit', day: '2-digit' })}
+                  {new Date(notice.createdAt).toLocaleDateString(i18n.language, { month: '2-digit', day: '2-digit' })}
                 </span>
               </li>
             ))}
@@ -614,7 +615,7 @@ export const HomePage = () => {
                   </span>
                 )}
                 <span className="text-[11px] text-[var(--color-text-muted)] flex-shrink-0 hidden sm:block">
-                  {new Date(post.createdAt).toLocaleDateString([], { month: '2-digit', day: '2-digit' })}
+                  {new Date(post.createdAt).toLocaleDateString(i18n.language, { month: '2-digit', day: '2-digit' })}
                 </span>
               </li>
             ))}

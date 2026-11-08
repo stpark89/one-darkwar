@@ -388,7 +388,7 @@ export const TransferStatusPage = () => {
                     )}
                     <div className="flex gap-2">
                       <span className="text-[var(--color-text-muted)] w-16 flex-shrink-0">{t('transfer_status.submitted_at')}</span>
-                      <span className="text-[var(--color-text-primary)]">{new Date(a.createdAt).toLocaleString()}</span>
+                      <span className="text-[var(--color-text-primary)]">{new Date(a.createdAt).toLocaleString(i18n.language)}</span>
                     </div>
                   </div>
                 </div>

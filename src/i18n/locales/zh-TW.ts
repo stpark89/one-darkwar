@@ -426,6 +426,11 @@ export default {
     footer_participants_hint: '至少參與一次的人數 / 全體成員數',
     loading: '載入中...',
     no_data: '無資料',
+    pick_date: '選擇日期',
+    clear: '清除',
+    today: '今天',
+    prev_month: '上個月',
+    next_month: '下個月',
   },
   members: {
     title: '成員管理',

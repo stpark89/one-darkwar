@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useEventStore } from '@/infrastructure/stores/eventStore'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { Input } from '@/presentation/components/ui/input'
+import { DatePicker } from '@/presentation/components/ui/date-picker'
 import { Button } from '@/presentation/components/ui/button'
 import { SortIcon, nextSortDir } from '@/presentation/components/ui/sort-icon'
 import type { SortDir } from '@/presentation/components/ui/sort-icon'
@@ -752,10 +753,12 @@ export const EventsPage = () => {
               </div>
               <div>
                 <label className="text-xs text-[var(--color-text-muted)] mb-1 block">{t('events.event_date_label')}</label>
-                <Input
-                  type="date"
+                <DatePicker
                   value={newEventDate}
-                  onChange={(e) => setNewEventDate(e.target.value)}
+                  onChange={setNewEventDate}
+                  withYear
+                  ariaLabel={t('events.event_date_label')}
+                  className="flex h-9 w-full items-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 text-sm text-left text-[var(--color-text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--color-brand)]"
                 />
               </div>
             </div>

@@ -11,6 +11,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Loader2, ChevronDown, Users, User, Clock, CheckCircle2, ChevronRight, Filter, X, MessageSquare, Settings, Ticket } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import i18n from '@/i18n'
 import { useAuthStore } from '@/infrastructure/stores/authStore'
 import { useTransferStore } from '@/infrastructure/stores/transferStore'
 import { useTransferTierStore, findTierForCp } from '@/infrastructure/stores/transferTierStore'
@@ -178,7 +179,7 @@ export const TransferListPage = () => {
                         {allianceLabel(group.desiredAlliance, group.desiredAllianceOther)}
                       </span>
                       <span className="text-[11px] text-[var(--color-text-muted)]">
-                        {new Date(group.createdAt).toLocaleDateString()}
+                        {new Date(group.createdAt).toLocaleDateString(i18n.language)}
                       </span>
                     </div>
                   </div>
@@ -286,7 +287,7 @@ export const TransferListPage = () => {
               />
               <DetailRow label={t('transfer.field_total_power')} value={detail.totalPower || '—'} />
               <DetailRow label={t('transfer.field_cp')} value={detail.cp || '—'} />
-              <DetailRow label={t('transfer_status.submitted_at')} value={new Date(detail.createdAt).toLocaleString()} />
+              <DetailRow label={t('transfer_status.submitted_at')} value={new Date(detail.createdAt).toLocaleString(i18n.language)} />
             </div>
 
             {/* 관리자 메시지 */}
