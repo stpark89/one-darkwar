@@ -409,6 +409,8 @@ export default {
   },
   common: {
     translate_same_language: 'Nội dung này đã ở ngôn ngữ hiện tại',
+    translate_failed: 'Dịch thất bại. Vui lòng thử lại sau',
+    translate_quota: 'Đã hết lượt dịch hôm nay. Vui lòng thử lại vào ngày mai',
     copy: 'Sao chép',
     copied: 'Đã sao chép',
     copy_failed: 'Sao chép thất bại',

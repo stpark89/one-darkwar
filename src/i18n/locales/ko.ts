@@ -409,6 +409,8 @@ export default {
   },
   common: {
     translate_same_language: '이미 현재 언어로 작성된 글입니다',
+    translate_failed: '번역에 실패했어요. 잠시 후 다시 시도해 주세요',
+    translate_quota: '오늘 번역 사용량을 모두 썼어요. 내일 다시 시도해 주세요',
     copy: '복사',
     copied: '복사됨',
     copy_failed: '복사 실패',

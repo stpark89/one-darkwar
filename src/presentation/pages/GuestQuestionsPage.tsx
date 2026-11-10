@@ -6,7 +6,7 @@ import { useGuestQuestionStore } from '@/infrastructure/stores/guestQuestionStor
 import { Input } from '@/presentation/components/ui/input'
 import { Button } from '@/presentation/components/ui/button'
 import { toast } from 'sonner'
-import { translate } from '@/lib/translate'
+import { translate, translateErrorKey } from '@/lib/translate'
 import { cn } from '@/lib/utils'
 
 const PREVIEW_LIMIT = 80
@@ -109,6 +109,7 @@ export const GuestQuestionsPage = () => {
       setTranslations((prev) => new Map(prev).set(key, text))
     } catch (err) {
       console.error('translate error', err)
+      toast.error(t(translateErrorKey(err)))
     } finally {
       setTranslating((prev) => {
         const next = new Set(prev)

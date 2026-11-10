@@ -9,7 +9,7 @@ import { MediaUploader } from '@/presentation/components/MediaUploader'
 import { MediaViewer } from '@/presentation/components/MediaViewer'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
-import { translate } from '@/lib/translate'
+import { translate, translateErrorKey } from '@/lib/translate'
 
 function timeAgo(dateStr: string, t: (k: string, o?: Record<string, unknown>) => string): string {
   const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000)
@@ -97,8 +97,9 @@ export const NoticePage = () => {
       const { text, sameLanguage } = await translate(content, i18n.language)
       if (sameLanguage) toast.info(t('common.translate_same_language'))
       setTranslations((prev) => new Map(prev).set(id, text))
-    } catch {
-      // silent
+    } catch (err) {
+      console.error('[Notice] translate error', err)
+      toast.error(t(translateErrorKey(err)))
     } finally {
       setTranslatingId(null)
     }

@@ -409,6 +409,8 @@ export default {
   },
   common: {
     translate_same_language: '此內容已是目前語言',
+    translate_failed: '翻譯失敗，請稍後再試',
+    translate_quota: '今日翻譯次數已用完，請明天再試',
     copy: '複製',
     copied: '已複製',
     copy_failed: '複製失敗',

@@ -409,6 +409,8 @@ export default {
   },
   common: {
     translate_same_language: 'This text is already in your language',
+    translate_failed: 'Translation failed. Please try again later',
+    translate_quota: 'The daily translation limit has been reached. Please try again tomorrow',
     copy: 'Copy',
     copied: 'Copied',
     copy_failed: 'Copy failed',

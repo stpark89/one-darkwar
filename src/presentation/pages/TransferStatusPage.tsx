@@ -10,7 +10,7 @@ import { Input } from '@/presentation/components/ui/input'
 import { Button } from '@/presentation/components/ui/button'
 import { TierReference } from '@/presentation/components/TierReference'
 import { toast } from 'sonner'
-import { translate } from '@/lib/translate'
+import { translate, translateErrorKey } from '@/lib/translate'
 import { parseCp } from '@/lib/cp'
 import { cn } from '@/lib/utils'
 import { tierDisplayName } from '@/lib/tierName'
@@ -65,6 +65,7 @@ export const TransferStatusPage = () => {
       setTranslations((prev) => new Map(prev).set(id, text))
     } catch (err) {
       console.error('[TransferStatus] translate error', err)
+      toast.error(t(translateErrorKey(err)))
     } finally {
       setTranslating((prev) => {
         const next = new Set(prev)

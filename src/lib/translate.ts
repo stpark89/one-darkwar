@@ -27,6 +27,27 @@ export function normalizeLang(lang: string): string {
 // 에러로 안 잡히고, 그대로 화면에 뿌리면 사용자에게는 "번역이 안 된 것"으로 보인다.
 const SAME_LANG_MARKER = 'PLEASE SELECT TWO DISTINCT LANGUAGES'
 
+// 무료 일일 한도 소진 문구. 상태가 200 으로 오면서 번역문 자리에 이 경고가 들어오는 경우도 있어
+// 상태만 보면 경고문을 번역 결과로 화면에 뿌리게 된다.
+const QUOTA_MARKER = 'USED ALL AVAILABLE FREE TRANSLATIONS'
+
+/** 실패 사유 — 호출부가 사용자 안내 문구를 고르는 데 쓴다 */
+export class TranslateError extends Error {
+  reason: 'quota' | 'failed'
+  constructor(reason: 'quota' | 'failed', message: string) {
+    super(message)
+    this.name = 'TranslateError'
+    this.reason = reason
+  }
+}
+
+/** 실패를 사용자 안내용 i18n 키로 바꾼다. 네트워크 오류 등 알 수 없는 실패는 일반 실패로 본다. */
+export function translateErrorKey(err: unknown): string {
+  return err instanceof TranslateError && err.reason === 'quota'
+    ? 'common.translate_quota'
+    : 'common.translate_failed'
+}
+
 export interface TranslateResult {
   text: string
   /** API 가 판별한 원문 언어. 판별하지 못하면 null */
@@ -108,8 +129,15 @@ async function translateChunk(text: string, targetLang: string): Promise<Transla
     return { text, detectedLang: detected ?? lang, sameLanguage: true }
   }
 
+  if (
+    data.quotaFinished === true ||
+    Number(data.responseStatus) === 429 ||
+    `${details} ${translated}`.toUpperCase().includes(QUOTA_MARKER)
+  ) {
+    throw new TranslateError('quota', details || translated)
+  }
   if (Number(data.responseStatus) !== 200) {
-    throw new Error(details || 'Translation failed')
+    throw new TranslateError('failed', details || 'Translation failed')
   }
   if (detected && normalizeLang(detected) === lang) {
     return { text: translated, detectedLang: detected, sameLanguage: true }

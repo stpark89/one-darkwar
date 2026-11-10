@@ -9,7 +9,7 @@
 | 이벤트 날짜 교정·백업·복원 절차 | `supabase/fix_event_date_from_name.sql` |
 | 291 홈 히어로 시안 → 구현 | `.tasks/design/server-home-hero.html` → `components/server/ServerHero.tsx` |
 | 미디어 축소를 왜 transform 으로 했나 | `src/lib/uploadMedia.ts` 머리 주석 · 커밋 `4fa80f9` |
-| 번역이 안 되던 원인 3개 | `src/lib/translate.ts` 주석 · 커밋 `8371067` · `d63be26`(같은 언어 → 무반응) |
+| 번역이 안 되던 원인 4개 | `src/lib/translate.ts` 주석 · `8371067` · `d63be26`(같은 언어) · `67372a9`(500자 한도) |
 | s7 시즌 사고·S2→s7 이관·되돌리기 | `supabase/fix_transfer_s2_to_s7_20261108.sql`(실행 완료) · 백업 `backup.*_20261108` |
 | 하드코딩 한국어 → i18n 전수 교체 · 등급명 색 번역 | 커밋 `ac7e69d` · `src/lib/tierName.ts` · `b9b04ea` |
 | 점령 순번 주차 날짜·주차 삭제 | 커밋 `4e3b5c0` · `supabase/migration_occupation_week_date.sql`(실행 완료) |
@@ -19,7 +19,7 @@
 ## 지금 한 줄
 
 11-08~10: 관리자가 「새 시즌」으로 s7 겨울이주를 열어 S2 신청이 「사라진」 것처럼 보임(삭제 아님, 로그로 확인).
-사용자 결정으로 **S2 승인 41·대기 1·단체 3·등급 4 를 s7 로 이관**(백업 대비 변경 0건, 실측 SQL). 번역 무반응 수정 `d63be26`.
+사용자 결정으로 **S2 승인 41·대기 1·단체 3·등급 4 를 s7 로 이관**(백업 대비 변경 0건, 실측 SQL). 번역: 같은 언어·500자 초과 무반응 수정 + 실패 시 4개 언어 안내(한도/일반).
 
 ## 다음 1수
 
@@ -48,6 +48,7 @@
 - **비율의 분모에 「아직 안 채운 것」을 넣지 마라** — 분모는 **기록이 있는 것만** 센다(eventRate).
 - **이벤트 이름은 `MMDD.이름`**. 날짜 기본값은 `todayLocal()` — `toISOString()` 은 UTC 라 하루 밀린다.
 - 날짜 표시는 **`toLocale*(i18n.language, …)`**. 번역 API 에는 `normalizeLang()` 경유('ko-KR' 문제).
+- **번역 실패를 조용히 삼키지 마라** — `toast.error(t(translateErrorKey(err)))`. MyMemory 는 실패도 HTTP 200 + 문자열 상태로 준다.
 - 히어로의 신청 대기 수는 **`PENDING_SHOW_MIN`(5) 미만이면 숨긴다**.
 - 이미지는 **`displayUrl(url, 폭)`** 경유. ⚠️ **Pro 플랜 transform** 의존. Storage **`cacheControl` 은 `3600`**.
 - **「새 시즌 열기」는 등급표를 복사하지 않는다** — 열면 등급 0개. 단체(`application_groups`)도 시즌별이라 신청서만 옮기면 단체원이 안 그려진다.
