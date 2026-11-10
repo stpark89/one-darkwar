@@ -45,16 +45,19 @@ export async function translate(text: string, targetLang: string): Promise<Trans
     `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=autodetect|${lang}`,
   )
   const data = await res.json()
-  if (data.responseStatus !== 200) {
-    throw new Error(data.responseDetails ?? 'Translation failed')
+  const detected: string | null = data.responseData?.detectedLanguage ?? null
+  const translated = String(data.responseData?.translatedText ?? '')
+
+  // 같은 언어면 번역할 게 없다 — 원문을 그대로 돌려주고 호출부가 안내하게 한다.
+  // ⚠️ 상태 검사보다 먼저 봐야 한다: 이 경우 MyMemory 는 responseStatus 를 문자열 "403" 으로
+  // 준다. 상태를 먼저 보면 throw → 호출부가 조용히 삼켜 **버튼이 무반응**이 된다(2026-11-10).
+  const details = String(data.responseDetails ?? '')
+  if (translated.toUpperCase().includes(SAME_LANG_MARKER) || details.toUpperCase().includes(SAME_LANG_MARKER)) {
+    return { text, detectedLang: detected ?? lang, sameLanguage: true }
   }
 
-  const detected: string | null = data.responseData?.detectedLanguage ?? null
-  const translated = String(data.responseData.translatedText ?? '')
-
-  // 같은 언어면 번역할 게 없다 — 원문을 그대로 돌려주고 호출부가 안내하게 한다
-  if (translated.toUpperCase().includes(SAME_LANG_MARKER)) {
-    return { text, detectedLang: detected ?? lang, sameLanguage: true }
+  if (Number(data.responseStatus) !== 200) {
+    throw new Error(details || 'Translation failed')
   }
   if (detected && normalizeLang(detected) === lang) {
     return { text: translated, detectedLang: detected, sameLanguage: true }
