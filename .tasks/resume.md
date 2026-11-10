@@ -9,7 +9,8 @@
 | 이벤트 날짜 교정·백업·복원 절차 | `supabase/fix_event_date_from_name.sql` |
 | 291 홈 히어로 시안 → 구현 | `.tasks/design/server-home-hero.html` → `components/server/ServerHero.tsx` |
 | 미디어 축소를 왜 transform 으로 했나 | `src/lib/uploadMedia.ts` 머리 주석 · 커밋 `4fa80f9` |
-| 번역이 안 되던 원인 2개 | `src/lib/translate.ts` 머리 주석 · 커밋 `8371067` |
+| 번역이 안 되던 원인 3개 | `src/lib/translate.ts` 주석 · 커밋 `8371067` · `d63be26`(같은 언어 → 무반응) |
+| s7 시즌 사고·S2→s7 이관·되돌리기 | `supabase/fix_transfer_s2_to_s7_20261108.sql`(실행 완료) · 백업 `backup.*_20261108` |
 | 하드코딩 한국어 → i18n 전수 교체 · 등급명 색 번역 | 커밋 `ac7e69d` · `src/lib/tierName.ts` · `b9b04ea` |
 | 점령 순번 주차 날짜·주차 삭제 | 커밋 `4e3b5c0` · `supabase/migration_occupation_week_date.sql`(실행 완료) |
 | 왜 네이티브 날짜 입력을 안 쓰나 | `components/ui/date-picker.tsx` 머리 주석 · 커밋 `0aefcc6` |
@@ -17,15 +18,15 @@
 
 ## 지금 한 줄
 
-11-08: 점령 순번 표에 **주차 날짜 열 + 주차 일괄 삭제**(`4e3b5c0`) → 영어 화면에 한국어 달력이 떠서
-**날짜 입력 6곳·표시 14곳을 앱 언어로** 교체(`0aefcc6`, 자체 `DatePicker`/`DateTimePicker`). main·develop 배포.
-선택기는 로컬 단독 마운트로 en/vi/zh-TW 확인(실측: 11-08 preview). **관리자 화면 안 저장은 미확인.**
+11-08~10: 관리자가 「새 시즌」으로 s7 겨울이주를 열어 S2 신청이 「사라진」 것처럼 보임(삭제 아님, 로그로 확인).
+사용자 결정으로 **S2 승인 41·대기 1·단체 3·등급 4 를 s7 로 이관**(백업 대비 변경 0건, 실측 SQL). 번역 무반응 수정 `d63be26`.
 
 ## 다음 1수
 
-1. **관리자 계정으로 점령 순번 확인** — 기존 주차 날짜가 비어 「—」. 날짜 지정·주차 삭제·서버 일정 시각 저장을 실물로 본다.
-2. **관리자 계정으로 베트남어 「이주 진행 현황」 확인** — 관리자 전용이라 렌더 미확인(키 해석만 확인).
-3. **en/vi/zh-TW 등급명을 게임 공식 용어로 교체** — `tiers.name_*` 만 고치면 된다.
+1. **s7 「31G」 신청자 전투력 확인** — 31M 오타면 통솔자 자리가 비고 중견 41/40 이 된다.
+2. **관리자 계정으로 점령 순번 확인** — 기존 주차 날짜가 비어 「—」. 날짜 지정·주차 삭제·서버 일정 시각 저장을 실물로 본다.
+3. **관리자 계정으로 베트남어 「이주 진행 현황」 확인** — 관리자 전용이라 렌더 미확인(키 해석만 확인).
+4. **en/vi/zh-TW 등급명을 게임 공식 용어로 교체** — `tiers.name_*` 만 고치면 된다.
 
 > 대기: 등급 전투력 구간 실제값(현재 175M~/80~175/40~80/0~40 임시) · 참여 횟수 운영 확인(0903 62명 누락 여부) ·
 > `events_backup_260928` 문제없으면 DROP · eslint 기존 오류 26개(이번 변경 무관, 실측 11-08 HEAD 대조).
@@ -49,6 +50,7 @@
 - 날짜 표시는 **`toLocale*(i18n.language, …)`**. 번역 API 에는 `normalizeLang()` 경유('ko-KR' 문제).
 - 히어로의 신청 대기 수는 **`PENDING_SHOW_MIN`(5) 미만이면 숨긴다**.
 - 이미지는 **`displayUrl(url, 폭)`** 경유. ⚠️ **Pro 플랜 transform** 의존. Storage **`cacheControl` 은 `3600`**.
+- **「새 시즌 열기」는 등급표를 복사하지 않는다** — 열면 등급 0개. 단체(`application_groups`)도 시즌별이라 신청서만 옮기면 단체원이 안 그려진다.
 - **이주 조회에는 시즌 필터**를 건다. INSERT 는 건드리지 마라(DB DEFAULT). 시즌 전환 시 두 스토어 **`initialized` 리셋**.
 - Presence 는 **`config.presence.key` 를 믿지 마라** — id 는 `track()` 에 담아 읽는다.
 - **등급 색은 `TIER_COLOR_CLASS` 외에 `TransferListPage` 자체 색 표가 하나 더 있다** — 색 추가 시 둘 다.
